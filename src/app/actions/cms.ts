@@ -177,3 +177,37 @@ export async function updateNotice(id: string, prevState: any, formData: FormDat
     return { error: error.message || 'An unexpected error occurred.' };
   }
 }
+
+export async function deleteNews(formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const id = formData.get('id') as string;
+    if (!id) throw new Error('ID is required');
+
+    const { error } = await supabase.from('news').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/');
+    revalidatePath('/news');
+    revalidatePath('/admin/news');
+  } catch (error: any) {
+    console.error('Failed to delete news:', error);
+  }
+}
+
+export async function deleteNotice(formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const id = formData.get('id') as string;
+    if (!id) throw new Error('ID is required');
+
+    const { error } = await supabase.from('notices').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/');
+    revalidatePath('/notices');
+    revalidatePath('/admin/notices');
+  } catch (error: any) {
+    console.error('Failed to delete notice:', error);
+  }
+}
