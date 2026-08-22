@@ -1,12 +1,120 @@
-import React from 'react';
-import PortalRoleSelector from '@/components/auth/PortalRoleSelector';
-import MeshBackground from '@/components/layout/MeshBackground';
+'use client';
+
+import { useActionState } from 'react';
+import { login } from '@/app/actions/auth';
+import Link from 'next/link';
 
 export default function LoginPage() {
+  const [state, formAction, pending] = useActionState(login, null);
+
   return (
-    <div className="min-h-screen relative flex flex-col justify-center items-center px-4 py-16">
-      <MeshBackground />
-      <PortalRoleSelector />
+    <div className="min-h-screen bg-campus-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 tracking-tight heading-display">
+          Sign in to EBAUB
+        </h2>
+        <p className="mt-2 text-center text-sm text-slate-600">
+          Digital Campus Portal
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-xl sm:px-10 border border-slate-200/60">
+          <form action={formAction} className="space-y-6">
+            {state?.error && (
+              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-md text-sm font-medium">
+                {state.error}
+              </div>
+            )}
+            
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+                University Email
+              </label>
+              <div className="mt-1">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                  placeholder="id@ebaub.edu.bd"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                Password
+              </label>
+              <div className="mt-1">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="appearance-none block w-full px-3 py-2.5 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  className="h-4 w-4 text-emerald-800 focus:ring-emerald-500 border-slate-300 rounded cursor-pointer"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-700 cursor-pointer">
+                  Remember me
+                </label>
+              </div>
+
+              <div className="text-sm">
+                <a href="#" className="font-medium text-emerald-800 hover:text-emerald-700 transition-colors">
+                  Forgot your password?
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={pending}
+                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-800 hover:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+              >
+                {pending ? 'Signing in...' : 'Sign in'}
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-slate-500">Need help?</span>
+              </div>
+            </div>
+
+            <div className="mt-6 text-center text-sm">
+              <Link href="/contact" className="font-medium text-emerald-800 hover:text-emerald-700 transition-colors">
+                Contact IT Support
+              </Link>
+            </div>
+          </div>
+        </div>
+        
+        <p className="mt-8 text-center text-xs text-slate-500">
+          <Link href="/" className="hover:text-emerald-800 transition-colors">
+            &larr; Return to Homepage
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

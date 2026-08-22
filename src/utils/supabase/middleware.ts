@@ -31,7 +31,32 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Define protected paths
+  const protectedPaths = ['/student', '/teacher', '/admin', '/cms']
+  
+  // Check if the current request is for a protected path
+  const isProtected = protectedPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path)
+  )
+
+  // Redirect to login if unauthenticated and trying to access a protected route
+  if (!user && isProtected) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    
+    const redirectResponse = NextResponse.redirect(url)
+    
+    // Ensure any cookies set by Supabase (like clearing an invalid session) are passed to the redirect
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    
+    return redirectResponse
+  }
 
   return supabaseResponse
 }
