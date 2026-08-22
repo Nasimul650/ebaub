@@ -8,7 +8,7 @@ export default async function AdmissionsPage() {
   const programs = await getPrograms();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
+    <div className="max-w-7xl mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200/80 p-8 sm:p-14 lg:p-16 space-y-16">
       <PageHeader
         badge="EBAUB Admissions Office"
         headline="Begin Your Academic Journey at EBAUB"

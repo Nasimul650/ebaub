@@ -37,7 +37,7 @@ export default function Navbar() {
 
   return (
     <>
-      <AnnouncementBanner />
+      {/* <AnnouncementBanner /> */}
 
       {/* Main Clean Header (Matching 11.mp4 navigation bar) */}
       <header
