@@ -26,20 +26,20 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col md:flex-row">
       
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0">
+      <aside className="w-full md:w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
         
         {/* Header Logo */}
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center text-white">
-              <BookOpen className="w-6 h-6 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-xs">
+              <BookOpen className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="font-extrabold text-sm text-white">Student Hub</div>
-              <div className="text-[10px] text-sky-400 font-semibold uppercase">EBAUB Campus</div>
+              <div className="font-extrabold text-sm text-slate-900">Student Hub</div>
+              <div className="text-[10px] text-blue-700 font-bold uppercase">EBAUB Campus</div>
             </div>
           </Link>
         </div>
@@ -55,8 +55,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 href={item.href}
                 className={`flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all ${
                   isActive
-                    ? 'bg-sky-600 text-white shadow-md shadow-sky-950/40'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                    ? 'bg-blue-50 text-blue-800 font-bold border border-blue-200 shadow-2xs'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -67,17 +67,17 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         </nav>
 
         {/* User profile strip */}
-        <div className="p-4 border-t border-slate-800 flex items-center justify-between text-xs">
+        <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-300 font-bold text-xs">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-extrabold flex items-center justify-center text-xs">
               S
             </div>
             <div>
-              <div className="font-bold text-white">CSE Student</div>
-              <div className="text-[10px] text-slate-400">B.Sc. CSE Year 2</div>
+              <div className="font-bold text-slate-900">CSE Student</div>
+              <div className="text-[10px] text-slate-500">B.Sc. CSE Year 2</div>
             </div>
           </div>
-          <Link href="/" className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white">
+          <Link href="/" className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700">
             <LogOut className="w-4 h-4" />
           </Link>
         </div>

@@ -11,13 +11,13 @@ export default function StudentFilesPage() {
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       <div>
-        <h1 className="text-2xl font-extrabold text-white">Course Files Library</h1>
-        <p className="text-xs text-slate-400 mt-1">Direct file repository for enrolled department courses</p>
+        <h1 className="text-2xl font-extrabold text-slate-900 heading-display">Course Files Library</h1>
+        <p className="text-xs text-slate-500 mt-1">Direct file repository for enrolled department courses</p>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
         <table className="w-full text-left text-xs">
-          <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-semibold uppercase text-[10px]">
+          <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
             <tr>
               <th className="p-4">File Name</th>
               <th className="p-4">Type</th>
@@ -26,18 +26,18 @@ export default function StudentFilesPage() {
               <th className="p-4 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 text-slate-200">
+          <tbody className="divide-y divide-slate-100 text-slate-700">
             {dummyFiles.map((file, i) => (
-              <tr key={i} className="hover:bg-slate-800/50">
-                <td className="p-4 font-bold text-white flex items-center gap-2">
-                  <FileCode className="w-4 h-4 text-sky-400" />
+              <tr key={i} className="hover:bg-slate-50/80">
+                <td className="p-4 font-bold text-slate-900 flex items-center gap-2">
+                  <FileCode className="w-4 h-4 text-blue-600" />
                   <span>{file.name}</span>
                 </td>
-                <td className="p-4 text-slate-400">{file.type}</td>
-                <td className="p-4 text-slate-400">{file.size}</td>
-                <td className="p-4 text-slate-400">{file.date}</td>
+                <td className="p-4 text-slate-500">{file.type}</td>
+                <td className="p-4 text-slate-500">{file.size}</td>
+                <td className="p-4 text-slate-500">{file.date}</td>
                 <td className="p-4 text-right">
-                  <button className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs">
+                  <button className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-2xs">
                     Download
                   </button>
                 </td>

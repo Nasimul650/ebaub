@@ -48,47 +48,47 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
     results.events.length > 0;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-md flex items-start justify-center p-4 sm:pt-20 animate-in fade-in">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden text-slate-100">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-sm flex items-start justify-center p-4 sm:pt-20 animate-in fade-in">
+      <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden text-slate-900">
         
         {/* Search Bar Header */}
-        <div className="p-4 border-b border-slate-800 flex items-center gap-3 bg-slate-900/90">
-          <Search className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="p-4 border-b border-slate-200 flex items-center gap-3 bg-white">
+          <Search className="w-5 h-5 text-emerald-600 shrink-0" />
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search programs, CSE department, notices, faculty, news..."
-            className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
+            className="flex-1 bg-transparent text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
             autoFocus
           />
           {loading && <Loader2 className="w-4 h-4 animate-spin text-slate-400" />}
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white"
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Results Container */}
-        <div className="max-h-[60vh] overflow-y-auto p-4 space-y-6 text-xs">
+        <div className="max-h-[60vh] overflow-y-auto p-4 space-y-6 text-xs bg-slate-50/50">
           
           {!query.trim() && (
             <div className="text-center py-8 text-slate-500 space-y-2">
-              <Search className="w-8 h-8 mx-auto text-slate-600" />
+              <Search className="w-8 h-8 mx-auto text-slate-400" />
               <p>Type to search official EBAUB digital assets</p>
               <div className="flex flex-wrap justify-center gap-2 pt-2">
-                <button onClick={() => setQuery('CSE')} className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300">CSE</button>
-                <button onClick={() => setQuery('Notice')} className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300">Notices</button>
-                <button onClick={() => setQuery('B.Sc')} className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300">B.Sc. Programs</button>
-                <button onClick={() => setQuery('Anniversary')} className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300">Anniversary</button>
+                <button onClick={() => setQuery('CSE')} className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-slate-700">CSE</button>
+                <button onClick={() => setQuery('Notice')} className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-slate-700">Notices</button>
+                <button onClick={() => setQuery('B.Sc')} className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 border border-slate-200 text-slate-700">B.Sc. Programs</button>
+                <button onClick={() => setQuery('Anniversary')} className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 border border-amber-200 text-amber-800">Anniversary</button>
               </div>
             </div>
           )}
 
           {query.trim() && !loading && !hasResults && (
-            <div className="text-center py-8 text-slate-400">
+            <div className="text-center py-8 text-slate-500">
               No matching information found for "{query}".
             </div>
           )}
@@ -96,7 +96,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
           {/* Academic Programs */}
           {results.programs.length > 0 && (
             <div>
-              <h4 className="font-semibold text-emerald-400 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
+              <h4 className="font-semibold text-emerald-800 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
                 <BookOpen className="w-3.5 h-3.5" /> Academic Programs
               </h4>
               <div className="space-y-2">
@@ -105,10 +105,10 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
                     key={p.id}
                     href={`/academics`}
                     onClick={onClose}
-                    className="block p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 transition-colors"
+                    className="block p-3 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 transition-colors"
                   >
-                    <div className="font-bold text-white text-sm">{p.title}</div>
-                    <div className="text-slate-400 text-xs mt-1">{p.description}</div>
+                    <div className="font-bold text-slate-900 text-sm">{p.title}</div>
+                    <div className="text-slate-500 text-xs mt-1">{p.description}</div>
                   </Link>
                 ))}
               </div>
@@ -118,7 +118,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
           {/* Notices */}
           {results.notices.length > 0 && (
             <div>
-              <h4 className="font-semibold text-amber-400 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
+              <h4 className="font-semibold text-amber-800 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
                 <Bell className="w-3.5 h-3.5" /> Official Notices
               </h4>
               <div className="space-y-2">
@@ -127,13 +127,13 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
                     key={n.id}
                     href={`/notices/${n.slug}`}
                     onClick={onClose}
-                    className="block p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 transition-colors"
+                    className="block p-3 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 transition-colors"
                   >
-                    <div className="font-semibold text-amber-300 flex items-center justify-between">
+                    <div className="font-semibold text-slate-900 flex items-center justify-between">
                       <span>{n.title}</span>
-                      <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full">{n.category}</span>
+                      <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">{n.category}</span>
                     </div>
-                    <div className="text-slate-400 text-xs mt-1 line-clamp-1">{n.summary}</div>
+                    <div className="text-slate-500 text-xs mt-1 line-clamp-1">{n.summary}</div>
                   </Link>
                 ))}
               </div>
@@ -143,7 +143,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
           {/* Faculty Members */}
           {results.faculty.length > 0 && (
             <div>
-              <h4 className="font-semibold text-sky-400 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
+              <h4 className="font-semibold text-blue-800 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5" /> Faculty Members
               </h4>
               <div className="space-y-2">
@@ -152,10 +152,10 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
                     key={f.id}
                     href={`/faculty`}
                     onClick={onClose}
-                    className="block p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 transition-colors"
+                    className="block p-3 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 transition-colors"
                   >
-                    <div className="font-bold text-white">{f.name}</div>
-                    <div className="text-slate-400 text-xs">{f.designation}</div>
+                    <div className="font-bold text-slate-900">{f.name}</div>
+                    <div className="text-slate-500 text-xs">{f.designation}</div>
                   </Link>
                 ))}
               </div>
@@ -165,7 +165,7 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
           {/* News & Achievements */}
           {results.news.length > 0 && (
             <div>
-              <h4 className="font-semibold text-purple-400 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
+              <h4 className="font-semibold text-purple-800 uppercase tracking-wider text-[11px] mb-2.5 flex items-center gap-1.5">
                 <Newspaper className="w-3.5 h-3.5" /> News & Media
               </h4>
               <div className="space-y-2">
@@ -174,10 +174,10 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
                     key={nw.id}
                     href={`/news/${nw.slug}`}
                     onClick={onClose}
-                    className="block p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 transition-colors"
+                    className="block p-3 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 transition-colors"
                   >
-                    <div className="font-semibold text-white">{nw.title}</div>
-                    <div className="text-slate-400 text-xs mt-1 line-clamp-1">{nw.summary}</div>
+                    <div className="font-semibold text-slate-900">{nw.title}</div>
+                    <div className="text-slate-500 text-xs mt-1 line-clamp-1">{nw.summary}</div>
                   </Link>
                 ))}
               </div>
@@ -187,8 +187,8 @@ export default function GlobalSearchModal({ isOpen, onClose }: Props) {
         </div>
 
         {/* Footer info */}
-        <div className="p-3 border-t border-slate-800 bg-slate-950 text-[11px] text-slate-500 flex justify-between">
-          <span>Press <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-300">ESC</kbd> to close</span>
+        <div className="p-3 border-t border-slate-200 bg-white text-[11px] text-slate-500 flex justify-between">
+          <span>Press <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 border border-slate-200">ESC</kbd> to close</span>
           <span>EBAUB Search Engine</span>
         </div>
 

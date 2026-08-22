@@ -31,11 +31,11 @@ export default function BackToTopButton() {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-6 left-6 z-40 p-3 rounded-full bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 shadow-2xl transition-all hover:scale-110 flex items-center justify-center"
+      className="fixed bottom-6 left-6 z-40 p-3 rounded-full bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200 shadow-xl transition-all hover:scale-110 flex items-center justify-center"
       aria-label="Back to Top"
       title="Back to Top"
     >
-      <ChevronUp className="w-5 h-5 text-amber-400" />
+      <ChevronUp className="w-5 h-5 text-emerald-600" />
     </button>
   );
 }

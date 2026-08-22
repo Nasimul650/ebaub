@@ -48,37 +48,37 @@ export default function AdminNewsPage() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
-          <Newspaper className="w-6 h-6 text-emerald-400" /> News & Press Release CMS
+        <h1 className="text-2xl font-extrabold text-slate-900 heading-display flex items-center gap-2">
+          <Newspaper className="w-6 h-6 text-emerald-700" /> News & Press Release CMS
         </h1>
-        <p className="text-xs text-slate-400 mt-1">Publish press releases, research news, and departmental achievements</p>
+        <p className="text-xs text-slate-500 mt-1">Publish press releases, research news, and departmental achievements</p>
       </div>
 
       {/* Form */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 text-xs">
-        <h2 className="text-sm font-bold text-white flex items-center gap-2">
-          <Plus className="w-4 h-4 text-emerald-400" /> Create News Article
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-4 text-xs shadow-xs">
+        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+          <Plus className="w-4 h-4 text-emerald-600" /> Create News Article
         </h2>
 
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-300 font-medium mb-1">Headline Title</label>
+              <label className="block text-slate-700 font-semibold mb-1">Headline Title</label>
               <input
                 type="text"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="News headline..."
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 font-medium mb-1">Category</label>
+              <label className="block text-slate-700 font-semibold mb-1">Category</label>
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
               >
                 <option value="Academic">Academic</option>
                 <option value="Research & Achievement">Research & Achievement</option>
@@ -88,31 +88,31 @@ export default function AdminNewsPage() {
           </div>
 
           <div>
-            <label className="block text-slate-300 font-medium mb-1">Short Summary</label>
+            <label className="block text-slate-700 font-semibold mb-1">Short Summary</label>
             <input
               type="text"
               value={summary}
               onChange={e => setSummary(e.target.value)}
               placeholder="Brief summary..."
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
             />
           </div>
 
           <div>
-            <label className="block text-slate-300 font-medium mb-1">Full Article Body</label>
+            <label className="block text-slate-700 font-semibold mb-1">Full Article Body</label>
             <textarea
               rows={3}
               value={content}
               onChange={e => setContent(e.target.value)}
               placeholder="Full article text..."
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
             ></textarea>
           </div>
 
           <button
             type="submit"
             disabled={!title.trim() || !content.trim()}
-            className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-colors"
           >
             Publish Article
           </button>
@@ -120,12 +120,12 @@ export default function AdminNewsPage() {
       </div>
 
       {/* List */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden text-xs">
-        <div className="p-4 border-b border-slate-800 font-bold text-white">
+      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden text-xs shadow-xs">
+        <div className="p-4 border-b border-slate-100 font-bold text-slate-900">
           News Articles ({newsList.length})
         </div>
         <table className="w-full text-left">
-          <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-semibold uppercase text-[10px]">
+          <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
             <tr>
               <th className="p-4">Title</th>
               <th className="p-4">Category</th>
@@ -133,16 +133,16 @@ export default function AdminNewsPage() {
               <th className="p-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800 text-slate-200">
+          <tbody className="divide-y divide-slate-100 text-slate-700">
             {newsList.map(item => (
-              <tr key={item.id} className="hover:bg-slate-800/50">
-                <td className="p-4 font-bold text-white">{item.title}</td>
-                <td className="p-4 text-slate-400">{item.category}</td>
-                <td className="p-4 text-slate-400">{new Date(item.publishedAt).toLocaleDateString()}</td>
+              <tr key={item.id} className="hover:bg-slate-50/80">
+                <td className="p-4 font-bold text-slate-900">{item.title}</td>
+                <td className="p-4 text-slate-500">{item.category}</td>
+                <td className="p-4 text-slate-500">{new Date(item.publishedAt).toLocaleDateString()}</td>
                 <td className="p-4 text-right">
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="p-1.5 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                    className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

@@ -7,17 +7,17 @@ export default async function NewsPage() {
   const newsList = await getNews();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
       
       {/* Header */}
       <div className="space-y-4 max-w-3xl">
-        <span className="px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+        <span className="px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
           University News & Press Releases
         </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-extrabold text-slate-900 heading-display tracking-tight">
           EBAUB Stories, Achievements & Research News
         </h1>
-        <p className="text-sm text-slate-300 leading-relaxed">
+        <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
           Read the latest stories regarding departmental updates, faculty awards, student tech accomplishments, and campus breakthroughs.
         </p>
       </div>
@@ -28,10 +28,10 @@ export default async function NewsPage() {
           <Link
             key={item.id}
             href={`/news/${item.slug}`}
-            className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/50 transition-all flex flex-col justify-between group"
+            className="clean-card bg-white rounded-3xl overflow-hidden flex flex-col justify-between group"
           >
             {item.coverImage && (
-              <div className="h-56 relative overflow-hidden">
+              <div className="h-60 relative overflow-hidden">
                 <img
                   src={item.coverImage}
                   alt={item.title}
@@ -40,22 +40,22 @@ export default async function NewsPage() {
               </div>
             )}
 
-            <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+            <div className="p-6 sm:p-8 space-y-4 flex-1 flex flex-col justify-between">
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <span className="text-amber-400 font-semibold">{item.category}</span>
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <span className="text-emerald-700 font-bold">{item.category}</span>
                   <span>•</span>
                   <span>{new Date(item.publishedAt).toLocaleDateString()}</span>
                 </div>
-                <h3 className="text-xl font-bold text-white group-hover:text-amber-300 transition-colors">
+                <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-xs text-slate-300 leading-relaxed line-clamp-3">
+                <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
                   {item.summary}
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-bold text-emerald-400">
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-700">
                 <span>Read Full Article</span>
                 <ArrowRight className="w-4 h-4" />
               </div>

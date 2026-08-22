@@ -43,37 +43,37 @@ export default function StudentAIPage() {
     <div className="space-y-6 max-w-4xl mx-auto flex flex-col h-[80vh]">
       
       <div>
-        <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
-          <Bot className="w-6 h-6 text-sky-400" /> Student AI Study Tutor
+        <h1 className="text-2xl font-extrabold text-slate-900 heading-display flex items-center gap-2">
+          <Bot className="w-6 h-6 text-blue-600" /> Student AI Study Tutor
         </h1>
-        <p className="text-xs text-slate-400 mt-1">Get instant academic explanations, code breakdowns, and study summaries</p>
+        <p className="text-xs text-slate-500 mt-1">Get instant academic explanations, code breakdowns, and study summaries</p>
       </div>
 
       {/* Suggested Prompts */}
       <div className="flex flex-wrap gap-2 text-xs">
         <button
           onClick={() => setInput('Explain Binary Search Tree (BST) worst case complexity')}
-          className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-800"
+          className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-blue-800 border border-slate-200 shadow-2xs font-medium"
         >
           🌲 Binary Search Tree Complexity
         </button>
         <button
           onClick={() => setInput('What is Recursion and Divide & Conquer?')}
-          className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-slate-800"
+          className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-emerald-800 border border-slate-200 shadow-2xs font-medium"
         >
           🔄 Recursion & Divide-and-Conquer
         </button>
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl p-6 overflow-y-auto space-y-4 text-xs">
+      <div className="flex-1 bg-white border border-slate-200 rounded-3xl p-6 overflow-y-auto space-y-4 text-xs shadow-xs">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.sender === 'student' ? 'justify-end' : 'justify-start'}`}>
             <div
               className={`max-w-[85%] p-4 rounded-2xl leading-relaxed ${
                 m.sender === 'student'
-                  ? 'bg-sky-600 text-white rounded-br-none'
-                  : 'bg-slate-950 text-slate-200 border border-slate-800 rounded-bl-none whitespace-pre-line'
+                  ? 'bg-blue-600 text-white rounded-br-none shadow-xs'
+                  : 'bg-slate-50 text-slate-800 border border-slate-200 rounded-bl-none whitespace-pre-line shadow-2xs'
               }`}
             >
               {m.text}
@@ -83,8 +83,8 @@ export default function StudentAIPage() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl text-slate-400 flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-sky-400" />
+            <div className="bg-slate-50 border border-slate-200 p-3 rounded-2xl text-slate-500 flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
               <span>Analyzing academic concepts...</span>
             </div>
           </div>
@@ -98,14 +98,14 @@ export default function StudentAIPage() {
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Ask your study question..."
-          className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+          className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 shadow-xs"
         />
         <button
           type="submit"
           disabled={!input.trim() || loading}
-          className="px-5 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-bold text-xs"
+          className="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-4 h-4 text-emerald-400" />
         </button>
       </form>
 
