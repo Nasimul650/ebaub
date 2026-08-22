@@ -1,75 +1,184 @@
+import React from 'react';
 import Link from 'next/link';
+import { BookOpen, GraduationCap, Building2, Users, FileText, CheckCircle2, ArrowRight, MapPin, Sparkles } from 'lucide-react';
 
 interface MegaMenuProps {
   activeMenu: string | null;
+  onItemClick?: () => void;
 }
 
-export default function MegaMenu({ activeMenu }: MegaMenuProps) {
+export default function MegaMenu({ activeMenu, onItemClick }: MegaMenuProps) {
   if (!activeMenu) return null;
 
   return (
-    <div className="max-w-7xl mx-auto">
-      
+    <div className="max-w-7xl mx-auto py-2">
       {activeMenu === 'academics' && (
-        <div className="grid grid-cols-3 gap-12 text-xs">
-          <div className="space-y-3">
-            <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">DEGREE PROGRAMS</div>
-            <ul className="space-y-2.5 text-slate-600 font-medium">
-              <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">B.Sc. in Computer Science & Engineering (B.Sc. CSE)</Link></li>
-              <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">B.Sc. in Agriculture (Honours)</Link></li>
-              <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Bachelor of Business Administration (BBA)</Link></li>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs animate-in fade-in slide-in-from-top-2 duration-300">
+          
+          {/* Col 1 */}
+          <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors">
+            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-emerald-800 tracking-wider">
+              <GraduationCap className="w-4 h-4 text-emerald-600" />
+              <span>Degree Programs</span>
+            </div>
+            <ul className="space-y-2.5 text-slate-700 font-medium">
+              <li>
+                <Link href="/academics" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                  <span>B.Sc. in CSE (160 Credits)</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/academics" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                  <span>B.Sc. in Agriculture (Honours)</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/academics" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                  <span>Bachelor of Business Administration</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
             </ul>
           </div>
 
-          <div className="space-y-3">
-            <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">FACULTIES</div>
-            <ul className="space-y-2.5 text-slate-600 font-medium">
-              <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Faculty of Computer Science & Engineering</Link></li>
-              <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Faculty of Agriculture</Link></li>
-              <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Faculty of Business Administration</Link></li>
+          {/* Col 2 */}
+          <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors">
+            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-blue-800 tracking-wider">
+              <Building2 className="w-4 h-4 text-blue-600" />
+              <span>Faculties</span>
+            </div>
+            <ul className="space-y-2.5 text-slate-700 font-medium">
+              <li>
+                <Link href="/academics" onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
+                  <span>Faculty of CSE</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/academics" onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
+                  <span>Faculty of Agriculture</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/academics" onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
+                  <span>Faculty of Business Administration</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
             </ul>
           </div>
 
-          <div className="space-y-3">
-            <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">ACADEMIC EXCELLENCE</div>
-            <ul className="space-y-2.5 text-slate-600 font-medium">
-              <li><Link href="/faculty" className="hover:text-emerald-600 transition-colors">Faculty Directory & Research Labs</Link></li>
-              <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Undergraduate Curriculums & Credits</Link></li>
+          {/* Col 3 */}
+          <div className="space-y-3.5 p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/60 hover:bg-emerald-50 transition-colors">
+            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-amber-800 tracking-wider">
+              <Sparkles className="w-4 h-4 text-amber-500" />
+              <span>Academic Excellence</span>
+            </div>
+            <ul className="space-y-2.5 text-slate-700 font-medium">
+              <li>
+                <Link href="/faculty" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                  <span>Faculty Directory & AI Research</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/academics" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                  <span>Undergraduate Curriculums & Credits</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
             </ul>
           </div>
+
         </div>
       )}
 
       {activeMenu === 'admissions' && (
-        <div className="grid grid-cols-3 gap-12 text-xs">
-          <div className="space-y-3">
-            <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">SPRING 2027 ADMISSION</div>
-            <ul className="space-y-2.5 text-slate-600 font-medium">
-              <li><Link href="/admissions" className="text-emerald-700 font-bold hover:underline">Applications Now Open</Link></li>
-              <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">How to Apply Step-by-Step</Link></li>
-              <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">Admission Test Dates & Venue</Link></li>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs animate-in fade-in slide-in-from-top-2 duration-300">
+          
+          {/* Col 1 */}
+          <div className="space-y-3.5 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/70 hover:bg-emerald-50 transition-colors">
+            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-emerald-900 tracking-wider">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span>Spring 2027 Admission</span>
+            </div>
+            <ul className="space-y-2.5 text-slate-700 font-medium">
+              <li>
+                <Link href="/admissions" onClick={onItemClick} className="text-emerald-800 font-bold hover:underline flex items-center justify-between group">
+                  <span>Applications Now Open</span>
+                  <ArrowRight className="w-3 h-3 text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/admissions" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                  <span>How to Apply Step-by-Step</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/admissions" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                  <span>Admission Test Dates & Venue</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
             </ul>
           </div>
 
-          <div className="space-y-3">
-            <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">ELIGIBILITY</div>
-            <ul className="space-y-2.5 text-slate-600 font-medium">
-              <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">B.Sc. CSE Minimum GPA & Math Requirements</Link></li>
-              <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">B.Sc. Agriculture Science Background</Link></li>
-              <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">BBA Admission Guidelines</Link></li>
+          {/* Col 2 */}
+          <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors">
+            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-purple-800 tracking-wider">
+              <CheckCircle2 className="w-4 h-4 text-purple-600" />
+              <span>Eligibility</span>
+            </div>
+            <ul className="space-y-2.5 text-slate-700 font-medium">
+              <li>
+                <Link href="/admissions" onClick={onItemClick} className="hover:text-purple-700 transition-colors flex items-center justify-between group">
+                  <span>B.Sc. CSE Minimum Requirements</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/admissions" onClick={onItemClick} className="hover:text-purple-700 transition-colors flex items-center justify-between group">
+                  <span>B.Sc. Agriculture Background</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/admissions" onClick={onItemClick} className="hover:text-purple-700 transition-colors flex items-center justify-between group">
+                  <span>BBA Admission Guidelines</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
             </ul>
           </div>
 
-          <div className="space-y-3">
-            <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">CONTACT & LOCATION</div>
-            <ul className="space-y-2.5 text-slate-600 font-medium">
-              <li><Link href="/contact" className="hover:text-emerald-600 transition-colors">Admissions Desk & Helpline</Link></li>
-              <li><Link href="/contact" className="hover:text-emerald-600 transition-colors">Campus Map, Rajshahi, Bangladesh</Link></li>
+          {/* Col 3 */}
+          <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors">
+            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-amber-800 tracking-wider">
+              <MapPin className="w-4 h-4 text-amber-600" />
+              <span>Contact & Help</span>
+            </div>
+            <ul className="space-y-2.5 text-slate-700 font-medium">
+              <li>
+                <Link href="/contact" onClick={onItemClick} className="hover:text-amber-700 transition-colors flex items-center justify-between group">
+                  <span>Admissions Desk Helpline</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" onClick={onItemClick} className="hover:text-amber-700 transition-colors flex items-center justify-between group">
+                  <span>Campus Location & Visits</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
             </ul>
           </div>
+
         </div>
       )}
-
     </div>
   );
 }

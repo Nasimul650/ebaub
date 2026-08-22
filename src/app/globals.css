@@ -9,41 +9,164 @@
     --color-gold-hover: #b45309;
     --color-gold-light: #f59e0b;
     
-    --color-canvas-bg: #f8fafc;
+    --color-canvas-bg: #ffffff;
     --color-sheet-bg: #ffffff;
     --color-sheet-border: rgba(226, 232, 240, 0.8);
     
     --color-text-main: #0f172a;
-    --color-text-muted: #64748b;
+    --color-text-muted: #475569;
     --color-text-subtle: #94a3b8;
 
-    --font-neo-grotesque-stack: var(--font-neo-grotesque), 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    --font-roboto-stack: var(--font-roboto), 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   }
 
   body {
-    background-color: #f1f5f9;
-    color: var(--color-text-main);
-    font-family: var(--font-neo-grotesque-stack);
+    background-color: #ffffff;
+    color: #334155;
+    font-family: var(--font-roboto-stack);
     letter-spacing: -0.011em;
     overflow-x: hidden;
     scroll-behavior: smooth;
+    line-height: 1.625;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+    font-weight: 700;
+  }
+
+  p {
+    line-height: 1.625;
+  }
+
+  /* Global Clickable Elements Cursor Pointer */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  a,
+  select,
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }
 
-/* Ambient glow blobs in background (Inspired by 11.mp4) */
-.ambient-glow-canvas {
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 90% 30%, rgba(16, 185, 129, 0.14) 0%, transparent 45%),
-    radial-gradient(circle at 50% 80%, rgba(217, 119, 6, 0.1) 0%, transparent 50%),
-    #f8fafc;
+/* ============================================================
+   EXPLICIT KEYFRAME ANIMATIONS & UTILITY CLASSES
+   ============================================================ */
+
+/* 1. Backdrop Blur & Opacity Fade In */
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+.animate-backdrop {
+  animation: backdropFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Floating Sheet Canvas */
-.floating-sheet {
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.03);
+/* 2. Modal Zoom In & Spring Slide */
+@keyframes modalZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-24px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-modal-zoom {
+  animation: modalZoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 3. Dropdown Menu Slide & Scale */
+@keyframes dropdownSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-dropdown {
+  transform-origin: top right;
+  animation: dropdownSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 4. Mega Menu Full-Width Slide */
+@keyframes megaMenuSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-megamenu {
+  animation: megaMenuSlide 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 5. Floating AI Widget Spring Bounce */
+@keyframes widgetSpringUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(50px) translateX(20px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-4px) translateX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) translateX(0);
+  }
+}
+.animate-widget-spring {
+  transform-origin: bottom right;
+  animation: widgetSpringUp 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* 6. Chat Message Slide In */
+@keyframes messageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-message {
+  animation: messageSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Heading Display with tight tracking for premium editorial feel */
+.heading-display {
+  font-family: var(--font-roboto-stack);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
 }
 
 /* Clean Card Surface */
@@ -60,26 +183,13 @@
   border-color: #cbd5e1;
 }
 
-/* Subtle Gradient Glow inside cards */
-.hero-card-glow {
-  background: linear-gradient(135deg, rgba(240, 253, 250, 0.8) 0%, rgba(239, 246, 255, 0.6) 100%);
-}
-
-.heading-display {
-  font-family: var(--font-neo-grotesque-stack);
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  line-height: 1.12;
-  color: #0f172a;
-}
-
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {

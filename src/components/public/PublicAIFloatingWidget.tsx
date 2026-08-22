@@ -66,12 +66,12 @@ export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm sm:max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-900 animate-in fade-in slide-in-from-bottom-5">
+    <div className="fixed bottom-6 right-6 z-50 w-full max-w-sm sm:max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-900 animate-widget-spring">
       
       {/* Header */}
-      <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/90 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-md">
             <Bot className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
@@ -96,19 +96,19 @@ export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
         </span>
         <button
           onClick={() => setInput('What programs does EBAUB offer?')}
-          className="shrink-0 px-2.5 py-1 rounded-full bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
+          className="shrink-0 px-3 py-1 rounded-full bg-white hover:bg-emerald-50 hover:text-emerald-800 text-slate-700 border border-slate-200 hover:border-emerald-200 transition-all hover:scale-105 active:scale-95"
         >
           Programs
         </button>
         <button
           onClick={() => setInput('CSE 2-Year Anniversary event info')}
-          className="shrink-0 px-2.5 py-1 rounded-full bg-white hover:bg-slate-200 text-amber-800 border border-amber-200 transition-colors"
+          className="shrink-0 px-3 py-1 rounded-full bg-white hover:bg-amber-50 text-amber-800 border border-amber-200 transition-all hover:scale-105 active:scale-95"
         >
           Anniversary
         </button>
         <button
           onClick={() => setInput('Admission requirements B.Sc. CSE')}
-          className="shrink-0 px-2.5 py-1 rounded-full bg-white hover:bg-slate-200 text-emerald-800 border border-emerald-200 transition-colors"
+          className="shrink-0 px-3 py-1 rounded-full bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 transition-all hover:scale-105 active:scale-95"
         >
           Admissions
         </button>
@@ -117,11 +117,14 @@ export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
       {/* Messages Window */}
       <div className="h-80 p-4 overflow-y-auto space-y-3.5 text-xs bg-slate-50/50">
         {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div 
+            key={idx} 
+            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-message`}
+          >
             <div
               className={`max-w-[85%] p-3.5 rounded-2xl leading-relaxed ${
                 msg.sender === 'user'
-                  ? 'bg-slate-900 text-white rounded-br-none shadow-sm'
+                  ? 'bg-slate-900 text-white rounded-br-none shadow-md'
                   : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none whitespace-pre-line shadow-2xs'
               }`}
             >
@@ -134,7 +137,7 @@ export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
         ))}
 
         {loading && (
-          <div className="flex justify-start">
+          <div className="flex justify-start animate-message">
             <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3 text-slate-500 flex items-center gap-2 shadow-2xs">
               <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
               <span>Fetching EBAUB records...</span>
@@ -155,7 +158,7 @@ export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
         <button
           type="submit"
           disabled={!input.trim() || loading}
-          className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-50 transition-colors"
+          className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-50 transition-all hover:scale-105 active:scale-95"
         >
           <Send className="w-4 h-4 text-emerald-400" />
         </button>

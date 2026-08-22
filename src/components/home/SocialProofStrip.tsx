@@ -16,23 +16,23 @@ export default function SocialProofStrip() {
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         const logoItems = el.querySelectorAll('.logo-cloud-item');
-        gsap.from(logoItems, {
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 85%',
-            toggleActions: 'play none none none',
-            once: true,
-          },
-          y: 30,
-          opacity: 0,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: 'power3.out',
-        });
-      });
-
-      mm.add('(prefers-reduced-motion: reduce)', () => {
-        gsap.set(el.querySelectorAll('.logo-cloud-item'), { opacity: 1, y: 0 });
+        gsap.fromTo(
+          logoItems,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            stagger: 0.08,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 95%',
+              toggleActions: 'play none none none',
+              once: true,
+            },
+          }
+        );
       });
 
       return () => mm.revert();

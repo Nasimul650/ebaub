@@ -1,15 +1,55 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, GraduationCap } from 'lucide-react';
+import { Sparkles, ArrowRight, GraduationCap, ChevronLeft, ChevronRight, Layers, ShieldCheck } from 'lucide-react';
 import { gsap, useGSAP } from '@/lib/gsapConfig';
 
+interface HeroSlide {
+  id: number;
+  image: string;
+  badge: string;
+  title: string;
+  credits: string;
+  metric: string;
+}
+
+const heroSlides: HeroSlide[] = [
+  {
+    id: 1,
+    image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=85',
+    badge: 'CSE Dept. 2-Year Milestone',
+    title: 'Department of Computer Science & Engineering',
+    credits: '160 Total Credits',
+    metric: '4.0 Years • 8 Semesters',
+  },
+  {
+    id: 2,
+    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=85',
+    badge: 'AI & Smart Agriculture Lab',
+    title: 'Precision Computing & Agri-Tech Research',
+    credits: '160 Credits • Lab Integrated',
+    metric: 'Faculty Mentored Projects',
+  },
+  {
+    id: 3,
+    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=85',
+    badge: 'Admissions Open Spring 2027',
+    title: 'Undergraduate Degree Programs',
+    credits: 'UGC Bangladesh Approved',
+    metric: 'Modern Digital Campus',
+  },
+];
+
 export default function HeroSection() {
+  const [currentSlide, setCurrentSlide] = useState(0);
   const heroContainerRef = useRef<HTMLDivElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const rightColRef = useRef<HTMLDivElement>(null);
+  const imageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const slideContentRef = useRef<HTMLDivElement>(null);
 
+  // Entrance animation for typography on page load
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
@@ -17,36 +57,35 @@ export default function HeroSection() {
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         const tl = gsap.timeline();
 
-        // 1. Hero left-column typography entrance (Headline, Subhead, Button)
+        // 1. Left Column typography entrance
         if (leftColRef.current) {
-          const textElements = leftColRef.current.querySelectorAll('.hero-anim-item');
-          tl.from(textElements, {
+          const textItems = leftColRef.current.querySelectorAll('.hero-anim-item');
+          tl.from(textItems, {
             y: 50,
             opacity: 0,
-            duration: 1.5,
-            stagger: 0.2,
+            duration: 1.4,
+            stagger: 0.18,
             ease: 'power3.out',
           });
         }
 
-        // 2. Floating UI card on the right (delayed entrance with x: 50, opacity: 0, subtle rotation)
-        if (cardRef.current) {
+        // 2. Right Column floating UI card entrance
+        if (rightColRef.current) {
           tl.from(
-            cardRef.current,
+            rightColRef.current,
             {
               x: 50,
               opacity: 0,
-              rotation: 4,
               duration: 1.4,
               ease: 'power3.out',
             },
-            '-=1.0' // overlap with text entrance
+            '-=1.0'
           );
 
-          // 3. Continuous subtle floating yoyo effect
-          gsap.to(cardRef.current, {
-            y: -10,
-            duration: 3,
+          // Subtle floating motion
+          gsap.to(rightColRef.current, {
+            y: -8,
+            duration: 3.5,
             repeat: -1,
             yoyo: true,
             ease: 'sine.inOut',
@@ -59,8 +98,8 @@ export default function HeroSection() {
         if (leftColRef.current) {
           gsap.set(leftColRef.current.querySelectorAll('.hero-anim-item'), { opacity: 1, y: 0 });
         }
-        if (cardRef.current) {
-          gsap.set(cardRef.current, { opacity: 1, x: 0, y: 0, rotation: 0 });
+        if (rightColRef.current) {
+          gsap.set(rightColRef.current, { opacity: 1, x: 0, y: 0 });
         }
       });
 
@@ -69,133 +108,221 @@ export default function HeroSection() {
     { scope: heroContainerRef }
   );
 
+  // Slide transition animation inside right-side floating container
+  useEffect(() => {
+    imageRefs.current.forEach((imgEl, idx) => {
+      if (!imgEl) return;
+      if (idx === currentSlide) {
+        gsap.fromTo(
+          imgEl,
+          { opacity: 0, scale: 1.06 },
+          { opacity: 1, scale: 1, duration: 1, ease: 'power2.out' }
+        );
+      } else {
+        gsap.to(imgEl, {
+          opacity: 0,
+          scale: 1.04,
+          duration: 0.7,
+          ease: 'power2.inOut',
+        });
+      }
+    });
+
+    if (slideContentRef.current) {
+      gsap.fromTo(
+        slideContentRef.current,
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.2 }
+      );
+    }
+  }, [currentSlide]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  };
+
+  const active = heroSlides[currentSlide];
+
   return (
     <div
       ref={heroContainerRef}
-      className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center"
+      className="relative w-full min-h-[80vh] flex items-center"
     >
-      {/* Left Hero Column: Massive Typography & Solid CTA */}
-      <div ref={leftColRef} className="space-y-8">
-        
-        {/* Badge */}
-        <div className="hero-anim-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-2xs">
-          <Sparkles className="w-4 h-4 text-amber-500" />
-          <span>CSE Department 2-Year Anniversary Prototype</span>
-        </div>
-
-        {/* Massive Typography */}
-        <h1 className="hero-anim-item text-5xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 heading-display leading-[1.08] tracking-tight">
-          Empowering the next generation of engineers.
-        </h1>
-
-        {/* Muted Subheadline */}
-        <p className="hero-anim-item text-lg sm:text-xl text-slate-500 font-normal leading-relaxed max-w-xl">
-          Eastern Bank Agricultural University (EBAUB) combines rigorous academic foundations, hands-on engineering, and digital campus workflows.
-        </p>
-
-        {/* Solid CTA Button & Secondary Link */}
-        <div className="hero-anim-item pt-2 flex flex-wrap items-center gap-4">
-          <Link
-            href="/academics"
-            className="px-8 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm sm:text-base shadow-xl flex items-center gap-3 transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <span>Explore Degree Programs</span>
-            <ArrowRight className="w-4 h-4 text-emerald-400" />
-          </Link>
-
-          <Link
-            href="/admissions"
-            className="px-8 py-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm sm:text-base transition-colors"
-          >
-            Admission Guidelines
-          </Link>
-        </div>
-
+      {/* 1. Background Strategy: Absolute positioned blurred gradient blobs strictly behind the Hero section */}
+      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
+        {/* Soft Deep Green Blob */}
+        <div className="absolute -top-12 -left-20 w-[45vw] h-[45vw] max-w-[650px] max-h-[650px] rounded-full bg-emerald-900/10 blur-3xl opacity-60" />
+        {/* Warm Gold Blob */}
+        <div className="absolute top-1/4 -right-16 w-[45vw] h-[45vw] max-w-[600px] max-h-[600px] rounded-full bg-amber-500/10 blur-3xl opacity-60" />
+        {/* Subtle Ambient Teal Accents */}
+        <div className="absolute -bottom-16 left-1/3 w-[35vw] h-[35vw] max-w-[500px] max-h-[500px] rounded-full bg-teal-600/10 blur-3xl opacity-50" />
       </div>
 
-      {/* Right Hero Column: Floating Glassmorphism Mockup Card */}
-      <div className="relative flex justify-center lg:justify-end">
+      {/* 2. Strict 2-Column Hero Grid */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center py-12 lg:py-16">
         
-        {/* Ambient Blur Glow behind card */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/20 to-blue-400/20 rounded-3xl blur-2xl -z-10" />
-
-        <div
-          ref={cardRef}
-          className="w-full max-w-lg bg-white/85 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-xl p-6 sm:p-8 space-y-6"
-        >
-          {/* Header of widget */}
-          <div className="flex items-center justify-between border-b border-slate-200/70 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm shadow-md">
-                <GraduationCap className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <div className="font-extrabold text-sm text-slate-900">
-                  Department of CSE
-                </div>
-                <div className="text-[11px] text-slate-500 font-medium">
-                  B.Sc. in Computer Science & Engineering
-                </div>
-              </div>
-            </div>
-            <span className="text-[10px] px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-              Active Session
-            </span>
+        {/* 3. Left Column: Massive Left-Aligned Typography & Primary Deep Green CTA */}
+        <div ref={leftColRef} className="space-y-8 text-left">
+          
+          {/* Badge */}
+          <div className="hero-anim-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-2xs">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span>CSE Department 2-Year Anniversary Prototype</span>
           </div>
 
-          {/* Growth / Sparkline Graphic mockup */}
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between text-xs text-slate-600 font-medium">
-              <span>Curriculum Progress & Credits</span>
-              <span className="font-bold text-slate-900">
-                160 Total Credits
-              </span>
-            </div>
+          {/* Massive, tight typography for H1 */}
+          <h1 className="hero-anim-item text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 heading-display leading-[1.06]">
+            Empowering the next generation of engineers.
+          </h1>
 
-            {/* Visual Progress Graph Bars */}
-            <div className="h-24 w-full bg-slate-50 rounded-xl border border-slate-200/80 p-3 flex items-end gap-2.5 justify-between">
-              <div className="w-full bg-slate-200 rounded-t-sm h-[35%]" />
-              <div className="w-full bg-slate-200 rounded-t-sm h-[50%]" />
-              <div className="w-full bg-slate-200 rounded-t-sm h-[65%]" />
-              <div className="w-full bg-emerald-500 rounded-t-sm h-[90%] relative group shadow-sm">
-                <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">
-                  160 Cr
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Muted Subtitle */}
+          <p className="hero-anim-item text-lg text-slate-600 font-normal leading-relaxed max-w-lg">
+            Eastern Bank Agricultural University (EBAUB) combines rigorous academic foundations, hands-on engineering, and digital campus workflows.
+          </p>
 
-          {/* Metric pill indicators */}
-          <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-              <div className="text-[10px] text-slate-500 font-medium">
-                Degree Duration
-              </div>
-              <div className="font-bold text-slate-900 text-sm mt-0.5">
-                4.0 Years (8 Sem)
-              </div>
-            </div>
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-              <div className="text-[10px] text-slate-500 font-medium">
-                Department Milestone
-              </div>
-              <div className="font-bold text-emerald-700 text-sm mt-0.5">
-                2-Year Anniversary
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-3 border-t border-slate-200/70 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-medium">
-              Powered by Headless CMS
-            </span>
+          {/* CTA Button: Primary Deep Green */}
+          <div className="hero-anim-item pt-2 flex flex-wrap items-center gap-4">
             <Link
               href="/academics"
-              className="text-emerald-700 font-bold hover:underline"
+              className="px-8 py-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm sm:text-base shadow-lg flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              View Syllabus &rarr;
+              <span>Explore Degree Programs</span>
+              <ArrowRight className="w-4 h-4 text-amber-300" />
+            </Link>
+
+            <Link
+              href="/admissions"
+              className="px-8 py-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm sm:text-base transition-colors"
+            >
+              Admission Guidelines
             </Link>
           </div>
+
+          {/* Trust Metric Micro Row */}
+          <div className="hero-anim-item pt-4 border-t border-slate-100 flex items-center gap-6 text-xs text-slate-500 font-medium">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" /> UGC Bangladesh Approved
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-amber-500" /> 160 Credit Curriculum
+            </span>
+          </div>
+
+        </div>
+
+        {/* 4. Right Column: Floating UI Carousel Element */}
+        <div ref={rightColRef} className="relative flex justify-center lg:justify-end">
+          
+          {/* Floating UI Container */}
+          <div className="relative w-full max-w-lg aspect-[4/4.8] sm:aspect-[4/4.5] rounded-2xl shadow-2xl border border-slate-200/50 overflow-hidden bg-slate-900 flex flex-col justify-between">
+            
+            {/* Background Images Cross-Fading Inside this Container */}
+            {heroSlides.map((slide, idx) => (
+              <div
+                key={slide.id}
+                ref={(el) => {
+                  imageRefs.current[idx] = el;
+                }}
+                className={`absolute inset-0 w-full h-full ${
+                  idx === currentSlide ? 'z-0 opacity-100' : '-z-10 opacity-0'
+                }`}
+              >
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  className="w-full h-full object-cover"
+                />
+                {/* Gradient overlay for readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-slate-900/20" />
+              </div>
+            ))}
+
+            {/* Top Floating Badge inside UI card */}
+            <div className="relative z-10 p-5 flex items-center justify-between">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-[11px] font-bold shadow-sm border border-white/60">
+                <GraduationCap className="w-3.5 h-3.5 text-emerald-700" />
+                <span>{active.badge}</span>
+              </div>
+
+              {/* Prev / Next controls */}
+              <div className="flex items-center gap-1.5 bg-slate-950/60 backdrop-blur-md rounded-xl p-1 border border-white/10">
+                <button
+                  onClick={prevSlide}
+                  aria-label="Previous Slide"
+                  className="w-7 h-7 rounded-lg hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  aria-label="Next Slide"
+                  className="w-7 h-7 rounded-lg hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Floating Glass Card inside the UI element */}
+            <div className="relative z-10 p-5">
+              <div
+                ref={slideContentRef}
+                className="p-5 rounded-xl bg-white/90 backdrop-blur-xl border border-white/80 shadow-xl space-y-3.5 text-slate-900"
+              >
+                <div>
+                  <div className="text-[11px] text-emerald-700 font-extrabold uppercase tracking-wider">
+                    {active.metric}
+                  </div>
+                  <h3 className="font-extrabold text-base sm:text-lg text-slate-900 mt-0.5 leading-snug">
+                    {active.title}
+                  </h3>
+                </div>
+
+                {/* Progress bar visual */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                    <span>Curriculum Progress</span>
+                    <span className="text-slate-900">{active.credits}</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-600 rounded-full w-[85%]" />
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200/70 flex items-center justify-between text-xs">
+                  {/* Indicators */}
+                  <div className="flex items-center gap-1.5">
+                    {heroSlides.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentSlide(idx)}
+                        aria-label={`Go to slide ${idx + 1}`}
+                        className={`h-1.5 rounded-full transition-all ${
+                          idx === currentSlide
+                            ? 'w-6 bg-emerald-700'
+                            : 'w-1.5 bg-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <Link
+                    href="/academics"
+                    className="text-emerald-700 font-bold hover:underline flex items-center gap-1 text-[11px]"
+                  >
+                    <span>View Syllabus</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
 
       </div>

@@ -16,7 +16,7 @@ export default async function NoticeDetailPage({ params }: Props) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200/80 p-8 sm:p-12 lg:p-16">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
       <NoticeDetailView notice={notice} />
     </div>
   );

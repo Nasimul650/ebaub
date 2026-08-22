@@ -13,18 +13,49 @@ export default function PortalDropdown({ isOpen, onClose }: PortalDropdownProps)
 
   return (
     <div 
-      className="absolute right-0 mt-2 w-56 rounded-xl bg-white border border-slate-200 shadow-xl py-2 text-xs font-medium z-50 animate-in fade-in"
+      className="absolute top-full right-0 mt-2 min-w-max w-64 rounded-2xl bg-white border border-slate-200 shadow-2xl py-3 text-xs font-medium z-50 animate-dropdown"
       onClick={onClose}
     >
-      <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Access Digital Workspace</div>
-      <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 text-slate-900 font-semibold">
-        <ShieldCheck className="w-4 h-4 text-amber-500" /> Headless CMS (Admin)
+      <div className="px-4 py-1.5 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+        Access Digital Workspace
+      </div>
+      <Link 
+        href="/admin" 
+        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-emerald-700 font-medium transition-all hover:translate-x-1"
+      >
+        <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-200/60 shrink-0">
+          <ShieldCheck className="w-4 h-4" />
+        </div>
+        <div>
+          <div className="font-bold text-slate-900">Headless CMS</div>
+          <div className="text-[10px] text-slate-500">Administrative Portal</div>
+        </div>
       </Link>
-      <Link href="/teacher" className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 text-slate-900 font-semibold">
-        <Sparkles className="w-4 h-4 text-emerald-600" /> Teacher Workspace + AI
+      
+      <Link 
+        href="/teacher" 
+        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-emerald-700 font-medium transition-all hover:translate-x-1"
+      >
+        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-200/60 shrink-0">
+          <Sparkles className="w-4 h-4" />
+        </div>
+        <div>
+          <div className="font-bold text-slate-900">Teacher Tools + AI</div>
+          <div className="text-[10px] text-slate-500">Faculty Management</div>
+        </div>
       </Link>
-      <Link href="/student" className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 text-slate-900 font-semibold">
-        <BookOpen className="w-4 h-4 text-blue-600" /> Student Study Workspace
+      
+      <Link 
+        href="/student" 
+        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-emerald-700 font-medium transition-all hover:translate-x-1"
+      >
+        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-200/60 shrink-0">
+          <BookOpen className="w-4 h-4" />
+        </div>
+        <div>
+          <div className="font-bold text-slate-900">Student Study Hub</div>
+          <div className="text-[10px] text-slate-500">Materials & AI Tutor</div>
+        </div>
       </Link>
     </div>
   );

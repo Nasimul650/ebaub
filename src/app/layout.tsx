@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Roboto } from 'next/font/google';
 import './globals.css';
 
-const neoGrotesque = Inter({
+const roboto = Roboto({
+  weight: ['300', '400', '500', '700', '900'],
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-neo-grotesque',
+  variable: '--font-roboto',
 });
 
 export const metadata: Metadata = {
@@ -19,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={neoGrotesque.variable}>
-      <body className="font-sans bg-slate-100 text-slate-900 antialiased selection:bg-emerald-600 selection:text-white">
+    <html lang="en" className={roboto.variable}>
+      <body className="font-sans bg-white text-slate-900 antialiased selection:bg-emerald-600 selection:text-white">
         {children}
       </body>
     </html>
