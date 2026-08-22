@@ -1,21 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Sparkles, 
-  Bot, 
-  CheckCircle2, 
-  Edit3, 
-  Trash2, 
-  Plus, 
-  Save, 
-  Download, 
-  Loader2,
-  HelpCircle,
-  Check
-} from 'lucide-react';
+import { Sparkles, CheckCircle2 } from 'lucide-react';
 import { generateAIQuiz, createQuiz } from '@/lib/mock/mockServices';
-import { QuizQuestion, QuizGeneration } from '@/types';
+import { QuizQuestion } from '@/types';
+import QuizGeneratorForm from '@/components/teacher/QuizGeneratorForm';
+import QuizReviewHeader from '@/components/teacher/QuizReviewHeader';
+import QuestionEditorList from '@/components/teacher/QuestionEditorList';
 
 export default function TeacherAIQuizGeneratorPage() {
   const [subject, setSubject] = useState('Data Structures');
@@ -91,121 +82,22 @@ export default function TeacherAIQuizGeneratorPage() {
         </p>
       </div>
 
-      {/* Generator Configuration Form */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
-        <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-          <Bot className="w-5 h-5 text-emerald-600" /> Step 1: Configure AI Generation Parameters
-        </h2>
-
-        <form onSubmit={handleGenerate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-          
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1.5">Subject / Course</label>
-            <select
-              value={subject}
-              onChange={e => setSubject(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
-            >
-              <option value="Data Structures">Data Structures</option>
-              <option value="Artificial Intelligence">Artificial Intelligence</option>
-              <option value="Database Systems">Database Systems</option>
-              <option value="Software Engineering">Software Engineering</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1.5">Topic / Sub-chapter</label>
-            <input
-              type="text"
-              value={topic}
-              onChange={e => setTopic(e.target.value)}
-              placeholder="e.g. Binary Search Trees"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1.5">Difficulty Level</label>
-            <select
-              value={difficulty}
-              onChange={e => setDifficulty(e.target.value as any)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
-            >
-              <option value="Easy">Easy</option>
-              <option value="Medium">Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-slate-700 font-semibold mb-1.5">Question Count</label>
-            <select
-              value={count}
-              onChange={e => setCount(Number(e.target.value))}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
-            >
-              <option value={3}>3 Questions</option>
-              <option value={5}>5 Questions</option>
-              <option value={10}>10 Questions</option>
-            </select>
-          </div>
-
-          <div className="sm:col-span-2 lg:col-span-4 pt-2">
-            <button
-              type="submit"
-              disabled={loading || !topic.trim()}
-              className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
-                  <span>AI Engine Draft Processing...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>Generate Quiz Draft Now</span>
-                </>
-              )}
-            </button>
-          </div>
-
-        </form>
-      </div>
+      <QuizGeneratorForm 
+        subject={subject} setSubject={setSubject}
+        topic={topic} setTopic={setTopic}
+        difficulty={difficulty} setDifficulty={setDifficulty}
+        count={count} setCount={setCount}
+        loading={loading} onGenerate={handleGenerate}
+      />
 
       {/* Generated Questions Review & Editing Area */}
       {generatedQuestions.length > 0 && (
         <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs animate-in fade-in">
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Step 2: Teacher Review & Edit</div>
-              <input
-                type="text"
-                value={quizTitle}
-                onChange={e => setQuizTitle(e.target.value)}
-                className="text-lg font-bold text-slate-900 bg-transparent border-b border-slate-300 focus:outline-none focus:border-emerald-600 mt-1 w-full"
-              />
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={handlePublish}
-                disabled={published}
-                className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow flex items-center gap-2 transition-colors disabled:opacity-60"
-              >
-                {published ? (
-                  <>
-                    <Check className="w-4 h-4" /> Published to Students
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" /> Publish Quiz
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          <QuizReviewHeader 
+            quizTitle={quizTitle} setQuizTitle={setQuizTitle}
+            published={published} onPublish={handlePublish}
+          />
 
           {published && (
             <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2">
@@ -214,69 +106,11 @@ export default function TeacherAIQuizGeneratorPage() {
             </div>
           )}
 
-          {/* Question List */}
-          <div className="space-y-6">
-            {generatedQuestions.map((q, idx) => (
-              <div key={q.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
-                
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center">
-                      {idx + 1}
-                    </span>
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-white text-slate-700 border border-slate-200">
-                      {q.type}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={() => handleDeleteQuestion(q.id)}
-                    className="p-1 rounded hover:bg-red-50 text-slate-400 hover:text-red-600"
-                    title="Remove Question"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] text-slate-600 font-semibold mb-1">Question Statement:</label>
-                  <input
-                    type="text"
-                    value={q.question}
-                    onChange={e => handleUpdateQuestion(q.id, e.target.value)}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
-                  />
-                </div>
-
-                {q.options && (
-                  <div className="space-y-2 pt-1">
-                    <span className="text-[11px] text-slate-600 font-semibold">Options:</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {q.options.map((opt, oIdx) => (
-                        <div
-                          key={oIdx}
-                          className={`p-2.5 rounded-xl border text-xs ${
-                            opt === q.correctAnswer
-                              ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
-                              : 'bg-white border-slate-200 text-slate-700'
-                          }`}
-                        >
-                          {opt === q.correctAnswer && <span className="text-emerald-600 font-bold mr-1">✓</span>}
-                          {opt}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-[11px] space-y-1">
-                  <span className="font-bold text-slate-900">Correct Answer / Explanation:</span>
-                  <p className="text-slate-600">{q.explanation}</p>
-                </div>
-
-              </div>
-            ))}
-          </div>
+          <QuestionEditorList 
+            questions={generatedQuestions}
+            onDelete={handleDeleteQuestion}
+            onUpdate={handleUpdateQuestion}
+          />
 
         </div>
       )}

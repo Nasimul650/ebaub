@@ -11,16 +11,14 @@ import {
   X, 
   ChevronDown, 
   ChevronUp,
-  Sparkles,
-  Command,
-  BookOpen,
-  ShieldCheck,
-  Building2,
-  Bell,
-  ArrowRight
+  Command
 } from 'lucide-react';
 import CommandMenuModal from '../public/CommandMenuModal';
 import PublicAIFloatingWidget from '../public/PublicAIFloatingWidget';
+import AnnouncementBanner from './AnnouncementBanner';
+import MegaMenu from './MegaMenu';
+import PortalDropdown from './PortalDropdown';
+import MobileNavDrawer from './MobileNavDrawer';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -39,18 +37,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Top Notification Bar (Inspired by video/modern SaaS header) */}
-      <div className="bg-slate-900 text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2">
-        <span className="bg-emerald-500 text-slate-950 font-bold px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide">
-          2nd Anniversary
-        </span>
-        <span className="text-slate-200">
-          CSE Department Celebrates 2 Years of Academic Excellence & Digital Innovation
-        </span>
-        <Link href="/notices/cse-2yr-anniversary-ceremony" className="text-emerald-400 hover:text-emerald-300 font-semibold underline ml-1 flex items-center gap-1">
-          Learn More &rarr;
-        </Link>
-      </div>
+      <AnnouncementBanner />
 
       {/* Main Clean Header (Matching 11.mp4 navigation bar) */}
       <header
@@ -187,23 +174,10 @@ export default function Navbar() {
                 <ChevronDown className="w-3 h-3 text-slate-400" />
               </button>
 
-              {portalDropdownOpen && (
-                <div 
-                  className="absolute right-0 mt-2 w-56 rounded-xl bg-white border border-slate-200 shadow-xl py-2 text-xs font-medium z-50 animate-in fade-in"
-                  onClick={() => setPortalDropdownOpen(false)}
-                >
-                  <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Access Digital Workspace</div>
-                  <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 text-slate-900 font-semibold">
-                    <ShieldCheck className="w-4 h-4 text-amber-500" /> Headless CMS (Admin)
-                  </Link>
-                  <Link href="/teacher" className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 text-slate-900 font-semibold">
-                    <Sparkles className="w-4 h-4 text-emerald-600" /> Teacher Workspace + AI
-                  </Link>
-                  <Link href="/student" className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 text-slate-900 font-semibold">
-                    <BookOpen className="w-4 h-4 text-blue-600" /> Student Study Workspace
-                  </Link>
-                </div>
-              )}
+              <PortalDropdown 
+                isOpen={portalDropdownOpen} 
+                onClose={() => setPortalDropdownOpen(false)} 
+              />
             </div>
 
             {/* Mobile Menu Toggle */}
@@ -223,85 +197,12 @@ export default function Navbar() {
             className="hidden lg:block bg-white border-t border-b border-slate-200 py-8 px-8 shadow-xl animate-in fade-in slide-in-from-top-1"
             onMouseEnter={() => setActiveMegaMenu(activeMegaMenu)}
           >
-            <div className="max-w-7xl mx-auto">
-              
-              {activeMegaMenu === 'academics' && (
-                <div className="grid grid-cols-3 gap-12 text-xs">
-                  <div className="space-y-3">
-                    <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">DEGREE PROGRAMS</div>
-                    <ul className="space-y-2.5 text-slate-600 font-medium">
-                      <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">B.Sc. in Computer Science & Engineering (B.Sc. CSE)</Link></li>
-                      <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">B.Sc. in Agriculture (Honours)</Link></li>
-                      <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Bachelor of Business Administration (BBA)</Link></li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">FACULTIES</div>
-                    <ul className="space-y-2.5 text-slate-600 font-medium">
-                      <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Faculty of Computer Science & Engineering</Link></li>
-                      <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Faculty of Agriculture</Link></li>
-                      <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Faculty of Business Administration</Link></li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">ACADEMIC EXCELLENCE</div>
-                    <ul className="space-y-2.5 text-slate-600 font-medium">
-                      <li><Link href="/faculty" className="hover:text-emerald-600 transition-colors">Faculty Directory & Research Labs</Link></li>
-                      <li><Link href="/academics" className="hover:text-emerald-600 transition-colors">Undergraduate Curriculums & Credits</Link></li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-
-              {activeMegaMenu === 'admissions' && (
-                <div className="grid grid-cols-3 gap-12 text-xs">
-                  <div className="space-y-3">
-                    <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">SPRING 2027 ADMISSION</div>
-                    <ul className="space-y-2.5 text-slate-600 font-medium">
-                      <li><Link href="/admissions" className="text-emerald-700 font-bold hover:underline">Applications Now Open</Link></li>
-                      <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">How to Apply Step-by-Step</Link></li>
-                      <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">Admission Test Dates & Venue</Link></li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">ELIGIBILITY</div>
-                    <ul className="space-y-2.5 text-slate-600 font-medium">
-                      <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">B.Sc. CSE Minimum GPA & Math Requirements</Link></li>
-                      <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">B.Sc. Agriculture Science Background</Link></li>
-                      <li><Link href="/admissions" className="hover:text-emerald-600 transition-colors">BBA Admission Guidelines</Link></li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">CONTACT & LOCATION</div>
-                    <ul className="space-y-2.5 text-slate-600 font-medium">
-                      <li><Link href="/contact" className="hover:text-emerald-600 transition-colors">Admissions Desk & Helpline</Link></li>
-                      <li><Link href="/contact" className="hover:text-emerald-600 transition-colors">Campus Map, Rajshahi, Bangladesh</Link></li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-
-            </div>
+            <MegaMenu activeMenu={activeMegaMenu} />
           </div>
         )}
 
         {/* Mobile Navigation Drawer */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-4 space-y-3 text-xs font-semibold">
-            <Link href="/about" className="block py-2 text-slate-700 hover:text-emerald-700">About EBAUB</Link>
-            <Link href="/academics" className="block py-2 text-slate-700 hover:text-emerald-700">Academics & Programs</Link>
-            <Link href="/admissions" className="block py-2 text-slate-700 hover:text-emerald-700">Admissions</Link>
-            <Link href="/faculty" className="block py-2 text-slate-700 hover:text-emerald-700">Faculty Directory</Link>
-            <Link href="/notices" className="block py-2 text-slate-700 hover:text-emerald-700">Notices</Link>
-            <Link href="/news" className="block py-2 text-slate-700 hover:text-emerald-700">News & Achievements</Link>
-            <Link href="/events" className="block py-2 text-slate-700 hover:text-emerald-700">Events</Link>
-            <Link href="/contact" className="block py-2 text-slate-700 hover:text-emerald-700">Contact</Link>
-          </div>
-        )}
+        <MobileNavDrawer isOpen={mobileMenuOpen} />
       </header>
 
       {/* Command Menu Modal */}
