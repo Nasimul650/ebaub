@@ -1,26 +1,22 @@
+import { createServerClient } from '@supabase/ssr'
 import { createClient } from './server'
 
 export interface NewsItem {
   id: string
   title: string
-  slug: string
-  content: string
-  author_id: string | null
-  published_at: string | null
+  summary?: string
+  image_url?: string
   created_at: string
-  updated_at: string
+  category?: string
 }
 
 export interface NoticeItem {
   id: string
   title: string
-  slug: string
-  content: string
-  file_url: string | null
-  category: string | null
-  author_id: string | null
-  published_at: string | null
-  created_at: string
+  date?: string
+  priority?: string
+  description?: string
+  attachment_url?: string
 }
 
 /**
@@ -33,9 +29,8 @@ export async function getLatestNews(limit: number = 3): Promise<NewsItem[]> {
 
     const { data, error } = await supabase
       .from('news')
-      .select('*')
-      .not('published_at', 'is', null) // Only fetch published news
-      .order('published_at', { ascending: false })
+      .select('id, title, summary, image_url, created_at, category')
+      .order('created_at', { ascending: false })
       .limit(limit)
 
     if (error) {
@@ -60,8 +55,8 @@ export async function getActiveNotices(limit: number = 5): Promise<NoticeItem[]>
 
     const { data, error } = await supabase
       .from('notices')
-      .select('*')
-      .order('published_at', { ascending: false })
+      .select('id, title, date, priority, description, attachment_url')
+      .order('date', { ascending: false })
       .limit(limit)
 
     if (error) {
