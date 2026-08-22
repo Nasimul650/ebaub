@@ -1,0 +1,226 @@
+# EBAUB Digital Campus — Master Project Context
+
+## Project Status
+
+- Project: EBAUB Digital Campus — Prototype
+- Institution: Eastern Bank Agricultural University (EBAUB)
+- Purpose: 5-day prototype for the CSE Department 2-Year Anniversary presentation
+- Audience: CSE judges/teachers, university administration, other departments, ceremony attendees
+- Current phase: Planning / documentation
+- Production status: Prototype
+- ToolMind: Separate project, temporarily postponed and NOT part of this prototype
+
+## 1. Vision
+
+Create a modern digital front door for EBAUB and demonstrate how the university can move from an outdated, information-heavy website toward a maintainable digital campus experience.
+
+The prototype has two pillars:
+
+1. Modern public university website
+2. Basic digital campus experience for students and teachers
+
+## 2. Problems to Solve
+
+The current website has useful institutional information, but the experience has problems such as:
+
+- Old visual design
+- Poor UX and information hierarchy
+- Some broken/unreliable links
+- Outdated or irrelevant information
+- Weak maintenance/content-management workflow
+- Excessive information density
+- Feels more like an information wiki than a modern university platform
+
+The prototype must improve the experience rather than merely reproduce the current website with different colors.
+
+## 3. Public Website
+
+The public site is information-focused.
+
+Primary visitor goals:
+
+- Discover EBAUB
+- Explore academic programs
+- Discover faculties/departments
+- Find faculty information
+- Find notices
+- Find news and events
+- Learn about admissions
+- Explore campus/student life
+- Find contact information
+- Get answers quickly
+
+## 4. Custom Headless CMS
+
+The public site's content should be manageable without modifying application code.
+
+Initial CMS-managed content:
+
+- Pages
+- News
+- Notices
+- Events
+- Programs
+- Faculties
+- Departments
+- Faculty members
+- Media
+- Announcements
+- Site settings
+
+The CMS is custom-built for this project. It is NOT intended to be a generic CMS framework.
+
+## 5. Student Workspace
+
+Keep the prototype intentionally small.
+
+Initial sections:
+
+- Study
+- Files
+- AI
+- Notices
+
+Later, after presentation feedback, potential expansion may include real courses, assignments, academic progress, calendars, and other services.
+
+## 6. Teacher Workspace
+
+Keep the prototype intentionally small.
+
+Initial sections:
+
+- Materials
+- Teaching
+- AI assistance
+
+Later expansion can include course management, assignments, quizzes, student management, analytics, etc.
+
+## 7. AI
+
+### Public AI Assistant
+
+Helps visitors discover official university information.
+
+Examples:
+
+- What programs does EBAUB offer?
+- Where can I find admission information?
+- Show me recent notices.
+- What departments are available?
+
+### Student AI
+
+Study-focused assistance.
+
+Possible capabilities:
+
+- Explain concepts
+- Summarize materials
+- Generate practice questions
+- Help organize study
+
+### Teacher AI
+
+Teaching-focused assistance.
+
+Possible capabilities:
+
+- Generate quiz questions
+- Suggest assignment ideas
+- Generate lesson/material ideas
+- Summarize teaching material
+
+AI should solve real problems and remain controlled in scope for the prototype.
+
+## 8. ToolMind Relationship
+
+ToolMind remains a separate SaaS project.
+
+Original ToolMind vision remains intact.
+
+For this university prototype:
+
+- Do NOT integrate ToolMind yet.
+- Do NOT redesign ToolMind around this project.
+- Do NOT spend prototype time on ToolMind utilities.
+
+Future integration may be considered after the anniversary project is successful.
+
+## 9. Data Strategy
+
+Data is not the main concern during the prototype.
+
+Authorized administrators/editors will maintain public content through the CMS.
+
+During the prototype, trusted classmates/friends may enter public-site data.
+
+Official institutional data should replace demo/test content before any real production deployment.
+
+## 10. Product Principles
+
+- Modern but institutional
+- Information must be easy to find
+- Visible links must work
+- Content must be maintainable
+- AI must have practical value
+- Avoid unnecessary feature bloat
+- Protect the 5-day scope
+- The prototype should show future potential without pretending to be a complete ERP/LMS
+
+## 11. Success Criteria
+
+The prototype succeeds if the audience can clearly see:
+
+- A major UX/UI improvement over the current website
+- A maintainable CMS-based content model
+- A professional university web presence
+- A useful student/teacher digital campus direction
+- Practical AI features
+- A credible path toward future institutional adoption
+
+## 12. Final Technology Direction
+
+### Frontend
+- Next.js — latest stable version at implementation time
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- GSAP
+- Lucide React
+- Zod
+- React Hook Form
+- Other libraries only when justified
+
+### Backend / Platform
+- Supabase
+- PostgreSQL
+- Supabase Auth
+- Supabase Storage
+
+### Application Layer
+Next.js handles the application/server layer where practical.
+
+Do not introduce Express/NestJS unless a concrete requirement appears.
+
+### Deployment
+- Vercel
+- Supabase
+
+## 13. Current Development Rule
+
+Favor:
+
+- Simple architecture
+- Fast implementation
+- Strong typing
+- Reusable components
+- Maintainability
+- Presentation quality
+
+Avoid:
+
+- Microservices
+- Generic CMS frameworks
+- Over-engineering
+- Unnecessary backend layers
+- Large features that cannot be demonstrated reliably

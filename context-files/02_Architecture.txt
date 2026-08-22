@@ -1,0 +1,361 @@
+# EBAUB Digital Campus — Architecture Specification
+
+## 1. Architecture Goal
+
+Build a maintainable prototype using a custom headless CMS architecture while keeping the implementation realistic for a 5-day deadline.
+
+The architecture should have a clear path toward production expansion later.
+
+## 2. High-Level Architecture
+
+```text
+Visitors / Students / Teachers / Admins
+                 |
+                 v
+          +-------------+
+          |   Next.js   |
+          |-------------|
+          | Public Site |
+          | Student UI  |
+          | Teacher UI  |
+          | Admin CMS   |
+          | Server Logic|
+          +------+------+
+                 |
+        +--------+--------+
+        |        |        |
+        v        v        v
+    Supabase  Supabase    AI
+      Auth     Storage   Provider
+        |        |
+        +---+----+
+            |
+            v
+       PostgreSQL
+```
+
+## 3. Frontend
+
+### Framework
+Next.js + TypeScript.
+
+Use the latest stable version available when development begins.
+
+### Styling
+Tailwind CSS v4.
+
+### UI
+shadcn/ui with reusable primitives.
+
+### Icons
+Lucide React.
+
+### Animation
+GSAP for subtle and purposeful animation.
+
+Animation principles:
+
+- Elegant
+- Short
+- Functional
+- Non-distracting
+- Respect reduced-motion preferences
+
+## 4. Major Application Areas
+
+```text
+Public Website
+├── Home
+├── About
+├── Academics
+├── Admissions
+├── Departments
+├── Faculty
+├── Research
+├── Campus Life
+├── News
+├── Notices
+├── Events
+└── Contact
+
+Student Workspace
+├── Dashboard
+├── Study
+├── Files
+├── AI
+└── Notices
+
+Teacher Workspace
+├── Dashboard
+├── Materials
+├── Teaching
+└── AI
+
+Admin CMS
+├── Dashboard
+├── Pages
+├── News
+├── Notices
+├── Events
+├── Programs
+├── Faculties
+├── Departments
+├── Faculty Members
+├── Media
+└── Users / Roles
+```
+
+## 5. Custom Headless CMS
+
+The CMS is part of the same application.
+
+Content flow:
+
+```text
+Admin/Editor
+    |
+    v
+Custom CMS UI
+    |
+    v
+Validation
+    |
+    v
+PostgreSQL
+    |
+    v
+Public Next.js pages
+```
+
+The CMS separates content management from presentation.
+
+## 6. Database Strategy
+
+Use PostgreSQL because university data is strongly relational.
+
+Examples:
+
+```text
+Faculty
+  └── Departments
+       └── Programs
+
+Department
+  └── Faculty Members
+
+Program
+  └── Academic Information
+
+News
+  └── Author / Publisher
+
+Notice
+  └── Category / Publisher
+```
+
+Use explicit relationships and foreign keys where appropriate.
+
+## 7. Core Database Entities
+
+Initial entities:
+
+- users
+- roles
+- pages
+- news
+- notices
+- events
+- programs
+- faculties
+- departments
+- faculty_members
+- media
+- announcements
+- site_settings
+
+Student/teacher academic entities should only be added when required by actual prototype features.
+
+## 8. Supabase Responsibilities
+
+### Supabase Auth
+Authentication for:
+
+- ADMIN
+- EDITOR
+- TEACHER
+- STUDENT
+
+### Supabase Storage
+Files/media such as:
+
+- News images
+- Faculty photos
+- Event images
+- Notices/documents
+- CMS media
+
+### PostgreSQL
+Primary relational data store.
+
+## 9. Authorization
+
+Initial roles:
+
+- ADMIN — full administrative access
+- EDITOR — manage public content
+- TEACHER — teacher workspace
+- STUDENT — student workspace
+
+Privileged operations must be protected server-side.
+
+## 10. Server-Side Application Layer
+
+Use Next.js server capabilities where practical:
+
+- Server Components
+- Server Actions
+- Route Handlers
+- Server-side Supabase access
+- Server-side AI requests
+
+Avoid a second backend framework unless required.
+
+## 11. Validation
+
+Use Zod for server-boundary and form validation.
+
+Important write operations to validate:
+
+- News
+- Notices
+- Events
+- Programs
+- Departments
+- Faculty members
+- Pages
+- Media metadata
+
+## 12. Forms
+
+Use React Hook Form for complex CMS forms.
+
+Use simpler form handling when the form is trivial and React Hook Form provides no benefit.
+
+## 13. AI Architecture
+
+Never expose provider API keys to the browser.
+
+```text
+Browser
+   |
+   v
+Next.js server action / route
+   |
+   v
+AI provider
+   |
+   v
+Response
+```
+
+The public assistant should ultimately use approved university content.
+
+For the 5-day prototype, a focused AI implementation is preferred over a large RAG system.
+
+## 14. File Flow
+
+```text
+Admin / User
+    |
+    v
+Next.js
+    |
+    v
+Supabase Storage
+    |
+    +--> File
+    |
+    v
+PostgreSQL metadata
+```
+
+Do not store large file blobs directly in PostgreSQL records.
+
+## 15. Security
+
+- Keep secrets server-side
+- Use environment variables
+- Validate privileged operations
+- Validate upload types and sizes
+- Use role-based access controls
+- Minimize exposed personal data
+- Do not trust client-side role checks alone
+
+## 16. Deployment
+
+### Application
+Vercel
+
+### Backend services
+Supabase
+
+Use environment variables for service configuration.
+
+## 17. Suggested Code Organization
+
+```text
+src/
+├── app/
+│   ├── (public)/
+│   ├── (auth)/
+│   ├── dashboard/
+│   ├── admin/
+│   └── api/
+│
+├── components/
+│   ├── ui/
+│   ├── public/
+│   ├── student/
+│   ├── teacher/
+│   └── admin/
+│
+├── features/
+│   ├── news/
+│   ├── notices/
+│   ├── events/
+│   ├── programs/
+│   ├── departments/
+│   ├── faculty/
+│   └── cms/
+│
+├── lib/
+│   ├── supabase/
+│   ├── auth/
+│   ├── ai/
+│   ├── validation/
+│   └── utils/
+│
+└── types/
+```
+
+This is a guideline. Keep the real structure simple and consistent.
+
+## 18. Architecture Rule for the Prototype
+
+Prefer:
+
+- One Next.js application
+- One Supabase project
+- One PostgreSQL database
+- One storage service
+- Minimal dependencies
+- Strongly typed domain models
+
+Avoid:
+
+- Microservices
+- Separate Express/Nest backend
+- Generic plugin system
+- Generic CMS framework
+- Distributed infrastructure
+- Unnecessary real-time systems

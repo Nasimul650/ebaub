@@ -1,0 +1,455 @@
+# EBAUB Digital Campus — Feature & Scope Specification
+
+## 1. Purpose
+
+This document defines what will and will not be built for the 5-day anniversary prototype.
+
+The objective is a polished, convincing prototype — not a complete university ERP, LMS, or production information system.
+
+---
+
+# 2. Scope Categories
+
+- MUST HAVE — required for the demonstration
+- SHOULD HAVE — add if time allows
+- FUTURE — after the presentation
+- OUT OF SCOPE — do not implement in this prototype
+
+---
+
+# 3. Public Website — MUST HAVE
+
+## Homepage
+
+Include:
+
+- Hero
+- Primary CTA
+- University introduction
+- Academic programs
+- Faculties/departments
+- News
+- Notices
+- Events
+- Campus/student-life content
+- Verified university highlights
+- Contact/footer
+
+## Main Navigation
+
+Core areas:
+
+- About
+- Academics
+- Admissions
+- Research
+- Campus Life
+- News
+- Notices
+- Events
+- Contact
+
+Every implemented navigation item must lead somewhere useful.
+
+## Content Pages
+
+MUST HAVE:
+
+- Programs
+- Departments
+- Faculty
+- News
+- Notices
+- Events
+- Admissions
+- Contact
+
+SHOULD HAVE:
+
+- Research
+- Student life
+- About sections
+- Program detail pages
+
+---
+
+# 4. Public Search — SHOULD HAVE
+
+A global search experience that can find:
+
+- Programs
+- Departments
+- Faculty
+- News
+- Notices
+- Events
+- Pages
+
+The search should prioritize useful information instead of acting as a generic website search box.
+
+---
+
+# 5. Public AI Assistant — MUST HAVE
+
+Demonstrate an AI assistant that helps visitors discover university information.
+
+Example questions:
+
+- What programs does EBAUB offer?
+- How do I find admission information?
+- What departments are available?
+- Show recent notices.
+- Where is the university located?
+
+For the prototype, the assistant can use a controlled knowledge source.
+
+FUTURE:
+
+- Full RAG across all CMS data
+- Citations
+- Multilingual support
+- Advanced admission guidance
+
+---
+
+# 6. Student Dashboard — MUST HAVE
+
+Initial sections:
+
+- Dashboard
+- Study
+- Files
+- AI
+- Notices
+
+The student dashboard is intentionally lightweight.
+
+---
+
+# 7. Student AI — MUST HAVE
+
+At least one useful study demonstration.
+
+Preferred flow:
+
+```text
+Student asks a study question
+        ↓
+AI explains the concept
+        ↓
+Student can ask a follow-up
+```
+
+Alternative:
+
+```text
+Study material
+    ↓
+AI summary
+    ↓
+Practice questions
+```
+
+Choose whichever is more reliable during implementation.
+
+---
+
+# 8. Teacher Dashboard — MUST HAVE
+
+Initial sections:
+
+- Dashboard
+- Materials
+- Teaching
+- AI
+
+The dashboard should communicate the direction of a future teacher portal.
+
+---
+
+# 9. Teacher AI — MUST HAVE
+
+Recommended centerpiece:
+
+## AI Quiz / Question Generator
+
+Flow:
+
+```text
+Teacher selects topic
+        ↓
+Sets number/difficulty
+        ↓
+AI generates questions
+        ↓
+Teacher reviews/edits
+        ↓
+Teacher publishes
+```
+
+The teacher must remain the final decision-maker.
+
+---
+
+# 10. Teacher Materials — SHOULD HAVE
+
+- Upload material
+- List materials
+- Basic categorization
+- Publish/unpublish state
+
+No full LMS material-management system is required.
+
+---
+
+# 11. Custom CMS — MUST HAVE
+
+Admin/editor can manage:
+
+- Pages
+- News
+- Notices
+- Events
+- Programs
+- Faculties
+- Departments
+- Faculty members
+- Media
+- Announcements
+
+Required CMS operations:
+
+- Create
+- Read
+- Update
+- Delete
+- Publish/unpublish where appropriate
+- Upload/select media
+
+---
+
+# 12. CMS Dashboard — SHOULD HAVE
+
+Display:
+
+- Content counts
+- Recent content
+- Draft/published counts
+- Quick actions
+
+Do not spend large amounts of time on advanced analytics.
+
+---
+
+# 13. Authentication — MUST HAVE
+
+Provide:
+
+- Login
+- Logout
+- Role-aware routing
+
+Initial roles:
+
+- ADMIN
+- EDITOR
+- TEACHER
+- STUDENT
+
+Admin/editor authentication is the highest priority because of the CMS.
+
+---
+
+# 14. Roles — MUST HAVE
+
+ADMIN:
+- Full CMS control
+
+EDITOR:
+- Public content management
+
+TEACHER:
+- Teacher dashboard
+
+STUDENT:
+- Student dashboard
+
+Keep permissions simple during the prototype.
+
+---
+
+# 15. ToolMind — OUT OF CURRENT SCOPE
+
+Do not integrate ToolMind during this 5-day prototype.
+
+ToolMind remains a separate project and keeps its original product vision.
+
+Possible future integration may include:
+
+- PDF tools
+- Document tools
+- Image tools
+- AI productivity tools
+
+That comes after the anniversary project.
+
+---
+
+# 16. Explicitly OUT OF SCOPE
+
+Do not attempt:
+
+- Payment gateway
+- Tuition collection
+- Payroll
+- Accounting
+- Full ERP
+- Complete LMS
+- Full admission backend
+- Real exam management
+- Complex attendance
+- Hostel management
+- Transport management
+- Advanced HR
+- Full library-management platform
+- Production-grade enterprise RAG
+- Microservices
+- Distributed realtime infrastructure
+
+---
+
+# 17. Prototype Data
+
+The CMS is the source of truth for public content.
+
+During the prototype:
+
+- Seed data may be used
+- Trusted classmates/friends may enter content
+- Official data should be used where available
+- Demo content must be clearly replaceable before production
+
+---
+
+# 18. Presentation Stories
+
+## Story A — Visitor
+
+```text
+Visitor lands on EBAUB
+        ↓
+Finds information quickly
+        ↓
+Explores program / department
+        ↓
+Reads news / notice
+        ↓
+Uses AI assistant if needed
+```
+
+## Story B — Student
+
+```text
+Student logs in
+        ↓
+Student dashboard
+        ↓
+Study / Files / Notices
+        ↓
+AI study assistance
+```
+
+## Story C — Teacher
+
+```text
+Teacher logs in
+        ↓
+Teacher dashboard
+        ↓
+Materials / Teaching
+        ↓
+AI generates questions
+        ↓
+Teacher reviews
+```
+
+These stories should determine development priorities.
+
+---
+
+# 19. Five-Day Priority
+
+## Day 1
+- Project setup
+- Global layout
+- Public site structure
+- Database foundation
+- CMS foundation
+- Authentication foundation
+
+## Day 2
+- Homepage
+- Programs
+- Departments
+- Faculty
+- News
+- Notices
+- Events
+
+## Day 3
+- CMS CRUD
+- Media handling
+- Student dashboard
+- Teacher dashboard
+
+## Day 4
+- Public AI assistant
+- Student AI
+- Teacher AI / quiz generator
+- Search
+
+## Day 5
+- Responsive polish
+- GSAP animation polish
+- Content cleanup
+- Bug fixing
+- Demo preparation
+- Presentation flow
+
+The exact day order may change according to development progress.
+
+---
+
+# 20. Scope Protection Rule
+
+Every new feature request must be classified immediately:
+
+- MUST HAVE
+- SHOULD HAVE
+- FUTURE
+- OUT OF SCOPE
+
+Do not allow late ideas to compromise the main presentation flow.
+
+A polished prototype is more valuable than a larger unfinished one.
+
+---
+
+# 21. Definition of Done
+
+The prototype is ready when:
+
+- Public homepage feels substantially better than the existing website
+- Main navigation works
+- Important public pages work
+- CMS can manage core content
+- Admin/editor authentication works
+- Student dashboard exists
+- Teacher dashboard exists
+- Public AI demo works
+- Student AI demo works
+- Teacher AI demo works
+- Search works at a useful prototype level
+- Mobile layout is acceptable
+- No major internal links are broken
+- Main visitor/student/teacher demo stories can be demonstrated reliably
