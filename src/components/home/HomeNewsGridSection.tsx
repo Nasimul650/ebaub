@@ -28,8 +28,9 @@ export default function HomeNewsGridSection({ news }: { news: NewsItem[] }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {news.map(article => (
-            <div
+            <Link
               key={article.id}
+              href={`/news/${article.id}`}
               className="rounded-2xl bg-white border border-slate-200/80 shadow-xl hover:translate-y-[-2px] transition-transform group block overflow-hidden flex flex-col"
             >
               {article.image_url ? (
@@ -56,7 +57,7 @@ export default function HomeNewsGridSection({ news }: { news: NewsItem[] }) {
                   </span>
                 </div>
 
-                <h3 className="font-extrabold text-lg text-slate-900 leading-snug">
+                <h3 className="font-extrabold text-lg text-slate-900 leading-snug group-hover:text-campus-800 transition-colors">
                   {article.title}
                 </h3>
                 
@@ -65,8 +66,13 @@ export default function HomeNewsGridSection({ news }: { news: NewsItem[] }) {
                     {article.summary}
                   </p>
                 )}
+                
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-campus-800 mt-auto">
+                  <span>Read Article</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

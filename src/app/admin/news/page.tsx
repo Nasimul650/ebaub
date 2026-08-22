@@ -58,7 +58,14 @@ export default async function AdminNewsPage() {
                       </span>
                     </td>
                     <td className="p-4 text-slate-500">{new Date(item.created_at).toLocaleDateString()}</td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right flex justify-end gap-2">
+                      <Link
+                        href={`/admin/news/${item.id}/edit`}
+                        className="p-1.5 rounded bg-campus-50 text-campus-700 hover:bg-campus-100 transition-colors"
+                        title="Edit"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                      </Link>
                       <form action={deleteNews} className="inline-block">
                         <input type="hidden" name="id" value={item.id} />
                         <button

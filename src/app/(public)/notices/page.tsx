@@ -1,10 +1,10 @@
 import React from 'react';
-import { getNotices } from '@/lib/mock/mockServices';
+import { getAllNotices } from '@/utils/supabase/queries';
 import PageHeader from '@/components/shared/PageHeader';
 import NoticeListFeed from '@/components/notices/NoticeListFeed';
 
 export default async function NoticesPage() {
-  const notices = await getNotices();
+  const notices = await getAllNotices();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-12">

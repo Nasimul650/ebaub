@@ -28,9 +28,10 @@ export default function HomeNoticeGridSection({ notices }: { notices: NoticeItem
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {notices.map(notice => (
-            <div
+            <Link
               key={notice.id}
-              className="p-8 rounded-2xl bg-white border border-slate-200/80 shadow-xl space-y-4 hover:translate-y-[-2px] transition-transform group block"
+              href={`/notices/${notice.id}`}
+              className="p-8 rounded-2xl bg-white border border-slate-200/80 shadow-xl space-y-4 hover:translate-y-[-2px] transition-transform group block flex flex-col"
             >
               <div className="flex items-center justify-between">
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border ${
@@ -48,28 +49,21 @@ export default function HomeNoticeGridSection({ notices }: { notices: NoticeItem
                 </span>
               </div>
 
-              <h3 className="font-extrabold text-base sm:text-lg text-slate-900 leading-snug">
+              <h3 className="font-extrabold text-base sm:text-lg text-slate-900 leading-snug group-hover:text-campus-800 transition-colors">
                 {notice.title}
               </h3>
               
               {notice.description && (
-                <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 flex-1">
                   {notice.description}
                 </p>
               )}
 
-              {notice.attachment_url && (
-                <a 
-                  href={notice.attachment_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pt-2 flex items-center gap-2 text-xs font-bold text-campus-800"
-                >
-                  <span>Download Attachment</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </a>
-              )}
-            </div>
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-campus-800 mt-auto">
+                <span>Read Full Circular</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
           ))}
         </div>
       )}

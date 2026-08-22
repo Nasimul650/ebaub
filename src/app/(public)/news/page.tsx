@@ -1,10 +1,10 @@
 import React from 'react';
-import { getNews } from '@/lib/mock/mockServices';
+import { getAllNews } from '@/utils/supabase/queries';
 import PageHeader from '@/components/shared/PageHeader';
 import NewsArticlesGrid from '@/components/news/NewsArticlesGrid';
 
 export default async function NewsPage() {
-  const newsList = await getNews();
+  const newsList = await getAllNews();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-12">

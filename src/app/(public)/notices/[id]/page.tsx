@@ -1,15 +1,15 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { getNoticeBySlug } from '@/lib/mock/mockServices';
+import { getNoticeById } from '@/utils/supabase/queries';
 import NoticeDetailView from '@/components/notices/NoticeDetailView';
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default async function NoticeDetailPage({ params }: Props) {
-  const { slug } = await params;
-  const notice = await getNoticeBySlug(slug);
+  const { id } = await params;
+  const notice = await getNoticeById(id);
 
   if (!notice) {
     notFound();
