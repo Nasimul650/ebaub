@@ -21,13 +21,13 @@ export default function RecentMaterialsPreview({ materials }: Props) {
 
       <div className="space-y-3">
         {materials.map(mat => (
-          <div key={mat.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+          <div key={mat.id} className="p-4 rounded-2xl bg-campus-50 border border-slate-200/80 flex items-center justify-between">
             <div>
               <div className="text-xs font-bold text-blue-700">{mat.subject}</div>
               <div className="text-sm font-semibold text-slate-900 mt-0.5">{mat.title}</div>
               <div className="text-[11px] text-slate-500 mt-1">Instructor: {mat.teacherName}</div>
             </div>
-            <button className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs">
+            <button className="px-3.5 py-2 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-xs">
               Download
             </button>
           </div>

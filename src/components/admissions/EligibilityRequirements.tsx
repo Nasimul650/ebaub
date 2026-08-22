@@ -15,7 +15,7 @@ export default function EligibilityRequirements({ programs }: Props) {
           <div key={p.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
             <div className="flex justify-between items-center text-sm font-bold text-slate-900">
               <span>{p.title} ({p.code})</span>
-              <span className="text-emerald-700 text-xs font-bold">{p.degreeLevel}</span>
+              <span className="text-campus-800 text-xs font-bold">{p.degreeLevel}</span>
             </div>
             <p className="text-xs text-slate-600"><span className="font-semibold text-slate-700">Eligibility:</span> {p.admissionRequirements}</p>
           </div>

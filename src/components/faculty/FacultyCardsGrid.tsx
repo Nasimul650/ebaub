@@ -26,7 +26,7 @@ export default function FacultyCardsGrid({ members, departments }: Props) {
                 )}
                 <div>
                   <h3 className="font-extrabold text-base text-slate-900">{member.name}</h3>
-                  <p className="text-xs text-emerald-700 font-bold">{member.designation}</p>
+                  <p className="text-xs text-campus-800 font-bold">{member.designation}</p>
                   <p className="text-[11px] text-slate-500">{dept?.title}</p>
                 </div>
               </div>
@@ -53,13 +53,13 @@ export default function FacultyCardsGrid({ members, departments }: Props) {
             <div className="pt-4 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
               {member.email && (
                 <div className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <Mail className="w-3.5 h-3.5 text-campus-700 shrink-0" />
                   <a href={`mailto:${member.email}`} className="hover:underline hover:text-slate-900 truncate">{member.email}</a>
                 </div>
               )}
               {member.phone && (
                 <div className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <Phone className="w-3.5 h-3.5 text-campus-700 shrink-0" />
                   <span>{member.phone}</span>
                 </div>
               )}

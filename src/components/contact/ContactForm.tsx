@@ -13,7 +13,7 @@ export default function ContactForm() {
             <input
               type="text"
               placeholder="e.g. Tanvir Ahmed"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-campus-700"
             />
           </div>
           <div>
@@ -21,7 +21,7 @@ export default function ContactForm() {
             <input
               type="email"
               placeholder="name@example.com"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-campus-700"
             />
           </div>
         </div>
@@ -31,7 +31,7 @@ export default function ContactForm() {
           <input
             type="text"
             placeholder="Inquiry subject..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-campus-700"
           />
         </div>
 
@@ -40,15 +40,16 @@ export default function ContactForm() {
           <textarea
             rows={4}
             placeholder="Type your message here..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-campus-700"
           ></textarea>
         </div>
 
         <button
           type="button"
-          className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-2 shadow transition-colors"
+          className="px-6 py-3 rounded-xl bg-campus-900 hover:bg-campus-900 text-white font-bold text-xs flex items-center gap-2 shadow transition-colors duration-300"
         >
-          <Send className="w-4 h-4 text-emerald-400" /> Send Message
+          <span>Send Message</span>
+          <Send className="w-4 h-4" />
         </button>
       </form>
     </div>

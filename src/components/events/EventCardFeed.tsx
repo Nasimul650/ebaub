@@ -26,7 +26,7 @@ export default function EventCardFeed({ events }: Props) {
                 <Calendar className="w-4 h-4" /> {new Date(event.startTime).toLocaleDateString()}
               </span>
               <span className="flex items-center gap-1.5 text-slate-600">
-                <Clock className="w-4 h-4 text-emerald-600" /> {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <Clock className="w-4 h-4 text-campus-700" /> {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
               <span className="flex items-center gap-1.5 text-slate-600">
                 <MapPin className="w-4 h-4 text-blue-600" /> {event.location}

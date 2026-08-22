@@ -20,8 +20,8 @@ export default function StudyMaterialsGrid({ materials }: Props) {
             <div className="text-[11px] text-slate-400 pt-2">Provided by: {mat.teacherName}</div>
           </div>
 
-          <button className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors">
-            <Download className="w-4 h-4 text-emerald-400" /> Download PDF / Resource
+          <button className="w-full py-2.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors">
+            <Download className="w-4 h-4 text-campus-400" /> Download PDF / Resource
           </button>
         </div>
       ))}

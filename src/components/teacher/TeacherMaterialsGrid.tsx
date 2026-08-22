@@ -12,7 +12,7 @@ export default function TeacherMaterialsGrid({ materials }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {materials.map(mat => (
           <div key={mat.id} className="clean-card p-5 rounded-3xl bg-white space-y-2">
-            <span className="px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[10px] font-bold border border-emerald-200">
+            <span className="px-2.5 py-0.5 rounded bg-campus-50 text-campus-900 text-[10px] font-bold border border-campus-200">
               {mat.subject}
             </span>
             <h3 className="font-bold text-slate-900 text-sm mt-1">{mat.title}</h3>

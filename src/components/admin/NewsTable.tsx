@@ -16,7 +16,7 @@ export default function NewsTable({ newsList, onDelete }: NewsTableProps) {
         News Articles ({newsList.length})
       </div>
       <table className="w-full text-left">
-        <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
+        <thead className="bg-campus-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
           <tr>
             <th className="p-4">Title</th>
             <th className="p-4">Category</th>
@@ -26,7 +26,7 @@ export default function NewsTable({ newsList, onDelete }: NewsTableProps) {
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-700">
           {newsList.map(item => (
-            <tr key={item.id} className="hover:bg-slate-50/80">
+            <tr key={item.id} className="hover:bg-campus-50/80">
               <td className="p-4 font-bold text-slate-900">{item.title}</td>
               <td className="p-4 text-slate-500">{item.category}</td>
               <td className="p-4 text-slate-500">{new Date(item.publishedAt).toLocaleDateString()}</td>

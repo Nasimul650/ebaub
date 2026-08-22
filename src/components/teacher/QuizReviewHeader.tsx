@@ -14,12 +14,12 @@ export default function QuizReviewHeader({ quizTitle, setQuizTitle, published, o
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
       <div>
-        <div className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Step 2: Teacher Review & Edit</div>
+        <div className="text-xs font-bold text-campus-800 uppercase tracking-wider">Step 2: Teacher Review & Edit</div>
         <input
           type="text"
           value={quizTitle}
           onChange={e => setQuizTitle(e.target.value)}
-          className="text-lg font-bold text-slate-900 bg-transparent border-b border-slate-300 focus:outline-none focus:border-emerald-600 mt-1 w-full"
+          className="text-lg font-bold text-slate-900 bg-transparent border-b border-slate-300 focus:outline-none focus:border-campus-700 mt-1 w-full"
         />
       </div>
 
@@ -27,7 +27,7 @@ export default function QuizReviewHeader({ quizTitle, setQuizTitle, published, o
         <button
           onClick={onPublish}
           disabled={published}
-          className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow flex items-center gap-2 transition-colors disabled:opacity-60"
+          className="px-5 py-2.5 rounded-xl bg-campus-800 hover:bg-campus-900 text-white font-bold text-xs shadow flex items-center gap-2 transition-colors disabled:opacity-60"
         >
           {published ? (
             <>

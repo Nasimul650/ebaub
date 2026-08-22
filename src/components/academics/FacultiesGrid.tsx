@@ -10,7 +10,7 @@ export default function FacultiesGrid({ faculties }: Props) {
   return (
     <div className="space-y-8">
       <h2 className="text-xl font-bold text-slate-900 border-b border-slate-200 pb-3 flex items-center gap-2">
-        <Building2 className="w-5 h-5 text-emerald-700" /> University Faculties
+        <Building2 className="w-5 h-5 text-campus-800" /> University Faculties
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

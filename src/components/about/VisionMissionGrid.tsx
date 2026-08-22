@@ -10,7 +10,7 @@ export default function VisionMissionGrid({ settings }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="bg-white border border-slate-200 rounded-3xl p-8 space-y-4 shadow-xs">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100">
+        <div className="w-12 h-12 rounded-2xl bg-campus-50 text-campus-800 flex items-center justify-center border border-campus-100">
           <Target className="w-6 h-6" />
         </div>
         <h3 className="text-xl font-bold text-slate-900">Our Vision</h3>

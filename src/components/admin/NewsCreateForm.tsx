@@ -39,7 +39,7 @@ export default function NewsCreateForm({ onSubmit }: NewsCreateFormProps) {
   return (
     <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-4 text-xs shadow-xs">
       <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-        <Plus className="w-4 h-4 text-emerald-600" /> Create News Article
+        <Plus className="w-4 h-4 text-campus-700" /> Create News Article
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -51,7 +51,7 @@ export default function NewsCreateForm({ onSubmit }: NewsCreateFormProps) {
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="News headline..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
+              className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-campus-700"
             />
           </div>
 
@@ -60,7 +60,7 @@ export default function NewsCreateForm({ onSubmit }: NewsCreateFormProps) {
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
+              className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-campus-700"
             >
               <option value="Academic">Academic</option>
               <option value="Research & Achievement">Research & Achievement</option>
@@ -76,7 +76,7 @@ export default function NewsCreateForm({ onSubmit }: NewsCreateFormProps) {
             value={summary}
             onChange={e => setSummary(e.target.value)}
             placeholder="Brief summary..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-campus-700"
           />
         </div>
 
@@ -87,14 +87,14 @@ export default function NewsCreateForm({ onSubmit }: NewsCreateFormProps) {
             value={content}
             onChange={e => setContent(e.target.value)}
             placeholder="Full article text..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-campus-700"
           ></textarea>
         </div>
 
         <button
           type="submit"
           disabled={!title.trim() || !content.trim()}
-          className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-colors"
+          className="px-6 py-2.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-colors"
         >
           Publish Article
         </button>

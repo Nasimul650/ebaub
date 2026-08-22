@@ -17,7 +17,7 @@ export default function TeachingCourseGrid({ courses }: Props) {
       {courses.map((course, i) => (
         <div key={i} className="clean-card bg-white rounded-3xl p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs">
+            <span className="px-3 py-1 rounded-lg bg-campus-50 border border-campus-200 text-campus-900 font-bold text-xs">
               {course.code}
             </span>
             <span className="text-xs text-slate-500 font-medium">{course.students} Enrolled Students</span>

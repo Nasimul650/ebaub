@@ -158,7 +158,7 @@ export default function HeroCarousel() {
       >
         <div ref={textContainerRef} className="space-y-6">
           {/* Top Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-extrabold shadow-2xs">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-campus-50 border border-campus-200 text-campus-900 text-xs font-extrabold shadow-2xs">
             <Sparkles className="w-4 h-4 text-amber-500" />
             <span>{activeSlide.badge}</span>
           </div>
@@ -177,7 +177,7 @@ export default function HeroCarousel() {
           <div className="pt-2 flex flex-wrap items-center gap-4">
             <Link
               href={activeSlide.ctaLink}
-              className="px-7 py-3.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="px-7 py-3.5 rounded-2xl bg-campus-800 hover:bg-campus-900 text-white font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>{activeSlide.ctaText}</span>
               <ArrowRight className="w-4 h-4 text-amber-300" />
@@ -185,7 +185,7 @@ export default function HeroCarousel() {
 
             <Link
               href={activeSlide.secondaryLink}
-              className="px-7 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm transition-colors"
+              className="px-7 py-3.5 rounded-2xl bg-campus-50 hover:bg-campus-100 text-slate-800 font-bold text-xs sm:text-sm transition-colors"
             >
               {activeSlide.secondaryText}
             </Link>
@@ -203,7 +203,7 @@ export default function HeroCarousel() {
                 aria-label={`Go to slide ${idx + 1}`}
                 className={`h-2.5 rounded-full transition-all ${
                   idx === currentIdx
-                    ? 'w-8 bg-emerald-700 shadow-xs'
+                    ? 'w-8 bg-campus-800 shadow-xs'
                     : 'w-2.5 bg-slate-300 hover:bg-slate-400'
                 }`}
               />
@@ -215,16 +215,16 @@ export default function HeroCarousel() {
             <button
               onClick={prevSlide}
               aria-label="Previous Slide"
-              className="w-11 h-11 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-2xs"
+              className="w-11 h-11 rounded-2xl bg-campus-50 hover:bg-campus-100 text-slate-700 flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-2xs"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={nextSlide}
               aria-label="Next Slide"
-              className="w-11 h-11 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-md"
+              className="w-11 h-11 rounded-2xl bg-campus-900 hover:bg-campus-800 text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 shadow-md"
             >
-              <ChevronRight className="w-5 h-5 text-emerald-400" />
+              <ChevronRight className="w-5 h-5 text-campus-400" />
             </button>
           </div>
         </div>

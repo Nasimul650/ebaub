@@ -13,7 +13,7 @@ export default function CampusInfoCard({ settings }: Props) {
 
       <div className="space-y-4 text-xs">
         <div className="flex items-start gap-3">
-          <MapPin className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+          <MapPin className="w-5 h-5 text-campus-700 shrink-0 mt-0.5" />
           <div>
             <div className="font-bold text-slate-900">Address</div>
             <div className="text-slate-600 mt-0.5">{settings.address}</div>
@@ -21,7 +21,7 @@ export default function CampusInfoCard({ settings }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
-          <Mail className="w-5 h-5 text-emerald-600 shrink-0" />
+          <Mail className="w-5 h-5 text-campus-700 shrink-0" />
           <div>
             <div className="font-bold text-slate-900">Email Inquiries</div>
             <div className="text-slate-600 mt-0.5">{settings.email}</div>
@@ -29,7 +29,7 @@ export default function CampusInfoCard({ settings }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
-          <Phone className="w-5 h-5 text-emerald-600 shrink-0" />
+          <Phone className="w-5 h-5 text-campus-700 shrink-0" />
           <div>
             <div className="font-bold text-slate-900">Telephone</div>
             <div className="text-slate-600 mt-0.5">{settings.phone}</div>

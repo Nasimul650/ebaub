@@ -72,7 +72,7 @@ export default function TeacherAIQuizGeneratorPage() {
       {/* Header */}
       <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-xs space-y-3">
         <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 w-fit border border-amber-200">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" /> AI Quiz Generator (Teacher Core Feature)
+          <Sparkles className="w-3.5 h-3.5 text-campus-500" /> AI Quiz Generator (Teacher Core Feature)
         </span>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 heading-display">
           Generate Instant Course Quizzes & Question Banks
@@ -100,8 +100,8 @@ export default function TeacherAIQuizGeneratorPage() {
           />
 
           {published && (
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <div className="p-4 rounded-2xl bg-campus-50 border border-campus-200 text-campus-900 text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-campus-700" />
               <span>Quiz successfully published! Students can now access this quiz in their portal.</span>
             </div>
           )}

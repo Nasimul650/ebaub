@@ -13,9 +13,9 @@ export default function HomeNoticeGridSection({ notices }: { notices: NoticeItem
             Latest Notices & Campus Circulars
           </h2>
         </div>
-        <Link href="/notices" className="text-xs font-bold text-slate-900 hover:text-emerald-700 flex items-center gap-1.5 transition-colors">
+        <Link href="/notices" className="text-xs font-bold text-slate-900 hover:text-campus-800 flex items-center gap-1.5 transition-colors">
           <span>View All Notices</span>
-          <ArrowRight className="w-4 h-4 text-emerald-600" />
+          <ArrowRight className="w-4 h-4 text-campus-700" />
         </Link>
       </div>
 
@@ -27,7 +27,7 @@ export default function HomeNoticeGridSection({ notices }: { notices: NoticeItem
             className="p-8 rounded-2xl bg-white border border-slate-200/80 shadow-xl space-y-4 hover:translate-y-[-2px] transition-transform group block"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-campus-100 text-slate-700 border border-slate-200">
                 {notice.category}
               </span>
               <span className="text-[11px] text-slate-400 font-medium">
@@ -35,7 +35,7 @@ export default function HomeNoticeGridSection({ notices }: { notices: NoticeItem
               </span>
             </div>
 
-            <h3 className="font-extrabold text-base sm:text-lg text-slate-900 group-hover:text-emerald-700 transition-colors leading-snug">
+            <h3 className="font-extrabold text-base sm:text-lg text-slate-900 group-hover:text-campus-800 transition-colors leading-snug">
               {notice.title}
             </h3>
 
@@ -43,7 +43,7 @@ export default function HomeNoticeGridSection({ notices }: { notices: NoticeItem
               {notice.summary}
             </p>
 
-            <div className="pt-2 flex items-center gap-2 text-xs font-bold text-emerald-700">
+            <div className="pt-2 flex items-center gap-2 text-xs font-bold text-campus-800">
               <span>Read circular</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>

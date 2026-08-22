@@ -10,7 +10,7 @@ export default function FacultyMentorshipSection() {
       <div className="relative flex justify-center">
         
         {/* Glow backdrop */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/20 to-teal-400/20 rounded-3xl blur-2xl -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-campus-400/20 to-teal-400/20 rounded-3xl blur-2xl -z-10" />
 
         <div className="w-full max-w-md bg-white border border-slate-200/90 rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
           
@@ -23,21 +23,21 @@ export default function FacultyMentorshipSection() {
             <div>
               <div className="flex items-center gap-1.5">
                 <h3 className="font-extrabold text-base text-slate-900">Dr. Anisur Rahman</h3>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <CheckCircle2 className="w-4 h-4 text-campus-700" />
               </div>
-              <p className="text-xs text-emerald-700 font-bold">Associate Professor & AI Lab Head</p>
+              <p className="text-xs text-campus-800 font-bold">Associate Professor & AI Lab Head</p>
               <p className="text-[11px] text-slate-500 font-medium">Department of CSE, EBAUB</p>
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 leading-relaxed font-normal">
+          <div className="p-4 rounded-xl bg-campus-50 border border-slate-200/80 text-xs text-slate-600 leading-relaxed font-normal">
             "Our mission is to mentor students through hands-on coding, machine learning research, and scalable system architecture."
           </div>
 
           <div className="space-y-2">
             <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Research Focus Areas</div>
             <div className="flex flex-wrap gap-2 text-xs">
-              <span className="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">
+              <span className="px-3 py-1 rounded-xl bg-campus-50 text-campus-900 font-semibold border border-campus-200">
                 Machine Learning
               </span>
               <span className="px-3 py-1 rounded-xl bg-blue-50 text-blue-800 font-semibold border border-blue-200">
@@ -51,7 +51,7 @@ export default function FacultyMentorshipSection() {
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
             <span className="text-slate-500">EBAUB Research Cell</span>
-            <Link href="/faculty" className="text-emerald-700 font-bold hover:underline">
+            <Link href="/faculty" className="text-campus-800 font-bold hover:underline">
               View Faculty Directory &rarr;
             </Link>
           </div>
@@ -62,7 +62,7 @@ export default function FacultyMentorshipSection() {
 
       {/* Row 1 Right: High-Contrast Text */}
       <div className="space-y-6">
-        <div className="text-xs uppercase tracking-wider font-bold text-emerald-700">
+        <div className="text-xs uppercase tracking-wider font-bold text-campus-800">
           World-Class Academic Mentorship
         </div>
 
@@ -77,10 +77,10 @@ export default function FacultyMentorshipSection() {
         <div className="pt-2">
           <Link
             href="/faculty"
-            className="text-sm font-bold text-slate-900 hover:text-emerald-700 flex items-center gap-2 transition-colors group"
+            className="text-sm font-bold text-slate-900 hover:text-campus-800 flex items-center gap-2 transition-colors group"
           >
             <span>Explore all faculty members and research labs</span>
-            <ArrowRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-campus-700 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </div>

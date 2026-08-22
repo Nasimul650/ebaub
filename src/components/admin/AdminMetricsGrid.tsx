@@ -15,7 +15,7 @@ export default function AdminMetricsGrid({ noticeCount, newsCount, eventCount, p
       <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-3 shadow-xs">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-500">Total Notices</span>
-          <Bell className="w-5 h-5 text-amber-500" />
+          <Bell className="w-5 h-5 text-campus-500" />
         </div>
         <div className="text-3xl font-extrabold text-slate-900 heading-display">{noticeCount}</div>
         <Link href="/admin/notices" className="text-xs text-amber-700 font-bold hover:underline flex items-center gap-1">
@@ -26,10 +26,10 @@ export default function AdminMetricsGrid({ noticeCount, newsCount, eventCount, p
       <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-3 shadow-xs">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-slate-500">News Articles</span>
-          <Newspaper className="w-5 h-5 text-emerald-600" />
+          <Newspaper className="w-5 h-5 text-campus-700" />
         </div>
         <div className="text-3xl font-extrabold text-slate-900 heading-display">{newsCount}</div>
-        <Link href="/admin/news" className="text-xs text-emerald-700 font-bold hover:underline flex items-center gap-1">
+        <Link href="/admin/news" className="text-xs text-campus-800 font-bold hover:underline flex items-center gap-1">
           Manage News &rarr;
         </Link>
       </div>

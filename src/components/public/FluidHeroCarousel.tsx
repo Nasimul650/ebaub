@@ -108,7 +108,7 @@ export default function FluidHeroCarousel() {
           className="w-full max-w-2xl glass-overlay p-8 sm:p-10 rounded-3xl shadow-2xl space-y-6"
         >
           
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold tracking-wide">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-campus-400/20 border border-campus-400/40 text-campus-300 text-xs font-bold tracking-wide">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>{activeSlide.badge}</span>
           </div>
@@ -117,21 +117,21 @@ export default function FluidHeroCarousel() {
             {activeSlide.title}
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+          <p className="text-sm sm:text-base text-campus-200 leading-relaxed">
             {activeSlide.description}
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-4">
             <Link
               href={activeSlide.ctaLink}
-              className="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-950/50 flex items-center gap-2 transition-all hover:scale-[1.02]"
+              className="px-6 py-3.5 rounded-xl bg-campus-700 hover:bg-campus-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-campus-950/50 flex items-center gap-2 transition-all hover:scale-[1.02]"
             >
               <span>{activeSlide.ctaText}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/admissions"
-              className="px-6 py-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 font-semibold text-xs sm:text-sm border border-slate-700 transition-colors"
+              className="px-6 py-3.5 rounded-xl bg-campus-900/80 hover:bg-campus-800 text-campus-100 font-semibold text-xs sm:text-sm border border-campus-700 transition-colors"
             >
               Admission Info
             </Link>
@@ -146,7 +146,7 @@ export default function FluidHeroCarousel() {
         {/* Play/Pause Autoplay */}
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className="p-1.5 rounded-full hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
+          className="p-1.5 rounded-full hover:bg-campus-800 text-campus-200 hover:text-white transition-colors"
           aria-label={isPlaying ? 'Pause Carousel' : 'Play Carousel'}
         >
           {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -154,7 +154,7 @@ export default function FluidHeroCarousel() {
 
         {/* Slide Numbers */}
         <span className="font-bold text-amber-400">
-          0{current + 1} <span className="text-slate-500 font-normal">/ 0{slides.length}</span>
+          0{current + 1} <span className="text-campus-300 font-normal">/ 0{slides.length}</span>
         </span>
 
         {/* Slide Indicators */}
@@ -164,7 +164,7 @@ export default function FluidHeroCarousel() {
               key={i}
               onClick={() => setCurrent(i)}
               className={`h-1.5 rounded-full transition-all ${
-                i === current ? 'w-6 bg-amber-400' : 'w-2 bg-slate-600 hover:bg-slate-400'
+                i === current ? 'w-6 bg-amber-400' : 'w-2 bg-campus-700 hover:bg-campus-400'
               }`}
               aria-label={`Go to slide ${i + 1}`}
             />
@@ -172,17 +172,17 @@ export default function FluidHeroCarousel() {
         </div>
 
         {/* Prev / Next Arrows */}
-        <div className="flex items-center gap-1 border-l border-slate-700/80 pl-3">
+        <div className="flex items-center gap-1 border-l border-campus-700/80 pl-3">
           <button
             onClick={handlePrev}
-            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
+            className="p-1.5 rounded-full hover:bg-campus-800 text-campus-200 hover:text-white transition-colors"
             aria-label="Previous Slide"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={handleNext}
-            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
+            className="p-1.5 rounded-full hover:bg-campus-800 text-campus-200 hover:text-white transition-colors"
             aria-label="Next Slide"
           >
             <ChevronRight className="w-4 h-4" />

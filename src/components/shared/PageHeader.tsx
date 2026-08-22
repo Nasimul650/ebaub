@@ -9,7 +9,7 @@ interface PageHeaderProps {
 export default function PageHeader({ badge, headline, description }: PageHeaderProps) {
   return (
     <div className="text-center space-y-4 max-w-3xl mx-auto">
-      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-campus-50 border border-campus-200 text-campus-900 text-xs font-bold">
         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
         <span>{badge}</span>
       </div>

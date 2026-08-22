@@ -81,7 +81,7 @@ export default function CommandMenuModal({ isOpen, onClose }: Props) {
         
         {/* Command Search Header */}
         <div className="p-4 border-b border-slate-200 flex items-center gap-3 bg-white">
-          <Search className="w-5 h-5 text-emerald-600 shrink-0" />
+          <Search className="w-5 h-5 text-campus-700 shrink-0" />
           <input
             type="text"
             value={query}
@@ -90,20 +90,20 @@ export default function CommandMenuModal({ isOpen, onClose }: Props) {
             className="flex-1 bg-transparent text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
             autoFocus
           />
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />}
-          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-[10px] text-slate-500 font-mono border border-slate-200 shadow-2xs">
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-campus-700" />}
+          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-campus-50 text-[10px] text-slate-500 font-mono border border-slate-200 shadow-2xs">
             <Command className="w-3 h-3" /> K
           </kbd>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-campus-50 text-slate-400 hover:text-slate-700 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Results / Navigation Shortcuts */}
-        <div className="max-h-[60vh] overflow-y-auto p-4 sm:p-6 space-y-6 text-xs bg-slate-50/50">
+        <div className="max-h-[60vh] overflow-y-auto p-4 sm:p-6 space-y-6 text-xs bg-campus-50/50">
           
           {/* Quick Navigation Commands */}
           {!query.trim() && (
@@ -112,12 +112,12 @@ export default function CommandMenuModal({ isOpen, onClose }: Props) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button
                   onClick={() => navigateTo('/academics')}
-                  className="p-3.5 rounded-2xl bg-white hover:bg-emerald-50 hover:border-emerald-200 border border-slate-200 text-left flex items-center justify-between text-slate-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xs group"
+                  className="p-3.5 rounded-2xl bg-white hover:bg-campus-50 hover:border-campus-200 border border-slate-200 text-left flex items-center justify-between text-slate-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xs group"
                 >
-                  <span className="flex items-center gap-2.5 font-semibold text-slate-900 group-hover:text-emerald-700">
-                    <BookOpen className="w-4 h-4 text-emerald-600" /> Academic Programs
+                  <span className="flex items-center gap-2.5 font-semibold text-slate-900 group-hover:text-campus-800">
+                    <BookOpen className="w-4 h-4 text-campus-700" /> Academic Programs
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </button>
 
                 <button
@@ -152,7 +152,7 @@ export default function CommandMenuModal({ isOpen, onClose }: Props) {
               </div>
 
               <div className="pt-2 text-center text-slate-400">
-                Type keywords like <span className="text-emerald-700 font-semibold font-mono">"CSE"</span>, <span className="text-amber-700 font-semibold font-mono">"Anniversary"</span>, or <span className="text-blue-700 font-semibold font-mono">"Exam"</span> to search campus records.
+                Type keywords like <span className="text-campus-800 font-semibold font-mono">"CSE"</span>, <span className="text-amber-700 font-semibold font-mono">"Anniversary"</span>, or <span className="text-blue-700 font-semibold font-mono">"Exam"</span> to search campus records.
               </div>
             </div>
           )}
@@ -166,7 +166,7 @@ export default function CommandMenuModal({ isOpen, onClose }: Props) {
           {/* Programs */}
           {results.programs.length > 0 && (
             <div className="space-y-2">
-              <div className="font-semibold text-emerald-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+              <div className="font-semibold text-campus-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <BookOpen className="w-3.5 h-3.5" /> Programs
               </div>
               <div className="space-y-1.5">
@@ -174,7 +174,7 @@ export default function CommandMenuModal({ isOpen, onClose }: Props) {
                   <button
                     key={p.id}
                     onClick={() => navigateTo('/academics')}
-                    className="w-full text-left p-3.5 rounded-2xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-200 transition-all shadow-2xs hover:scale-[1.01]"
+                    className="w-full text-left p-3.5 rounded-2xl bg-white hover:bg-campus-50 border border-slate-200 hover:border-campus-200 transition-all shadow-2xs hover:scale-[1.01]"
                   >
                     <div className="font-bold text-slate-900 text-sm">{p.title}</div>
                     <div className="text-slate-500 text-xs mt-0.5 line-clamp-1">{p.description}</div>
@@ -233,7 +233,7 @@ export default function CommandMenuModal({ isOpen, onClose }: Props) {
 
         {/* Command Footer */}
         <div className="p-3.5 border-t border-slate-200 bg-white text-[11px] text-slate-500 flex justify-between">
-          <span>Use <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono border border-slate-200">ESC</kbd> to close</span>
+          <span>Use <kbd className="px-1.5 py-0.5 bg-campus-50 rounded text-slate-600 font-mono border border-slate-200">ESC</kbd> to close</span>
           <span>EBAUB Command Center</span>
         </div>
 

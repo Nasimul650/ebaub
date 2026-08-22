@@ -25,8 +25,8 @@ export default function PortalRoleSelector() {
       
       {/* Brand Header */}
       <div className="text-center space-y-3">
-        <div className="w-14 h-14 rounded-2xl bg-slate-900 mx-auto flex items-center justify-center text-white shadow-md">
-          <GraduationCap className="w-7 h-7 text-emerald-400" />
+        <div className="w-14 h-14 rounded-2xl bg-campus-900 mx-auto flex items-center justify-center text-white shadow-md">
+          <GraduationCap className="w-7 h-7 text-campus-400" />
         </div>
         <h1 className="text-2xl font-extrabold text-slate-900 heading-display">EBAUB Digital Campus</h1>
         <p className="text-xs text-slate-500">Select a Role Portal to test the prototype</p>
@@ -56,18 +56,18 @@ export default function PortalRoleSelector() {
           onClick={() => setRole('TEACHER')}
           className={`w-full p-4 rounded-xl border text-left flex items-center justify-between transition-all ${
             role === 'TEACHER'
-              ? 'bg-emerald-50 border-emerald-400 text-emerald-950 shadow-xs'
+              ? 'bg-campus-50 border-campus-400 text-campus-950 shadow-xs'
               : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
           }`}
         >
           <div className="flex items-center gap-3">
-            <Sparkles className="w-5 h-5 text-emerald-600" />
+            <Sparkles className="w-5 h-5 text-campus-700" />
             <div>
               <div className="font-bold text-sm">Teacher Workspace + AI</div>
               <div className="text-[11px] text-slate-500">AI Quiz Generator & Material Manager</div>
             </div>
           </div>
-          {role === 'TEACHER' && <div className="w-2 h-2 rounded-full bg-emerald-600" />}
+          {role === 'TEACHER' && <div className="w-2 h-2 rounded-full bg-campus-700" />}
         </button>
 
         <button
@@ -92,10 +92,10 @@ export default function PortalRoleSelector() {
       {/* Enter Portal Button */}
       <button
         onClick={() => handlePortalEntry(role)}
-        className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+        className="w-full py-3.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 transition-all"
       >
         <span>Enter {role} Portal</span>
-        <ArrowRight className="w-4 h-4 text-emerald-400" />
+        <ArrowRight className="w-4 h-4 text-campus-400" />
       </button>
 
       <div className="text-center">

@@ -12,7 +12,7 @@ export default function AdminQuickActions() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link
           href="/admin/notices"
-          className="p-5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors space-y-2 group block"
+          className="p-5 rounded-2xl bg-campus-50 hover:bg-slate-100 border border-slate-200 transition-colors space-y-2 group block"
         >
           <div className="font-bold text-slate-900 text-sm group-hover:text-amber-700 flex items-center justify-between">
             <span>Publish Official Notice</span>
@@ -23,18 +23,18 @@ export default function AdminQuickActions() {
 
         <Link
           href="/admin/news"
-          className="p-5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors space-y-2 group block"
+          className="p-5 rounded-2xl bg-campus-50 hover:bg-slate-100 border border-slate-200 transition-colors space-y-2 group block"
         >
-          <div className="font-bold text-slate-900 text-sm group-hover:text-emerald-700 flex items-center justify-between">
+          <div className="font-bold text-slate-900 text-sm group-hover:text-campus-800 flex items-center justify-between">
             <span>Publish News Story</span>
-            <Plus className="w-4 h-4 text-emerald-600" />
+            <Plus className="w-4 h-4 text-campus-700" />
           </div>
           <p className="text-xs text-slate-500">Add press releases and research achievements</p>
         </Link>
 
         <Link
           href="/admin/events"
-          className="p-5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors space-y-2 group block"
+          className="p-5 rounded-2xl bg-campus-50 hover:bg-slate-100 border border-slate-200 transition-colors space-y-2 group block"
         >
           <div className="font-bold text-slate-900 text-sm group-hover:text-blue-700 flex items-center justify-between">
             <span>Add Campus Event</span>

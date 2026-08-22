@@ -26,7 +26,7 @@ export default function QuizGeneratorForm({
   return (
     <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xs">
       <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-        <Bot className="w-5 h-5 text-emerald-600" /> Step 1: Configure AI Generation Parameters
+        <Bot className="w-5 h-5 text-campus-700" /> Step 1: Configure AI Generation Parameters
       </h2>
 
       <form onSubmit={onGenerate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
@@ -36,7 +36,7 @@ export default function QuizGeneratorForm({
           <select
             value={subject}
             onChange={e => setSubject(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-campus-700"
           >
             <option value="Data Structures">Data Structures</option>
             <option value="Artificial Intelligence">Artificial Intelligence</option>
@@ -52,7 +52,7 @@ export default function QuizGeneratorForm({
             value={topic}
             onChange={e => setTopic(e.target.value)}
             placeholder="e.g. Binary Search Trees"
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-campus-700"
           />
         </div>
 
@@ -61,7 +61,7 @@ export default function QuizGeneratorForm({
           <select
             value={difficulty}
             onChange={e => setDifficulty(e.target.value as any)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-campus-700"
           >
             <option value="Easy">Easy</option>
             <option value="Medium">Medium</option>
@@ -74,7 +74,7 @@ export default function QuizGeneratorForm({
           <select
             value={count}
             onChange={e => setCount(Number(e.target.value))}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-campus-700"
           >
             <option value={3}>3 Questions</option>
             <option value={5}>5 Questions</option>
@@ -86,16 +86,16 @@ export default function QuizGeneratorForm({
           <button
             type="submit"
             disabled={loading || !topic.trim()}
-            className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            className="w-full py-3.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-campus-400" />
                 <span>AI Engine Draft Processing...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 text-amber-400" />
+                <Sparkles className="w-4 h-4 text-campus-400" />
                 <span>Generate Quiz Draft Now</span>
               </>
             )}

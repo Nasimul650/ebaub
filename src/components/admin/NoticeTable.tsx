@@ -16,7 +16,7 @@ export default function NoticeTable({ notices, onDelete }: NoticeTableProps) {
         Active Notices ({notices.length})
       </div>
       <table className="w-full text-left">
-        <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
+        <thead className="bg-campus-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
           <tr>
             <th className="p-4">Title</th>
             <th className="p-4">Category</th>
@@ -27,7 +27,7 @@ export default function NoticeTable({ notices, onDelete }: NoticeTableProps) {
         </thead>
         <tbody className="divide-y divide-slate-100 text-slate-700">
           {notices.map(n => (
-            <tr key={n.id} className="hover:bg-slate-50/80">
+            <tr key={n.id} className="hover:bg-campus-50/80">
               <td className="p-4 font-bold text-slate-900">
                 {n.title}
                 {n.isImportant && <span className="ml-2 text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">Important</span>}

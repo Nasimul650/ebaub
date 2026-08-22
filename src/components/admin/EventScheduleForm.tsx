@@ -49,7 +49,7 @@ export default function EventScheduleForm({ onSubmit }: EventScheduleFormProps) 
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="e.g. CSE Anniversary Ceremony"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
+              className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
             />
           </div>
           <div>
@@ -59,7 +59,7 @@ export default function EventScheduleForm({ onSubmit }: EventScheduleFormProps) 
               value={location}
               onChange={e => setLocation(e.target.value)}
               placeholder="e.g. Central Auditorium"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
+              className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-blue-600"
             />
           </div>
         </div>
@@ -71,14 +71,14 @@ export default function EventScheduleForm({ onSubmit }: EventScheduleFormProps) 
             value={description}
             onChange={e => setDescription(e.target.value)}
             placeholder="Event details..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-blue-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-blue-600"
           ></textarea>
         </div>
 
         <button
           type="submit"
           disabled={!title.trim()}
-          className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-colors"
+          className="px-6 py-2.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-colors"
         >
           Publish Event
         </button>

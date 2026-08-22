@@ -9,13 +9,13 @@ export default function AdmissionsInquirySection() {
       <div className="relative flex justify-center">
         
         {/* Glow backdrop */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/15 to-emerald-400/15 rounded-3xl blur-2xl -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-amber-400/15 to-campus-400/15 rounded-3xl blur-2xl -z-10" />
 
         <div className="w-full max-w-lg bg-white border border-slate-200/90 rounded-2xl shadow-xl p-8 sm:p-10 space-y-6">
           
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto shadow-md">
-              <GraduationCap className="w-6 h-6 text-emerald-400" />
+            <div className="w-12 h-12 rounded-2xl bg-campus-900 text-white flex items-center justify-center mx-auto shadow-md">
+              <GraduationCap className="w-6 h-6 text-campus-400" />
             </div>
             <h3 className="font-extrabold text-xl text-slate-900 heading-display">Start Your Application</h3>
             <p className="text-xs text-slate-500">Admissions Open for Spring 2027 Academic Session</p>
@@ -27,7 +27,7 @@ export default function AdmissionsInquirySection() {
               <input
                 type="text"
                 placeholder="e.g. Tanvir Ahmed"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 shadow-2xs"
+                className="w-full bg-campus-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-campus-700 shadow-2xs"
               />
             </div>
 
@@ -36,14 +36,14 @@ export default function AdmissionsInquirySection() {
               <input
                 type="email"
                 placeholder="tanvir@example.com"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 shadow-2xs"
+                className="w-full bg-campus-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-campus-700 shadow-2xs"
               />
             </div>
 
             <div>
               <label className="block text-slate-700 font-semibold mb-1.5">Program of Interest</label>
               <select
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-emerald-600 shadow-2xs"
+                className="w-full bg-campus-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-campus-700 shadow-2xs"
               >
                 <option>B.Sc. in Computer Science & Engineering</option>
                 <option>B.Sc. in Agriculture (Honours)</option>
@@ -53,7 +53,7 @@ export default function AdmissionsInquirySection() {
 
             <button
               type="button"
-              className="w-full py-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
+              className="w-full py-4 rounded-xl bg-campus-900 hover:bg-campus-900 text-white font-bold text-sm shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] duration-300"
             >
               Submit Application Inquiry
             </button>
@@ -71,7 +71,7 @@ export default function AdmissionsInquirySection() {
       <div className="space-y-8">
         
         <div className="space-y-4">
-          <div className="text-xs uppercase tracking-wider font-bold text-emerald-700">
+          <div className="text-xs uppercase tracking-wider font-bold text-campus-800">
             Admissions Desk
           </div>
           <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 heading-display leading-tight tracking-tight">
@@ -84,15 +84,15 @@ export default function AdmissionsInquirySection() {
 
         {/* 3 Institutional Trust Badges */}
         <div className="grid grid-cols-3 gap-4 pt-2">
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-2 shadow-sm">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center mx-auto text-xs font-bold shadow-2xs">
+          <div className="p-5 rounded-2xl bg-campus-50 border border-slate-200/80 text-center space-y-2 shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-campus-700 text-white flex items-center justify-center mx-auto text-xs font-bold shadow-2xs">
               ★
             </div>
             <div className="text-xs font-extrabold text-slate-900">UGC Approved</div>
             <p className="text-[10px] text-slate-500 font-medium">Government Certified</p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-2 shadow-sm">
+          <div className="p-5 rounded-2xl bg-campus-50 border border-slate-200/80 text-center space-y-2 shadow-sm">
             <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center mx-auto text-xs font-bold shadow-2xs">
               ★
             </div>
@@ -100,7 +100,7 @@ export default function AdmissionsInquirySection() {
             <p className="text-[10px] text-slate-500 font-medium">Expert Mentors</p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-2 shadow-sm">
+          <div className="p-5 rounded-2xl bg-campus-50 border border-slate-200/80 text-center space-y-2 shadow-sm">
             <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center mx-auto text-xs font-bold shadow-2xs">
               ★
             </div>

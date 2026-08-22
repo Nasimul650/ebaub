@@ -29,7 +29,7 @@ export default function AdminNoticesPage() {
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 heading-display flex items-center gap-2">
-          <Bell className="w-6 h-6 text-amber-500" /> Notices CMS Manager
+          <Bell className="w-6 h-6 text-campus-500" /> Notices CMS Manager
         </h1>
         <p className="text-xs text-slate-500 mt-1">Create, publish, and delete official university notices</p>
       </div>

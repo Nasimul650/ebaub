@@ -10,7 +10,7 @@ export default async function AdminMediaPage() {
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 heading-display flex items-center gap-2">
-          <ImageIcon className="w-6 h-6 text-emerald-700" /> Media Library Manager
+          <ImageIcon className="w-6 h-6 text-campus-800" /> Media Library Manager
         </h1>
         <p className="text-xs text-slate-500 mt-1">Upload and manage image assets for news, notices, and banners</p>
       </div>

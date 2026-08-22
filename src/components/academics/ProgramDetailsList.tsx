@@ -21,7 +21,7 @@ export default function ProgramDetailsList({ programs, departments }: Props) {
             <div key={program.id} className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 space-y-6 shadow-xs">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
-                  <div className="flex items-center gap-2 text-xs text-emerald-700 font-bold mb-1">
+                  <div className="flex items-center gap-2 text-xs text-campus-800 font-bold mb-1">
                     <span>{dept?.title}</span>
                     <span>•</span>
                     <span>{program.degreeLevel}</span>
@@ -29,10 +29,10 @@ export default function ProgramDetailsList({ programs, departments }: Props) {
                   <h3 className="text-xl font-extrabold text-slate-900">{program.title}</h3>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-xs">
+                  <span className="px-3 py-1 rounded-lg bg-campus-50 border border-campus-200 text-campus-900 font-bold text-xs">
                     {program.code}
                   </span>
-                  <span className="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 font-medium text-xs">
+                  <span className="px-3 py-1 rounded-lg bg-campus-100 text-slate-700 font-medium text-xs">
                     {program.durationYears} Years | {program.totalCredits} Credits
                   </span>
                 </div>

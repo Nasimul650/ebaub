@@ -29,7 +29,7 @@ export default function AdminNewsPage() {
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 heading-display flex items-center gap-2">
-          <Newspaper className="w-6 h-6 text-emerald-700" /> News & Press Release CMS
+          <Newspaper className="w-6 h-6 text-campus-800" /> News & Press Release CMS
         </h1>
         <p className="text-xs text-slate-500 mt-1">Publish press releases, research news, and departmental achievements</p>
       </div>

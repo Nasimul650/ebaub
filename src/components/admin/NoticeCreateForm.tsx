@@ -54,7 +54,7 @@ export default function NoticeCreateForm({ onSubmit }: NoticeCreateFormProps) {
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="e.g. Class Suspension Notice"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500"
+              className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500"
             />
           </div>
 
@@ -64,7 +64,7 @@ export default function NoticeCreateForm({ onSubmit }: NoticeCreateFormProps) {
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value as any)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500"
+                className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500"
               >
                 <option value="Academic">Academic</option>
                 <option value="Admission">Admission</option>
@@ -78,7 +78,7 @@ export default function NoticeCreateForm({ onSubmit }: NoticeCreateFormProps) {
               <select
                 value={targetAudience}
                 onChange={e => setTargetAudience(e.target.value as any)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500"
+                className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2.5 text-slate-900 focus:outline-none focus:border-amber-500"
               >
                 <option value="ALL">ALL</option>
                 <option value="STUDENTS">STUDENTS</option>
@@ -96,7 +96,7 @@ export default function NoticeCreateForm({ onSubmit }: NoticeCreateFormProps) {
             value={summary}
             onChange={e => setSummary(e.target.value)}
             placeholder="Brief headline summary..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-amber-500"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-amber-500"
           />
         </div>
 
@@ -107,7 +107,7 @@ export default function NoticeCreateForm({ onSubmit }: NoticeCreateFormProps) {
             value={content}
             onChange={e => setContent(e.target.value)}
             placeholder="Type full notice text..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-amber-500"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-amber-500"
           ></textarea>
         </div>
 
@@ -117,7 +117,7 @@ export default function NoticeCreateForm({ onSubmit }: NoticeCreateFormProps) {
             id="important"
             checked={isImportant}
             onChange={e => setIsImportant(e.target.checked)}
-            className="rounded bg-slate-50 border-slate-300 text-amber-600"
+            className="rounded bg-campus-50 border-slate-300 text-amber-600"
           />
           <label htmlFor="important" className="text-amber-800 font-semibold cursor-pointer text-xs">
             Mark as Important / High Priority Notice
@@ -127,7 +127,7 @@ export default function NoticeCreateForm({ onSubmit }: NoticeCreateFormProps) {
         <button
           type="submit"
           disabled={!title.trim() || !content.trim()}
-          className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-colors"
+          className="px-6 py-2.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-xs disabled:opacity-50 transition-colors"
         >
           Publish Notice to Website
         </button>

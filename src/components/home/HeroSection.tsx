@@ -152,15 +152,6 @@ export default function HeroSection() {
       ref={heroContainerRef}
       className="relative w-full min-h-[80vh] flex items-center"
     >
-      {/* 1. Background Strategy: Absolute positioned blurred gradient blobs strictly behind the Hero section */}
-      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
-        {/* Soft Deep Green Blob */}
-        <div className="absolute -top-12 -left-20 w-[45vw] h-[45vw] max-w-[650px] max-h-[650px] rounded-full bg-emerald-900/10 blur-3xl opacity-60" />
-        {/* Warm Gold Blob */}
-        <div className="absolute top-1/4 -right-16 w-[45vw] h-[45vw] max-w-[600px] max-h-[600px] rounded-full bg-amber-500/10 blur-3xl opacity-60" />
-        {/* Subtle Ambient Teal Accents */}
-        <div className="absolute -bottom-16 left-1/3 w-[35vw] h-[35vw] max-w-[500px] max-h-[500px] rounded-full bg-teal-600/10 blur-3xl opacity-50" />
-      </div>
 
       {/* 2. Strict 2-Column Hero Grid */}
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center py-12 lg:py-16">
@@ -169,7 +160,7 @@ export default function HeroSection() {
         <div ref={leftColRef} className="space-y-8 text-left">
           
           {/* Badge */}
-          <div className="hero-anim-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-2xs">
+          <div className="hero-anim-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-campus-50 border border-campus-200 text-campus-900 text-xs font-bold shadow-2xs">
             <Sparkles className="w-4 h-4 text-amber-500" />
             <span>CSE Department 2-Year Anniversary Prototype</span>
           </div>
@@ -188,7 +179,7 @@ export default function HeroSection() {
           <div className="hero-anim-item pt-2 flex flex-wrap items-center gap-4">
             <Link
               href="/academics"
-              className="px-8 py-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm sm:text-base shadow-lg flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="px-8 py-4 rounded-xl bg-campus-800 hover:bg-campus-900 text-white font-bold text-sm sm:text-base shadow-lg flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               <span>Explore Degree Programs</span>
               <ArrowRight className="w-4 h-4 text-amber-300" />
@@ -196,7 +187,7 @@ export default function HeroSection() {
 
             <Link
               href="/admissions"
-              className="px-8 py-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm sm:text-base transition-colors"
+              className="px-8 py-4 rounded-xl bg-campus-100 hover:bg-campus-200 text-slate-800 font-bold text-sm sm:text-base transition-colors"
             >
               Admission Guidelines
             </Link>
@@ -205,7 +196,7 @@ export default function HeroSection() {
           {/* Trust Metric Micro Row */}
           <div className="hero-anim-item pt-4 border-t border-slate-100 flex items-center gap-6 text-xs text-slate-500 font-medium">
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" /> UGC Bangladesh Approved
+              <ShieldCheck className="w-4 h-4 text-campus-700" /> UGC Bangladesh Approved
             </span>
             <span className="flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-amber-500" /> 160 Credit Curriculum
@@ -218,7 +209,7 @@ export default function HeroSection() {
         <div ref={rightColRef} className="relative flex justify-center lg:justify-end">
           
           {/* Floating UI Container */}
-          <div className="relative w-full max-w-lg aspect-[4/4.8] sm:aspect-[4/4.5] rounded-2xl shadow-2xl border border-slate-200/50 overflow-hidden bg-slate-900 flex flex-col justify-between">
+          <div className="relative w-full max-w-lg aspect-[4/4.8] sm:aspect-[4/4.5] rounded-2xl shadow-2xl border border-slate-200/50 overflow-hidden bg-campus-900 flex flex-col justify-between">
             
             {/* Background Images Cross-Fading Inside this Container */}
             {heroSlides.map((slide, idx) => (
@@ -237,19 +228,19 @@ export default function HeroSection() {
                   className="w-full h-full object-cover"
                 />
                 {/* Gradient overlay for readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-slate-900/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-campus-950/90 via-campus-900/40 to-campus-900/20" />
               </div>
             ))}
 
             {/* Top Floating Badge inside UI card */}
             <div className="relative z-10 p-5 flex items-center justify-between">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-[11px] font-bold shadow-sm border border-white/60">
-                <GraduationCap className="w-3.5 h-3.5 text-emerald-700" />
+                <GraduationCap className="w-3.5 h-3.5 text-campus-800" />
                 <span>{active.badge}</span>
               </div>
 
               {/* Prev / Next controls */}
-              <div className="flex items-center gap-1.5 bg-slate-950/60 backdrop-blur-md rounded-xl p-1 border border-white/10">
+              <div className="flex items-center gap-1.5 bg-campus-950/60 backdrop-blur-md rounded-xl p-1 border border-white/10">
                 <button
                   onClick={prevSlide}
                   aria-label="Previous Slide"
@@ -274,7 +265,7 @@ export default function HeroSection() {
                 className="p-5 rounded-xl bg-white/90 backdrop-blur-xl border border-white/80 shadow-xl space-y-3.5 text-slate-900"
               >
                 <div>
-                  <div className="text-[11px] text-emerald-700 font-extrabold uppercase tracking-wider">
+                  <div className="text-[11px] text-campus-800 font-extrabold uppercase tracking-wider">
                     {active.metric}
                   </div>
                   <h3 className="font-extrabold text-base sm:text-lg text-slate-900 mt-0.5 leading-snug">
@@ -289,7 +280,7 @@ export default function HeroSection() {
                     <span className="text-slate-900">{active.credits}</span>
                   </div>
                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-600 rounded-full w-[85%]" />
+                    <div className="h-full bg-campus-700 rounded-full w-[85%]" />
                   </div>
                 </div>
 
@@ -303,7 +294,7 @@ export default function HeroSection() {
                         aria-label={`Go to slide ${idx + 1}`}
                         className={`h-1.5 rounded-full transition-all ${
                           idx === currentSlide
-                            ? 'w-6 bg-emerald-700'
+                            ? 'w-6 bg-campus-800'
                             : 'w-1.5 bg-slate-300'
                         }`}
                       />
@@ -312,7 +303,7 @@ export default function HeroSection() {
 
                   <Link
                     href="/academics"
-                    className="text-emerald-700 font-bold hover:underline flex items-center gap-1 text-[11px]"
+                    className="text-campus-800 font-bold hover:underline flex items-center gap-1 text-[11px]"
                   >
                     <span>View Syllabus</span>
                     <ArrowRight className="w-3 h-3" />

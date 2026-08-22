@@ -13,7 +13,7 @@ export default function NewsDetailView({ item }: { item: NewsItem }) {
       <article className="space-y-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3 text-xs">
-            <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
+            <span className="px-3 py-1 rounded-full bg-campus-50 border border-campus-200 text-campus-900 font-bold">
               {item.category}
             </span>
             <span className="text-slate-500">
@@ -28,7 +28,7 @@ export default function NewsDetailView({ item }: { item: NewsItem }) {
             {item.title}
           </h1>
 
-          <p className="text-base text-slate-700 font-medium leading-relaxed border-l-2 border-emerald-600 pl-4 py-1">
+          <p className="text-base text-slate-700 font-medium leading-relaxed border-l-2 border-campus-700 pl-4 py-1">
             {item.summary}
           </p>
         </div>

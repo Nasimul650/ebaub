@@ -21,7 +21,7 @@ export default function PortalDropdown({ isOpen, onClose }: PortalDropdownProps)
       </div>
       <Link 
         href="/admin" 
-        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-emerald-700 font-medium transition-all hover:translate-x-1"
+        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-campus-800 font-medium transition-all hover:translate-x-1"
       >
         <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-200/60 shrink-0">
           <ShieldCheck className="w-4 h-4" />
@@ -34,9 +34,9 @@ export default function PortalDropdown({ isOpen, onClose }: PortalDropdownProps)
       
       <Link 
         href="/teacher" 
-        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-emerald-700 font-medium transition-all hover:translate-x-1"
+        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-campus-800 font-medium transition-all hover:translate-x-1"
       >
-        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-200/60 shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-campus-50 flex items-center justify-center text-campus-700 border border-campus-200/60 shrink-0">
           <Sparkles className="w-4 h-4" />
         </div>
         <div>
@@ -47,7 +47,7 @@ export default function PortalDropdown({ isOpen, onClose }: PortalDropdownProps)
       
       <Link 
         href="/student" 
-        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-emerald-700 font-medium transition-all hover:translate-x-1"
+        className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-slate-800 hover:text-campus-800 font-medium transition-all hover:translate-x-1"
       >
         <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-200/60 shrink-0">
           <BookOpen className="w-4 h-4" />

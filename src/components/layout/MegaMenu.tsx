@@ -17,27 +17,27 @@ export default function MegaMenu({ activeMenu, onItemClick }: MegaMenuProps) {
           
           {/* Col 1 */}
           <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors">
-            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-emerald-800 tracking-wider">
-              <GraduationCap className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-campus-900 tracking-wider">
+              <GraduationCap className="w-4 h-4 text-campus-700" />
               <span>Degree Programs</span>
             </div>
             <ul className="space-y-2.5 text-slate-700 font-medium">
               <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                <Link href="/academics" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
                   <span>B.Sc. in CSE (160 Credits)</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>
               <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                <Link href="/academics" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
                   <span>B.Sc. in Agriculture (Honours)</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>
               <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                <Link href="/academics" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
                   <span>Bachelor of Business Administration</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>
             </ul>
@@ -72,22 +72,22 @@ export default function MegaMenu({ activeMenu, onItemClick }: MegaMenuProps) {
           </div>
 
           {/* Col 3 */}
-          <div className="space-y-3.5 p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/60 hover:bg-emerald-50 transition-colors">
+          <div className="space-y-3.5 p-4 rounded-2xl bg-campus-50/50 border border-campus-200/60 hover:bg-campus-50 transition-colors">
             <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-amber-800 tracking-wider">
               <Sparkles className="w-4 h-4 text-amber-500" />
               <span>Academic Excellence</span>
             </div>
             <ul className="space-y-2.5 text-slate-700 font-medium">
               <li>
-                <Link href="/faculty" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                <Link href="/faculty" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
                   <span>Faculty Directory & AI Research</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>
               <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                <Link href="/academics" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
                   <span>Undergraduate Curriculums & Credits</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>
             </ul>
@@ -100,28 +100,28 @@ export default function MegaMenu({ activeMenu, onItemClick }: MegaMenuProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs animate-in fade-in slide-in-from-top-2 duration-300">
           
           {/* Col 1 */}
-          <div className="space-y-3.5 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/70 hover:bg-emerald-50 transition-colors">
-            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-emerald-900 tracking-wider">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
+          <div className="space-y-3.5 p-4 rounded-2xl bg-campus-50/60 border border-campus-200/70 hover:bg-campus-50 transition-colors">
+            <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-campus-900 tracking-wider">
+              <Sparkles className="w-4 h-4 text-campus-700" />
               <span>Spring 2027 Admission</span>
             </div>
             <ul className="space-y-2.5 text-slate-700 font-medium">
               <li>
-                <Link href="/admissions" onClick={onItemClick} className="text-emerald-800 font-bold hover:underline flex items-center justify-between group">
+                <Link href="/admissions" onClick={onItemClick} className="text-campus-900 font-bold hover:underline flex items-center justify-between group">
                   <span>Applications Now Open</span>
-                  <ArrowRight className="w-3 h-3 text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3 h-3 text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>
               <li>
-                <Link href="/admissions" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                <Link href="/admissions" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
                   <span>How to Apply Step-by-Step</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>
               <li>
-                <Link href="/admissions" onClick={onItemClick} className="hover:text-emerald-700 transition-colors flex items-center justify-between group">
+                <Link href="/admissions" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
                   <span>Admission Test Dates & Venue</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>
             </ul>

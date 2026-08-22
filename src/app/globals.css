@@ -1,27 +1,51 @@
 @import "tailwindcss";
 
+/* ============================================================
+   EBAUB Campus Green Color Palette
+   #E8F5E9 → #A5D6A7 → #66BB6A → #1B5E20
+   ============================================================ */
+@theme {
+  --color-campus-50: #E8F5E9;
+  --color-campus-100: #C8E6C9;
+  --color-campus-200: #A5D6A7;
+  --color-campus-300: #81C784;
+  --color-campus-400: #66BB6A;
+  --color-campus-500: #4CAF50;
+  --color-campus-600: #43A047;
+  --color-campus-700: #388E3C;
+  --color-campus-800: #2E7D32;
+  --color-campus-900: #1B5E20;
+  --color-campus-950: #0D3B13;
+}
+
 @layer base {
   :root {
-    --color-primary: #064e3b;
-    --color-primary-light: #059669;
-    --color-primary-dark: #022c22;
+    --color-primary: #1B5E20;
+    --color-primary-light: #66BB6A;
+    --color-primary-dark: #0D3B13;
     --color-gold: #d97706;
     --color-gold-hover: #b45309;
     --color-gold-light: #f59e0b;
     
-    --color-canvas-bg: #ffffff;
+    --color-canvas-bg: #E8F5E9;
     --color-sheet-bg: #ffffff;
-    --color-sheet-border: rgba(226, 232, 240, 0.8);
+    --color-sheet-border: rgba(165, 214, 167, 0.4);
     
     --color-text-main: #0f172a;
     --color-text-muted: #475569;
     --color-text-subtle: #94a3b8;
 
+    /* Shadcn UI compatible tokens */
+    --primary: 126 52% 23%; /* campus-900 #1B5E20 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 100% 50%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
     --font-roboto-stack: var(--font-roboto), 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   }
 
   body {
-    background-color: #ffffff;
+    background-color: #E8F5E9;
     color: #334155;
     font-family: var(--font-roboto-stack);
     letter-spacing: -0.011em;

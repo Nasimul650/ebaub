@@ -19,7 +19,7 @@ export default function NoticeDetailView({ notice }: { notice: NoticeItem }) {
               Urgent Notice
             </span>
           )}
-          <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-bold">
+          <span className="px-3 py-1 rounded-full bg-campus-100 text-slate-700 font-bold">
             {notice.category} Category
           </span>
           <span className="text-slate-500">
@@ -34,7 +34,7 @@ export default function NoticeDetailView({ notice }: { notice: NoticeItem }) {
           {notice.title}
         </h1>
 
-        <p className="text-sm font-medium text-slate-700 leading-relaxed border-l-2 border-emerald-600 pl-4 py-1">
+        <p className="text-sm font-medium text-slate-700 leading-relaxed border-l-2 border-campus-700 pl-4 py-1">
           {notice.summary}
         </p>
 
@@ -47,12 +47,12 @@ export default function NoticeDetailView({ notice }: { notice: NoticeItem }) {
         {notice.attachmentUrl && (
           <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-slate-600">
-              <Download className="w-4 h-4 text-emerald-600" />
+              <Download className="w-4 h-4 text-campus-700" />
               <span>Official Circular PDF Attachment</span>
             </div>
             <a
               href={notice.attachmentUrl}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow transition-colors"
+              className="px-4 py-2 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow transition-colors"
             >
               Download PDF
             </a>

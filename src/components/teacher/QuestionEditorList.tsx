@@ -14,11 +14,11 @@ export default function QuestionEditorList({ questions, onDelete, onUpdate }: Pr
   return (
     <div className="space-y-6">
       {questions.map((q, idx) => (
-        <div key={q.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
+        <div key={q.id} className="p-5 rounded-2xl bg-campus-50 border border-slate-200/80 space-y-4">
           
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center">
+              <span className="w-6 h-6 rounded-lg bg-campus-100 text-campus-900 font-bold text-xs flex items-center justify-center">
                 {idx + 1}
               </span>
               <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-white text-slate-700 border border-slate-200">
@@ -41,7 +41,7 @@ export default function QuestionEditorList({ questions, onDelete, onUpdate }: Pr
               type="text"
               value={q.question}
               onChange={e => onUpdate(q.id, e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-campus-700"
             />
           </div>
 
@@ -54,11 +54,11 @@ export default function QuestionEditorList({ questions, onDelete, onUpdate }: Pr
                     key={oIdx}
                     className={`p-2.5 rounded-xl border text-xs ${
                       opt === q.correctAnswer
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold'
+                        ? 'bg-campus-50 border-campus-300 text-campus-900 font-bold'
                         : 'bg-white border-slate-200 text-slate-700'
                     }`}
                   >
-                    {opt === q.correctAnswer && <span className="text-emerald-600 font-bold mr-1">✓</span>}
+                    {opt === q.correctAnswer && <span className="text-campus-700 font-bold mr-1">✓</span>}
                     {opt}
                   </div>
                 ))}

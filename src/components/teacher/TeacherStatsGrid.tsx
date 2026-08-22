@@ -20,8 +20,8 @@ export default function TeacherStatsGrid({ quizCount, materialCount, courseCount
 
       <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-2 shadow-xs">
         <div className="text-xs font-semibold text-slate-500">Published Materials</div>
-        <div className="text-3xl font-extrabold text-emerald-700 heading-display">{materialCount} Documents</div>
-        <Link href="/teacher/materials" className="text-xs text-emerald-700 font-bold hover:underline flex items-center gap-1 pt-2">
+        <div className="text-3xl font-extrabold text-campus-800 heading-display">{materialCount} Documents</div>
+        <Link href="/teacher/materials" className="text-xs text-campus-800 font-bold hover:underline flex items-center gap-1 pt-2">
           Upload Material &rarr;
         </Link>
       </div>

@@ -28,9 +28,9 @@ export default function AIChatInput({ value, onChange, onSubmit, disabled }: Pro
       <button
         type="submit"
         disabled={disabled}
-        className="px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs"
+        className="px-5 py-3 rounded-xl bg-campus-900 hover:bg-campus-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs"
       >
-        <Send className="w-4 h-4 text-emerald-400" />
+        <Send className="w-4 h-4 text-campus-400" />
       </button>
     </form>
   );

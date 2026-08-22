@@ -34,7 +34,7 @@ export default function MaterialUploadForm() {
   return (
     <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xs">
       <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-        <Upload className="w-4 h-4 text-emerald-600" /> Upload & Publish New Material
+        <Upload className="w-4 h-4 text-campus-700" /> Upload & Publish New Material
       </h2>
 
       <form onSubmit={handleUpload} className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -45,7 +45,7 @@ export default function MaterialUploadForm() {
             value={title}
             onChange={e => setTitle(e.target.value)}
             placeholder="e.g. CSE-2101 Graph Theory Lecture Slides"
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-campus-700"
           />
         </div>
 
@@ -54,7 +54,7 @@ export default function MaterialUploadForm() {
           <select
             value={subject}
             onChange={e => setSubject(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-campus-700"
           >
             <option value="Data Structures">Data Structures & Algorithms</option>
             <option value="Artificial Intelligence">Artificial Intelligence</option>
@@ -69,7 +69,7 @@ export default function MaterialUploadForm() {
             value={description}
             onChange={e => setDescription(e.target.value)}
             placeholder="Brief summary of contents..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600"
+            className="w-full bg-campus-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-campus-700"
           ></textarea>
         </div>
 
@@ -77,7 +77,7 @@ export default function MaterialUploadForm() {
           <button
             type="submit"
             disabled={!title.trim()}
-            className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-xs disabled:opacity-50"
           >
             Publish Material
           </button>

@@ -1,12 +1,47 @@
 import type { Metadata } from 'next';
-import { Roboto } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700', '900'],
-  subsets: ['latin'],
+const snPro = localFont({
+  src: [
+    {
+      path: './fonts/sn-pro/sn-pro-latin-300-normal.woff2',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: './fonts/sn-pro/sn-pro-latin-400-normal.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/sn-pro/sn-pro-latin-500-normal.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: './fonts/sn-pro/sn-pro-latin-600-normal.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: './fonts/sn-pro/sn-pro-latin-700-normal.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: './fonts/sn-pro/sn-pro-latin-800-normal.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: './fonts/sn-pro/sn-pro-latin-900-normal.woff2',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-sn-pro',
   display: 'swap',
-  variable: '--font-roboto',
 });
 
 export const metadata: Metadata = {
@@ -20,8 +55,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={roboto.variable}>
-      <body className="font-sans bg-white text-slate-900 antialiased selection:bg-emerald-600 selection:text-white">
+    <html lang="en" className={snPro.variable}>
+      <body className="font-sans bg-campus-50 text-slate-900 antialiased selection:bg-campus-900 selection:text-white">
         {children}
       </body>
     </html>

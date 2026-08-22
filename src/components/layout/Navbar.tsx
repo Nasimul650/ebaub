@@ -9,8 +9,7 @@ import {
   UserCheck, 
   Menu, 
   X, 
-  ChevronDown, 
-  Command
+  ChevronDown
 } from 'lucide-react';
 import CommandMenuModal from '../public/CommandMenuModal';
 import PublicAIFloatingWidget from '../public/PublicAIFloatingWidget';
@@ -63,7 +62,7 @@ export default function Navbar() {
     <>
       {/* Main Clean Header */}
       <header
-        className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all shadow-xs relative"
+        className="sticky top-0 z-50 bg-campus-50/95 backdrop-blur-md border-b border-campus-200/80 transition-all shadow-sm relative"
         onMouseLeave={() => setActiveMegaMenu(null)}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
@@ -75,12 +74,12 @@ export default function Navbar() {
             onMouseEnter={() => setActiveMegaMenu(null)}
             onClick={closeAllDropdowns}
           >
-            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-              <GraduationCap className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 rounded-xl bg-campus-900 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
+              <GraduationCap className="w-5 h-5 text-campus-400" />
             </div>
             <div>
               <div className="font-extrabold text-base tracking-tight text-slate-900 flex items-center gap-1.5">
-                EBAUB <span className="text-emerald-700 font-semibold text-[11px] px-2 py-0.5 bg-emerald-50 border border-emerald-200 rounded-md">Campus</span>
+                EBAUB <span className="text-campus-800 font-semibold text-[11px] px-2 py-0.5 bg-campus-50 border border-campus-200 rounded-md">Campus</span>
               </div>
               <p className="text-[10px] text-slate-500 font-medium">Eastern Bank Agricultural University</p>
             </div>
@@ -93,7 +92,7 @@ export default function Navbar() {
               href="/about" 
               onMouseEnter={() => setActiveMegaMenu(null)}
               onClick={closeAllDropdowns}
-              className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
+              className="px-3.5 py-2 rounded-lg hover:text-campus-800 hover:bg-campus-100 transition-colors"
             >
               About
             </Link>
@@ -105,12 +104,12 @@ export default function Navbar() {
                 onMouseEnter={() => handleMegaMenuHover('academics')}
                 className={`px-3.5 py-2 rounded-lg flex items-center gap-1 transition-all duration-200 font-medium ${
                   activeMegaMenu === 'academics'
-                    ? 'bg-slate-100 text-emerald-700 scale-105'
-                    : 'hover:bg-slate-100 hover:text-emerald-700'
+                    ? 'bg-campus-100 text-campus-800 scale-105'
+                    : 'hover:bg-campus-100 hover:text-campus-800'
                 }`}
               >
                 <span>Academics</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${activeMegaMenu === 'academics' ? 'rotate-180 text-emerald-600' : 'text-slate-400'}`} />
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${activeMegaMenu === 'academics' ? 'rotate-180 text-campus-700' : 'text-slate-400'}`} />
               </button>
             </div>
 
@@ -121,12 +120,12 @@ export default function Navbar() {
                 onMouseEnter={() => handleMegaMenuHover('admissions')}
                 className={`px-3.5 py-2 rounded-lg flex items-center gap-1 transition-all duration-200 font-medium ${
                   activeMegaMenu === 'admissions'
-                    ? 'bg-slate-100 text-emerald-700 scale-105'
-                    : 'hover:bg-slate-100 hover:text-emerald-700'
+                    ? 'bg-campus-100 text-campus-800 scale-105'
+                    : 'hover:bg-campus-100 hover:text-campus-800'
                 }`}
               >
                 <span>Admissions</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${activeMegaMenu === 'admissions' ? 'rotate-180 text-emerald-600' : 'text-slate-400'}`} />
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${activeMegaMenu === 'admissions' ? 'rotate-180 text-campus-700' : 'text-slate-400'}`} />
               </button>
             </div>
 
@@ -134,7 +133,7 @@ export default function Navbar() {
               href="/faculty" 
               onMouseEnter={() => setActiveMegaMenu(null)}
               onClick={closeAllDropdowns}
-              className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
+              className="px-3.5 py-2 rounded-lg hover:text-campus-800 hover:bg-campus-100 transition-colors"
             >
               Faculty
             </Link>
@@ -143,7 +142,7 @@ export default function Navbar() {
               href="/notices" 
               onMouseEnter={() => setActiveMegaMenu(null)}
               onClick={closeAllDropdowns}
-              className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
+              className="px-3.5 py-2 rounded-lg hover:text-campus-800 hover:bg-campus-100 transition-colors"
             >
               Notices
             </Link>
@@ -152,7 +151,7 @@ export default function Navbar() {
               href="/news" 
               onMouseEnter={() => setActiveMegaMenu(null)}
               onClick={closeAllDropdowns}
-              className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
+              className="px-3.5 py-2 rounded-lg hover:text-campus-800 hover:bg-campus-100 transition-colors"
             >
               News
             </Link>
@@ -161,7 +160,7 @@ export default function Navbar() {
               href="/events" 
               onMouseEnter={() => setActiveMegaMenu(null)}
               onClick={closeAllDropdowns}
-              className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
+              className="px-3.5 py-2 rounded-lg hover:text-campus-800 hover:bg-campus-100 transition-colors"
             >
               Events
             </Link>
@@ -170,7 +169,7 @@ export default function Navbar() {
               href="/contact" 
               onMouseEnter={() => setActiveMegaMenu(null)}
               onClick={closeAllDropdowns}
-              className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
+              className="px-3.5 py-2 rounded-lg hover:text-campus-800 hover:bg-campus-100 transition-colors"
             >
               Contact
             </Link>
@@ -184,23 +183,20 @@ export default function Navbar() {
             <button
               onClick={openSearch}
               onMouseEnter={() => setActiveMegaMenu(null)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all hover:scale-105 active:scale-95"
-              title="Search (Ctrl+K)"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white hover:bg-campus-50/80 text-slate-700 hover:text-campus-900 border border-campus-200 hover:border-campus-300 text-xs font-medium shadow-xs transition-all hover:scale-105 active:scale-95 group"
+              title="Search"
             >
-              <Search className="w-3.5 h-3.5 text-slate-500" />
-              <span className="hidden sm:inline">Search</span>
-              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white text-[10px] text-slate-500 font-mono shadow-xs border border-slate-200">
-                <Command className="w-2.5 h-2.5" /> K
-              </kbd>
+              <Search className="w-3.5 h-3.5 text-campus-700 group-hover:text-campus-900 transition-colors" />
+              <span>Search</span>
             </button>
 
             {/* Public AI Launcher */}
             <button
               onClick={openAiWidget}
               onMouseEnter={() => setActiveMegaMenu(null)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-campus-50 hover:bg-campus-100 text-campus-900 border border-campus-200 text-xs font-bold transition-all hover:scale-105 active:scale-95"
             >
-              <Bot className="w-3.5 h-3.5 text-emerald-600" />
+              <Bot className="w-3.5 h-3.5 text-campus-700" />
               <span className="hidden sm:inline">Ask AI</span>
             </button>
 
@@ -209,11 +205,11 @@ export default function Navbar() {
               <button
                 onClick={togglePortalDropdown}
                 onMouseEnter={() => setActiveMegaMenu(null)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300"
               >
-                <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <UserCheck className="w-3.5 h-3.5 text-campus-400" />
                 <span>Portals</span>
-                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               <PortalDropdown 
@@ -225,7 +221,7 @@ export default function Navbar() {
             {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
+              className="lg:hidden p-2 rounded-lg bg-campus-50 text-slate-700 hover:bg-campus-100"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -236,7 +232,7 @@ export default function Navbar() {
         {/* MEGA MENU PANEL */}
         {activeMegaMenu && (
           <div 
-            className="absolute top-full left-0 right-0 z-50 hidden lg:block bg-white border-b border-slate-200 shadow-2xl py-8 px-8 animate-megamenu"
+            className="absolute top-full left-0 right-0 z-50 hidden lg:block bg-campus-50 border-b border-campus-200 shadow-2xl py-8 px-8 animate-megamenu"
             onMouseEnter={() => setActiveMegaMenu(activeMegaMenu)}
           >
             <div className="max-w-7xl mx-auto">
@@ -255,7 +251,7 @@ export default function Navbar() {
       {/* Backdrop overlay to close mega menu when mouse exits down */}
       {activeMegaMenu && (
         <div 
-          className="fixed inset-0 top-18 z-40 bg-slate-950/5 backdrop-blur-[0.5px]"
+          className="fixed inset-0 top-18 z-40 bg-campus-950/5 backdrop-blur-[0.5px]"
           onClick={closeAllDropdowns}
           onMouseEnter={closeAllDropdowns}
         />

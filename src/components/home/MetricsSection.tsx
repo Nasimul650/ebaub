@@ -66,14 +66,14 @@ export default function MetricsSection() {
       
       {/* Centered Text Block */}
       <div ref={textHeaderRef} className="max-w-3xl mx-auto space-y-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-900/90 border border-emerald-600/80 text-amber-300 text-xs font-bold shadow-md">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-campus-900/90 border border-campus-700/80 text-amber-300 text-xs font-bold shadow-md">
           <Sparkles className="w-4 h-4 text-amber-300" />
           <span>Academic Excellence & Computational Rigor</span>
         </div>
         <h2 className="text-4xl sm:text-5xl font-extrabold text-white heading-display tracking-tight leading-tight">
           Turn academic rigor into real-world innovations.
         </h2>
-        <p className="text-base sm:text-lg text-emerald-100/90 leading-relaxed font-normal">
+        <p className="text-base sm:text-lg text-campus-100/90 leading-relaxed font-normal">
           The Department of Computer Science & Engineering and Faculty of Agriculture equip students with theoretical foundations and practical software engineering capabilities.
         </p>
       </div>
@@ -89,17 +89,17 @@ export default function MetricsSection() {
             <div className="text-5xl sm:text-6xl font-extrabold text-amber-300 heading-display">
               160+
             </div>
-            <div className="text-xs font-bold text-emerald-100 uppercase tracking-wider">
+            <div className="text-xs font-bold text-campus-100 uppercase tracking-wider">
               Curriculum Credits
             </div>
-            <p className="text-xs text-emerald-200/80 leading-relaxed max-w-xs">
+            <p className="text-xs text-campus-200/80 leading-relaxed max-w-xs">
               Rigorous coursework covering AI, Algorithms, Web Engineering & Cloud Systems.
             </p>
           </div>
 
           <div className="pt-4 border-t border-white/15 w-full flex items-center justify-center">
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-300">
-              <BookOpen className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-campus-300">
+              <BookOpen className="w-4 h-4 text-campus-400" />
               <span>Academic Standard</span>
             </div>
           </div>
@@ -111,17 +111,17 @@ export default function MetricsSection() {
             <div className="text-5xl sm:text-6xl font-extrabold text-white heading-display">
               100%
             </div>
-            <div className="text-xs font-bold text-emerald-100 uppercase tracking-wider">
+            <div className="text-xs font-bold text-campus-100 uppercase tracking-wider">
               Digital Campus CMS
             </div>
-            <p className="text-xs text-emerald-200/80 leading-relaxed max-w-xs">
+            <p className="text-xs text-campus-200/80 leading-relaxed max-w-xs">
               Custom Headless CMS enables live notice publishing and dynamic student portals.
             </p>
           </div>
 
           <div className="pt-4 border-t border-white/15 w-full flex items-center justify-center">
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-300">
-              <Layers className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-campus-300">
+              <Layers className="w-4 h-4 text-campus-400" />
               <span>Next.js Architecture</span>
             </div>
           </div>
@@ -133,16 +133,16 @@ export default function MetricsSection() {
             <div className="text-5xl sm:text-6xl font-extrabold text-amber-300 heading-display">
               2 Years
             </div>
-            <div className="text-xs font-bold text-emerald-100 uppercase tracking-wider">
+            <div className="text-xs font-bold text-campus-100 uppercase tracking-wider">
               CSE Department
             </div>
-            <p className="text-xs text-emerald-200/80 leading-relaxed max-w-xs">
+            <p className="text-xs text-campus-200/80 leading-relaxed max-w-xs">
               Celebrating two years of continuous excellence in computer science education.
             </p>
           </div>
 
           <div className="pt-4 border-t border-white/15 w-full flex items-center justify-center">
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-300">
+            <div className="flex items-center gap-2 text-xs font-semibold text-campus-300">
               <Award className="w-4 h-4 text-amber-300" />
               <span>Anniversary Milestone</span>
             </div>

@@ -94,7 +94,7 @@ export default function CurriculumTechSection() {
         <div ref={cardsGridRef} className="grid grid-cols-2 gap-4">
           {/* Card 1 */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xl space-y-3 hover:translate-y-[-2px] transition-transform">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shadow-2xs">
+            <div className="w-10 h-10 rounded-xl bg-campus-100 text-campus-800 flex items-center justify-center font-bold text-sm shadow-2xs">
               <Code2 className="w-5 h-5" />
             </div>
             <div className="font-bold text-sm text-slate-900">Algorithms & DS</div>

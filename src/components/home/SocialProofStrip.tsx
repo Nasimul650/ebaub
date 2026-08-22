@@ -49,7 +49,7 @@ export default function SocialProofStrip() {
       {/* Horizontal flex row of muted logos / partner bodies */}
       <div className="flex flex-wrap items-center justify-between gap-8 sm:gap-12 text-slate-400 font-bold text-sm">
         <div className="logo-cloud-item flex items-center gap-2 hover:text-slate-700 transition-colors">
-          <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+          <ShieldCheck className="w-5 h-5 text-campus-700 shrink-0" />
           <span>UGC Bangladesh</span>
         </div>
 

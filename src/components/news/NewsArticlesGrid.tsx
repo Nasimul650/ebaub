@@ -29,11 +29,11 @@ export default function NewsArticlesGrid({ news }: Props) {
           <div className="p-6 sm:p-8 space-y-4 flex-1 flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="text-emerald-700 font-bold">{item.category}</span>
+                <span className="text-campus-800 font-bold">{item.category}</span>
                 <span>•</span>
                 <span>{new Date(item.publishedAt).toLocaleDateString()}</span>
               </div>
-              <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors">
+              <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-campus-800 transition-colors">
                 {item.title}
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
@@ -41,7 +41,7 @@ export default function NewsArticlesGrid({ news }: Props) {
               </p>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-700">
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-campus-800">
               <span>Read Full Article</span>
               <ArrowRight className="w-4 h-4" />
             </div>
