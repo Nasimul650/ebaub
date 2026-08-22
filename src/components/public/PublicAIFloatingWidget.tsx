@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, Sparkles, Loader2 } from 'lucide-react';
 import { askPublicAI } from '@/lib/mock/mockServices';
 
@@ -18,6 +18,9 @@ interface ChatMessage {
 export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       sender: 'ai',
@@ -25,6 +28,18 @@ export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, loading, isOpen]);
 
   if (!isOpen) return null;
 
@@ -114,8 +129,11 @@ export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
         </button>
       </div>
 
-      {/* Messages Window */}
-      <div className="h-80 p-4 overflow-y-auto space-y-3.5 text-xs bg-slate-50/50">
+      {/* Messages Window (Auto-Scrolling to Bottom) */}
+      <div 
+        ref={messagesContainerRef}
+        className="h-80 p-4 overflow-y-auto space-y-3.5 text-xs bg-slate-50/50 scroll-smooth"
+      >
         {messages.map((msg, idx) => (
           <div 
             key={idx} 
@@ -144,6 +162,9 @@ export default function PublicAIFloatingWidget({ isOpen, onClose }: Props) {
             </div>
           </div>
         )}
+
+        {/* Scroll Anchor */}
+        <div ref={messagesEndRef} className="h-0 w-0" />
       </div>
 
       {/* Input Form */}

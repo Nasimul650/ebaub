@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface Message {
@@ -14,8 +14,14 @@ interface Props {
 }
 
 export default function AIChatFeed({ messages, loading }: Props) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages, loading]);
+
   return (
-    <div className="flex-1 bg-white border border-slate-200 rounded-3xl p-6 overflow-y-auto space-y-4 text-xs shadow-xs">
+    <div className="flex-1 bg-white border border-slate-200 rounded-3xl p-6 overflow-y-auto space-y-4 text-xs shadow-xs scroll-smooth">
       {messages.map((m, i) => (
         <div key={i} className={`flex ${m.role === 'student' ? 'justify-end' : 'justify-start'}`}>
           <div
@@ -38,6 +44,9 @@ export default function AIChatFeed({ messages, loading }: Props) {
           </div>
         </div>
       )}
+
+      {/* Anchor for auto scroll */}
+      <div ref={bottomRef} className="h-0 w-0" />
     </div>
   );
 }
