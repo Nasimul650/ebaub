@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useActionState, useEffect } from 'react';
+import React, { useActionState, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2, Send, Paperclip } from 'lucide-react';
+import { FileUpload } from '@/components/ui/file-upload';
 
 export default function NoticeForm({ action, initialData }: { action: any, initialData?: any }) {
   const router = useRouter();
+  const [attachmentUrl, setAttachmentUrl] = useState<string>(initialData?.attachment_url || '');
   const [state, formAction, isPending] = useActionState<{ error?: string, success?: boolean, message?: string } | null, FormData>(action, null);
 
   useEffect(() => {
@@ -94,18 +96,22 @@ export default function NoticeForm({ action, initialData }: { action: any, initi
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-700">Attachment (PDF)</label>
-          <div className="relative">
-            <input 
-              type="file" 
-              disabled
-              className="w-full px-4 py-2.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400 cursor-not-allowed file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-600"
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
-              <Paperclip className="w-3 h-3" />
-              Coming Soon via Supabase Storage
+          <input type="hidden" name="attachment_url" value={attachmentUrl || ''} />
+          {attachmentUrl && (
+            <div className="mb-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+              <Paperclip className="w-5 h-5 text-slate-400" />
+              <a href={attachmentUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-campus-700 hover:underline truncate">
+                View Attached File
+              </a>
             </div>
-          </div>
+          )}
+          
+          <FileUpload 
+            bucket="public_media" 
+            accept=".pdf,.doc,.docx"
+            label={attachmentUrl ? "Replace Attachment (PDF/Word)" : "Attachment (PDF/Word)"}
+            onUploadSuccess={setAttachmentUrl}
+          />
         </div>
 
         <div className="space-y-2">

@@ -17,7 +17,7 @@ export default async function AdminNoticesPage() {
           <p className="text-xs text-slate-500 mt-1">Create, publish, and delete official university circulars</p>
         </div>
         <Link 
-          href="/admin/notices/new"
+          href="/admin/notices/create"
           className="flex items-center gap-2 px-4 py-2 bg-campus-800 hover:bg-campus-900 text-white text-sm font-bold rounded-xl transition-colors shadow-md"
         >
           <Plus className="w-4 h-4" />

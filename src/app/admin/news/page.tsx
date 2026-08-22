@@ -19,7 +19,7 @@ export default async function AdminNewsPage() {
           <p className="text-xs text-slate-500 mt-1">Manage and publish press releases and campus news</p>
         </div>
         <Link 
-          href="/admin/news/new"
+          href="/admin/news/create"
           className="flex items-center gap-2 px-4 py-2 bg-campus-800 hover:bg-campus-900 text-white text-sm font-bold rounded-xl transition-colors shadow-md"
         >
           <Plus className="w-4 h-4" />

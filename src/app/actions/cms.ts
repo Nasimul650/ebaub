@@ -42,6 +42,7 @@ export async function createNews(prevState: any, formData: FormData) {
     const summary = formData.get('summary') as string;
     const category = formData.get('category') as string;
     const content = formData.get('content') as string;
+    const image_url = formData.get('image_url') as string;
 
     if (!title || !content) {
       return { error: 'Title and article content are required.' };
@@ -55,6 +56,7 @@ export async function createNews(prevState: any, formData: FormData) {
       summary,
       category,
       content,
+      image_url,
       author_id: user.id,
       published_at: new Date().toISOString(), // Auto-publish for now
     });
@@ -63,6 +65,7 @@ export async function createNews(prevState: any, formData: FormData) {
 
     revalidatePath('/');
     revalidatePath('/news');
+    revalidatePath('/admin/news');
     
     return { success: true, message: 'News article created successfully!' };
   } catch (error: any) {
@@ -79,12 +82,14 @@ export async function updateNews(id: string, prevState: any, formData: FormData)
     const summary = formData.get('summary') as string;
     const category = formData.get('category') as string;
     const content = formData.get('content') as string;
+    const image_url = formData.get('image_url') as string;
 
     const updates: any = { updated_at: new Date().toISOString() };
     if (title) updates.title = title;
     if (summary !== null) updates.summary = summary;
     if (category !== null) updates.category = category;
     if (content) updates.content = content;
+    if (image_url) updates.image_url = image_url;
 
     const { error } = await supabase.from('news').update(updates).eq('id', id);
 
@@ -113,6 +118,7 @@ export async function createNotice(prevState: any, formData: FormData) {
     const priority = formData.get('priority') as string;
     const date = formData.get('date') as string;
     const description = formData.get('description') as string;
+    const attachment_url = formData.get('attachment_url') as string;
 
     if (!title) {
       return { error: 'Notice title is required.' };
@@ -127,6 +133,7 @@ export async function createNotice(prevState: any, formData: FormData) {
       priority,
       date: date || new Date().toISOString().split('T')[0],
       description,
+      attachment_url,
       content: description || 'No content provided.', // Fallback for DB constraint
       author_id: user.id,
       published_at: new Date().toISOString(),
@@ -153,12 +160,14 @@ export async function updateNotice(id: string, prevState: any, formData: FormDat
     const priority = formData.get('priority') as string;
     const date = formData.get('date') as string;
     const description = formData.get('description') as string;
+    const attachment_url = formData.get('attachment_url') as string;
 
     const updates: any = {};
     if (title) updates.title = title;
     if (category !== null) updates.category = category;
     if (priority !== null) updates.priority = priority;
     if (date !== null) updates.date = date;
+    if (attachment_url) updates.attachment_url = attachment_url;
     if (description !== null) {
       updates.description = description;
       updates.content = description; // Sync with content required field
