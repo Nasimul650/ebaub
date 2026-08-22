@@ -14,7 +14,8 @@ import {
   LogOut,
   Settings,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Users
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 
@@ -47,6 +48,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
     { label: 'Notices CMS', href: '/admin/notices', icon: Bell },
     { label: 'News CMS', href: '/admin/news', icon: Newspaper },
     { label: 'Events CMS', href: '/admin/events', icon: Calendar },
+    { label: 'Faculty CMS', href: '/admin/faculty', icon: Users },
     { label: 'Programs CMS', href: '/admin/programs', icon: BookOpen },
     { label: 'Media Library', href: '/admin/media', icon: ImageIcon },
   ];
