@@ -41,13 +41,13 @@
     --secondary: 45 100% 50%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --font-roboto-stack: var(--font-roboto), 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --font-roboto-condensed-stack: var(--font-roboto-condensed), 'Roboto Condensed', 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   }
 
   body {
     background-color: #E8F5E9;
     color: #334155;
-    font-family: var(--font-roboto-stack);
+    font-family: var(--font-roboto-condensed-stack);
     letter-spacing: -0.011em;
     overflow-x: hidden;
     scroll-behavior: smooth;
@@ -187,7 +187,7 @@
 
 /* Heading Display with tight tracking for premium editorial feel */
 .heading-display {
-  font-family: var(--font-roboto-stack);
+  font-family: var(--font-roboto-condensed-stack);
   font-weight: 800;
   letter-spacing: -0.035em;
   line-height: 1.08;
