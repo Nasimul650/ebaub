@@ -58,5 +58,31 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse
   }
 
+  // Enforce Role-Based Access Control
+  if (user && isProtected) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const role = profile?.role || 'STUDENT'
+    const path = request.nextUrl.pathname
+
+    // A student can ONLY access /student routes
+    if (role === 'STUDENT' && !path.startsWith('/student')) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/student'
+      
+      const redirectResponse = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+      })
+      return redirectResponse
+    }
+    
+    // Teachers and Admins can access all protected routes for now.
+  }
+
   return supabaseResponse
 }
