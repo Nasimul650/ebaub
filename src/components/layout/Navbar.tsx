@@ -10,7 +10,6 @@ import {
   Menu, 
   X, 
   ChevronDown, 
-  ChevronUp,
   Command
 } from 'lucide-react';
 import CommandMenuModal from '../public/CommandMenuModal';
@@ -26,7 +25,18 @@ export default function Navbar() {
   const [portalDropdownOpen, setPortalDropdownOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
 
+  const closeAllDropdowns = () => {
+    setActiveMegaMenu(null);
+    setPortalDropdownOpen(false);
+  };
+
+  const handleMegaMenuHover = (menuName: string) => {
+    setPortalDropdownOpen(false);
+    setActiveMegaMenu(menuName);
+  };
+
   const toggleMegaMenu = (menuName: string) => {
+    setPortalDropdownOpen(false);
     if (activeMegaMenu === menuName) {
       setActiveMegaMenu(null);
     } else {
@@ -34,17 +44,37 @@ export default function Navbar() {
     }
   };
 
+  const togglePortalDropdown = () => {
+    setActiveMegaMenu(null);
+    setPortalDropdownOpen(!portalDropdownOpen);
+  };
+
+  const openSearch = () => {
+    closeAllDropdowns();
+    setCommandMenuOpen(true);
+  };
+
+  const openAiWidget = () => {
+    closeAllDropdowns();
+    setAiWidgetOpen(true);
+  };
+
   return (
     <>
-      {/* Main Clean Header (Positioned sticky with relative anchor for absolute dropdowns) */}
+      {/* Main Clean Header */}
       <header
-        className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all shadow-xs relative"
+        className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all shadow-xs relative"
         onMouseLeave={() => setActiveMegaMenu(null)}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           
           {/* Logo & Brand Identity */}
-          <Link href="/" className="flex items-center gap-3 group shrink-0">
+          <Link 
+            href="/" 
+            className="flex items-center gap-3 group shrink-0"
+            onMouseEnter={() => setActiveMegaMenu(null)}
+            onClick={closeAllDropdowns}
+          >
             <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
               <GraduationCap className="w-5 h-5 text-emerald-400" />
             </div>
@@ -56,11 +86,13 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Center Navigation Links (Stable font weight to prevent layout shift) */}
+          {/* Center Navigation Links */}
           <nav className="hidden lg:flex items-center gap-1 text-xs font-medium text-slate-700">
             
             <Link 
               href="/about" 
+              onMouseEnter={() => setActiveMegaMenu(null)}
+              onClick={closeAllDropdowns}
               className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
             >
               About
@@ -70,7 +102,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => toggleMegaMenu('academics')}
-                onMouseEnter={() => setActiveMegaMenu('academics')}
+                onMouseEnter={() => handleMegaMenuHover('academics')}
                 className={`px-3.5 py-2 rounded-lg flex items-center gap-1 transition-all duration-200 font-medium ${
                   activeMegaMenu === 'academics'
                     ? 'bg-slate-100 text-emerald-700 scale-105'
@@ -86,7 +118,7 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={() => toggleMegaMenu('admissions')}
-                onMouseEnter={() => setActiveMegaMenu('admissions')}
+                onMouseEnter={() => handleMegaMenuHover('admissions')}
                 className={`px-3.5 py-2 rounded-lg flex items-center gap-1 transition-all duration-200 font-medium ${
                   activeMegaMenu === 'admissions'
                     ? 'bg-slate-100 text-emerald-700 scale-105'
@@ -100,6 +132,8 @@ export default function Navbar() {
 
             <Link 
               href="/faculty" 
+              onMouseEnter={() => setActiveMegaMenu(null)}
+              onClick={closeAllDropdowns}
               className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
             >
               Faculty
@@ -107,6 +141,8 @@ export default function Navbar() {
 
             <Link 
               href="/notices" 
+              onMouseEnter={() => setActiveMegaMenu(null)}
+              onClick={closeAllDropdowns}
               className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
             >
               Notices
@@ -114,6 +150,8 @@ export default function Navbar() {
 
             <Link 
               href="/news" 
+              onMouseEnter={() => setActiveMegaMenu(null)}
+              onClick={closeAllDropdowns}
               className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
             >
               News
@@ -121,6 +159,8 @@ export default function Navbar() {
 
             <Link 
               href="/events" 
+              onMouseEnter={() => setActiveMegaMenu(null)}
+              onClick={closeAllDropdowns}
               className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
             >
               Events
@@ -128,6 +168,8 @@ export default function Navbar() {
 
             <Link 
               href="/contact" 
+              onMouseEnter={() => setActiveMegaMenu(null)}
+              onClick={closeAllDropdowns}
               className="px-3.5 py-2 rounded-lg hover:text-emerald-700 hover:bg-slate-100 transition-colors"
             >
               Contact
@@ -140,7 +182,8 @@ export default function Navbar() {
             
             {/* Search Command Center Button */}
             <button
-              onClick={() => setCommandMenuOpen(true)}
+              onClick={openSearch}
+              onMouseEnter={() => setActiveMegaMenu(null)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all hover:scale-105 active:scale-95"
               title="Search (Ctrl+K)"
             >
@@ -153,7 +196,8 @@ export default function Navbar() {
 
             {/* Public AI Launcher */}
             <button
-              onClick={() => setAiWidgetOpen(true)}
+              onClick={openAiWidget}
+              onMouseEnter={() => setActiveMegaMenu(null)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all hover:scale-105 active:scale-95"
             >
               <Bot className="w-3.5 h-3.5 text-emerald-600" />
@@ -163,7 +207,8 @@ export default function Navbar() {
             {/* Portals Access Dropdown Container */}
             <div className="relative">
               <button
-                onClick={() => setPortalDropdownOpen(!portalDropdownOpen)}
+                onClick={togglePortalDropdown}
+                onMouseEnter={() => setActiveMegaMenu(null)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95"
               >
                 <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
@@ -188,14 +233,17 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* MEGA MENU PANEL (Animated with explicit .animate-megamenu keyframes) */}
+        {/* MEGA MENU PANEL */}
         {activeMegaMenu && (
           <div 
             className="absolute top-full left-0 right-0 z-50 hidden lg:block bg-white border-b border-slate-200 shadow-2xl py-8 px-8 animate-megamenu"
             onMouseEnter={() => setActiveMegaMenu(activeMegaMenu)}
           >
             <div className="max-w-7xl mx-auto">
-              <MegaMenu activeMenu={activeMegaMenu} />
+              <MegaMenu 
+                activeMenu={activeMegaMenu} 
+                onItemClick={closeAllDropdowns}
+              />
             </div>
           </div>
         )}
@@ -203,6 +251,15 @@ export default function Navbar() {
         {/* Mobile Navigation Drawer */}
         <MobileNavDrawer isOpen={mobileMenuOpen} />
       </header>
+
+      {/* Backdrop overlay to close mega menu when mouse exits down */}
+      {activeMegaMenu && (
+        <div 
+          className="fixed inset-0 top-18 z-40 bg-slate-950/5 backdrop-blur-[0.5px]"
+          onClick={closeAllDropdowns}
+          onMouseEnter={closeAllDropdowns}
+        />
+      )}
 
       {/* Command Menu Modal */}
       <CommandMenuModal isOpen={commandMenuOpen} onClose={() => setCommandMenuOpen(false)} />
