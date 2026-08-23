@@ -1,53 +1,74 @@
 import { google } from '@ai-sdk/google';
-import { streamText, Message } from 'ai';
+import { streamText } from 'ai';
 import { 
   getLatestNews, 
   getActiveNotices, 
-  getFacultiesWithDepartments,
-  getAdmissionsData
+  getAllPrograms,
+  getPageBySlug
 } from '@/utils/supabase/queries';
 
-// Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
+
+function formatContextData(news: any[], notices: any[], programs: any[], aboutPage: any) {
+  let aboutText = '';
+  
+  if (aboutPage && aboutPage.content_blocks) {
+    let blocks = aboutPage.content_blocks;
+    if (typeof blocks === 'string') {
+      try { blocks = JSON.parse(blocks); } catch(e) {}
+    }
+    if (Array.isArray(blocks)) {
+      aboutText = blocks.map(b => {
+        if (b.type === 'hero') return `${b.data?.headline} - ${b.data?.subheadline}`;
+        if (b.type === 'text_image') return `${b.data?.title}: ${b.data?.paragraph}`;
+        if (b.type === 'stats') return `Stats: ${b.data?.stats?.map((s: any) => `${s.value} ${s.label}`).join(', ')}`;
+        return '';
+      }).filter(Boolean).join('\n');
+    }
+  }
+
+  return `
+--- ABOUT EBAUB ---
+${aboutText}
+
+--- LATEST NOTICES ---
+${notices.map(n => `Title: ${n.title} | Date: ${n.date || 'Recent'} | Details: ${n.description || 'Check notice board'}`).join('\n')}
+
+--- LATEST NEWS ---
+${news.map(n => `Title: ${n.title} | Details: ${n.summary || 'Check news portal'}`).join('\n')}
+
+--- ACADEMIC PROGRAMS ---
+${programs.map(p => `- ${p.name} (${p.degree})`).join('\n')}
+`;
+}
 
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    // Fetch brief contextual data to inject into the system prompt
-    const [news, notices, faculties, admissions] = await Promise.all([
+    const [news, notices, programs, aboutPage] = await Promise.all([
       getLatestNews(3),
       getActiveNotices(3),
-      getFacultiesWithDepartments(),
-      getAdmissionsData()
+      getAllPrograms(),
+      getPageBySlug('about')
     ]);
 
-    // Build context string
-    const contextStr = `
-CURRENT EBAUB CONTEXT:
----
-Recent News: ${news.map(n => n.title).join(' | ')}
-Recent Notices: ${notices.map(n => n.title).join(' | ')}
-Faculties: ${faculties.map(f => f.name).join(', ')}
----
+    const dynamicContext = formatContextData(news, notices, programs, aboutPage);
+
+    const systemPrompt = `You are the EBAUB AI Assistant. Base your answers ONLY on the provided context below. If the answer is not in the context, politely state that you do not have that information and refer them to info@ebaub.edu.bd.
+
+STATIC CONTEXT:
+University Name: EXIM Bank Agricultural University Bangladesh (EBAUB)
+Location: 69-69/1, Boro Indara More, Chapai Nawabganj, 6300, Bangladesh
+Email: info@ebaub.edu.bd
+Phone: 02-588893525 to 588893529
+
+DYNAMIC CONTEXT:
+${dynamicContext}
 `;
 
-    const systemPrompt = `You are the official AI Assistant for EXIM Bank Agricultural University Bangladesh (EBAUB).
-Your role is to assist prospective students, current students, and visitors with information about the university.
-
-Strict Rules:
-1. Be concise, professional, and helpful.
-2. ALWAYS use the provided context to answer questions accurately.
-3. If a user asks a question completely unrelated to EBAUB, education, or academia, politely decline to answer.
-4. If you don't know the exact answer, recommend they check the "Admissions" or "Notices" page, or contact the university at info@ebaub.edu.bd.
-5. Do NOT hallucinate policies or dates that are not in your context.
-
-${contextStr}
-`;
-
-    // Initiate streaming using Vercel AI SDK
     const result = await streamText({
-      model: google('gemini-3.5-flash-lite'), // Using the requested 3.5 flash-lite model
+      model: google('gemini-3.5-flash-lite'),
       system: systemPrompt,
       messages,
     });
