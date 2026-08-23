@@ -1,77 +1,104 @@
 import React from 'react';
 import Link from 'next/link';
-import { GraduationCap, Mail, Phone, MapPin, ExternalLink, ShieldCheck, Heart } from 'lucide-react';
+import { GraduationCap, Mail, Phone, MapPin, ExternalLink, Globe, Users, PlayCircle } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-campus-950 text-campus-200 text-xs border-t border-campus-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+    <footer className="bg-emerald-950 text-slate-100 text-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
           
-          {/* Col 1: University Identity */}
-          <div className="space-y-4">
+          {/* Column 1: Brand & Contact */}
+          <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-campus-900 border border-campus-800/80 flex items-center justify-center text-white shadow-sm">
-                <GraduationCap className="w-6 h-6 text-campus-400" />
+              <div className="w-10 h-10 rounded-xl bg-emerald-900 border border-emerald-800/80 flex items-center justify-center text-white shadow-sm">
+                <GraduationCap className="w-6 h-6 text-amber-400" />
               </div>
-              <span className="font-extrabold text-base text-white">EBAUB Digital Campus</span>
+              <span className="font-extrabold text-lg text-white leading-tight">
+                EXIM Bank Agricultural<br/>University Bangladesh
+              </span>
             </div>
-            <p className="text-xs text-campus-200/80 leading-relaxed">
-              EXIM Bank Agricultural University Bangladesh is dedicated to developing world-class engineers, computer scientists, and agricultural leaders through modern education and technology.
-            </p>
-            <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-campus-300">
-              <ShieldCheck className="w-4 h-4 text-campus-400" />
-              <span>CSE Dept. 2-Year Anniversary</span>
+            
+            <div className="space-y-3 text-slate-300">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                <span>69-69/1, Boro Indara More,<br/>Chapai Nawabganj, 6300, Bangladesh</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span>info@ebaub.edu.bd</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span>+880 1700 000000</span>
+              </div>
             </div>
           </div>
 
-          {/* Col 2: Navigation Links */}
+          {/* Column 2: Explore */}
           <div>
-            <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-[11px]">Quick Navigation</h4>
-            <ul className="space-y-2.5 font-medium text-campus-200/90">
-              <li><Link href="/" className="hover:text-white transition-colors">Home Page</Link></li>
-              <li><Link href="/about" className="hover:text-white transition-colors">About University</Link></li>
-              <li><Link href="/academics" className="hover:text-white transition-colors">Programs & Curriculums</Link></li>
-              <li><Link href="/faculty" className="hover:text-white transition-colors">Faculty Directory</Link></li>
-              <li><Link href="/admissions" className="hover:text-white transition-colors">Admissions Guidelines</Link></li>
-              <li><Link href="/notices" className="hover:text-white transition-colors">Official Notice Board</Link></li>
+            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs">Explore</h4>
+            <ul className="space-y-3 font-medium text-slate-300">
+              <li><Link href="/about" className="hover:text-amber-400 transition-colors duration-300">About EBAUB</Link></li>
+              <li><Link href="/academics" className="hover:text-amber-400 transition-colors duration-300">Academic Programs</Link></li>
+              <li><Link href="/admissions" className="hover:text-amber-400 transition-colors duration-300">Admissions</Link></li>
+              <li><Link href="/faculty" className="hover:text-amber-400 transition-colors duration-300">Faculty Directory</Link></li>
+              <li><Link href="/events" className="hover:text-amber-400 transition-colors duration-300">Campus Life</Link></li>
             </ul>
           </div>
 
-          {/* Col 3: Portals & Tools */}
+          {/* Column 3: Digital Campus */}
           <div>
-            <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-[11px]">Digital Campus</h4>
-            <ul className="space-y-2.5 font-medium text-campus-200/90">
-              <li><Link href="/admin" className="hover:text-white transition-colors flex items-center gap-1.5"><ExternalLink className="w-3.5 h-3.5"/> Headless CMS (Admin)</Link></li>
-              <li><Link href="/teacher" className="hover:text-white transition-colors flex items-center gap-1.5"><ExternalLink className="w-3.5 h-3.5"/> Teacher Workspace + AI</Link></li>
-              <li><Link href="/student" className="hover:text-white transition-colors flex items-center gap-1.5"><ExternalLink className="w-3.5 h-3.5"/> Student Study Hub</Link></li>
-              <li><Link href="/notices/cse-2yr-anniversary-ceremony" className="hover:text-white transition-colors text-campus-300 font-semibold">Anniversary Notice</Link></li>
+            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs">Digital Campus</h4>
+            <ul className="space-y-3 font-medium text-slate-300">
+              <li>
+                <Link href="/student" className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2">
+                  <span>Student Dashboard</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/teacher" className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2">
+                  <span>Teacher Dashboard</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin" className="hover:text-amber-400 transition-colors duration-300 flex items-center gap-2">
+                  <span>Admin CMS</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Col 4: Campus Contact */}
-          <div className="space-y-3 text-campus-200/90">
-            <h4 className="font-bold text-white mb-4 uppercase tracking-wider text-[11px]">Campus Contact</h4>
-            <div className="flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-campus-400 shrink-0 mt-0.5" />
-              <span>EBAUB Main Campus, Rajshahi, Bangladesh</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-campus-400 shrink-0" />
-              <span>info@ebaub.ac.bd</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Phone className="w-4 h-4 text-campus-400 shrink-0" />
-              <span>+880-1700-000000</span>
+          {/* Column 4: Connect */}
+          <div>
+            <h4 className="font-bold text-white mb-6 uppercase tracking-wider text-xs">Connect</h4>
+            <p className="text-slate-300 mb-6">Stay updated with the latest news, events, and academic announcements.</p>
+            <div className="flex items-center gap-4">
+              <a href="#" className="w-10 h-10 rounded-full bg-emerald-900 border border-emerald-800 flex items-center justify-center text-emerald-400 hover:bg-amber-400 hover:text-emerald-950 transition-colors duration-300">
+                <Globe className="w-5 h-5" />
+                <span className="sr-only">Social Web</span>
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-emerald-900 border border-emerald-800 flex items-center justify-center text-emerald-400 hover:bg-amber-400 hover:text-emerald-950 transition-colors duration-300">
+                <Users className="w-5 h-5" />
+                <span className="sr-only">Community</span>
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-emerald-900 border border-emerald-800 flex items-center justify-center text-emerald-400 hover:bg-amber-400 hover:text-emerald-950 transition-colors duration-300">
+                <PlayCircle className="w-5 h-5" />
+                <span className="sr-only">Video</span>
+              </a>
             </div>
           </div>
 
         </div>
+      </div>
 
-        <div className="mt-12 pt-6 border-t border-campus-900 flex flex-col sm:flex-row items-center justify-between text-xs text-campus-300 gap-4">
-          <p>© {new Date().getFullYear()} EXIM Bank Agricultural University Bangladesh (EBAUB). All rights reserved.</p>
-          <p className="flex items-center gap-1 text-campus-300">
-            Engineered by <span className="font-bold text-white">EBAUB CSE Department</span>
+      <div className="border-t border-emerald-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <p className="text-center text-slate-400 text-sm">
+            &copy; {new Date().getFullYear()} EBAUB. All rights reserved.
           </p>
         </div>
       </div>
