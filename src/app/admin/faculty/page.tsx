@@ -1,10 +1,21 @@
 import React from 'react';
 import Link from 'next/link';
-import { User, Plus } from 'lucide-react';
-import { getAllFaculty } from '@/utils/supabase/queries';
+import { User, Plus, Database } from 'lucide-react';
+import { getAllFaculty, getFacultiesWithDepartments } from '@/utils/supabase/queries';
+import { seedAcademicData } from '@/app/actions/cms';
+import { revalidatePath } from 'next/cache';
 
 export default async function AdminFacultyPage() {
   const facultyList = await getAllFaculty(100);
+  const hierarchy = await getFacultiesWithDepartments();
+
+  // Temporary action wrapper for the seed button
+  async function handleSeed() {
+    'use server';
+    await seedAcademicData();
+    revalidatePath('/admin/faculty');
+    revalidatePath('/admin/faculty/create');
+  }
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
@@ -15,13 +26,26 @@ export default async function AdminFacultyPage() {
           </h1>
           <p className="text-xs text-slate-500 mt-1">Manage academic staff and faculty directories</p>
         </div>
-        <Link 
-          href="/admin/faculty/create"
-          className="flex items-center gap-2 px-4 py-2 bg-campus-800 hover:bg-campus-900 text-white text-sm font-bold rounded-xl transition-colors shadow-md"
-        >
-          <Plus className="w-4 h-4" />
-          Add Faculty Member
-        </Link>
+        <div className="flex items-center gap-3">
+          {hierarchy.length === 0 && (
+            <form action={handleSeed}>
+              <button 
+                type="submit"
+                className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-colors shadow-md"
+              >
+                <Database className="w-4 h-4" />
+                Seed Departments
+              </button>
+            </form>
+          )}
+          <Link 
+            href="/admin/faculty/create"
+            className="flex items-center gap-2 px-4 py-2 bg-campus-800 hover:bg-campus-900 text-white text-sm font-bold rounded-xl transition-colors shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            Add Faculty Member
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden text-xs shadow-xs">

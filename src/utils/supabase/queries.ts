@@ -203,50 +203,84 @@ export async function getEventById(id: string): Promise<EventItem | null> {
 }
 
 // ==========================================
-// FACULTY MEMBERS
+// FACULTY MEMBERS & ACADEMIC HIERARCHY
 // ==========================================
 
-export interface FacultyItem {
-  id: string
-  name: string
-  title: string
-  department_id?: string
-  bio?: string
-  image_url?: string
-  created_at: string
-  updated_at: string
+export interface AcademicFaculty {
+  id: string;
+  name: string;
+  description?: string;
 }
 
-export async function getAllFaculty(limit = 50): Promise<FacultyItem[]> {
+export interface AcademicDepartment {
+  id: string;
+  faculty_id: string;
+  name: string;
+  description?: string;
+  faculties?: AcademicFaculty;
+}
+
+export interface FacultyHierarchy extends AcademicFaculty {
+  departments: AcademicDepartment[];
+}
+
+export interface FacultyItem {
+  id: string;
+  name: string;
+  title: string;
+  department_id?: string;
+  bio?: string;
+  image_url?: string;
+  created_at: string;
+  updated_at: string;
+  departments?: AcademicDepartment;
+}
+
+export async function getFacultiesWithDepartments(): Promise<FacultyHierarchy[]> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('faculties')
+      .select('*, departments(*)');
+
+    if (error) throw error;
+    return data as unknown as FacultyHierarchy[];
+  } catch (err) {
+    console.error('Error fetching faculties with departments:', err);
+    return [];
+  }
+}
+
+export async function getAllFaculty(limit = 100): Promise<FacultyItem[]> {
+  try {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('faculty_members')
-      .select('*')
+      .select('*, departments(*, faculties(*))')
       .order('name', { ascending: true })
-      .limit(limit)
+      .limit(limit);
 
-    if (error) throw error
-    return data || []
+    if (error) throw error;
+    return data as unknown as FacultyItem[];
   } catch (err) {
-    console.error('Error fetching all faculty:', err)
-    return []
+    console.error('Error fetching all faculty:', err);
+    return [];
   }
 }
 
 export async function getFacultyById(id: string): Promise<FacultyItem | null> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('faculty_members')
-      .select('*')
+      .select('*, departments(*, faculties(*))')
       .eq('id', id)
-      .single()
+      .single();
 
-    if (error) throw error
-    return data
+    if (error) throw error;
+    return data as unknown as FacultyItem;
   } catch (err) {
-    console.error(`Error fetching faculty ${id}:`, err)
-    return null
+    console.error(`Error fetching faculty ${id}:`, err);
+    return null;
   }
 }

@@ -3,8 +3,11 @@ import Link from 'next/link';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import FacultyForm from '@/components/admin/FacultyForm';
 import { createFaculty } from '@/app/actions/cms';
+import { getFacultiesWithDepartments } from '@/utils/supabase/queries';
 
-export default function CreateFacultyPage() {
+export default async function CreateFacultyPage() {
+  const hierarchy = await getFacultiesWithDepartments();
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
@@ -22,7 +25,7 @@ export default function CreateFacultyPage() {
         </div>
       </div>
 
-      <FacultyForm action={createFaculty} />
+      <FacultyForm action={createFaculty} hierarchy={hierarchy} />
     </div>
   );
 }

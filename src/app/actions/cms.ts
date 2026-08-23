@@ -316,6 +316,7 @@ export async function createFaculty(prevState: any, formData: FormData) {
     const title = formData.get('title') as string;
     const bio = formData.get('bio') as string;
     const image_url = formData.get('image_url') as string;
+    const department_id = formData.get('department_id') as string;
 
     if (!name || !title) {
       return { error: 'Name and title are required.' };
@@ -325,7 +326,8 @@ export async function createFaculty(prevState: any, formData: FormData) {
       name,
       title,
       bio,
-      image_url
+      image_url,
+      department_id: department_id || null
     });
 
     if (error) throw new Error(error.message);
@@ -348,12 +350,14 @@ export async function updateFaculty(id: string, prevState: any, formData: FormDa
     const title = formData.get('title') as string;
     const bio = formData.get('bio') as string;
     const image_url = formData.get('image_url') as string;
+    const department_id = formData.get('department_id') as string;
 
     const updates: any = { updated_at: new Date().toISOString() };
     if (name) updates.name = name;
     if (title) updates.title = title;
     if (bio !== null) updates.bio = bio;
-    if (image_url) updates.image_url = image_url;
+    if (image_url !== null) updates.image_url = image_url;
+    if (department_id !== null) updates.department_id = department_id || null;
 
     const { error } = await supabase.from('faculty_members').update(updates).eq('id', id);
 
@@ -366,6 +370,50 @@ export async function updateFaculty(id: string, prevState: any, formData: FormDa
   } catch (error: any) {
     console.error('Failed to update faculty:', error);
     return { error: error.message || 'An unexpected error occurred.' };
+  }
+}
+
+
+export async function seedAcademicData() {
+  try {
+    const { supabase } = await requireAdmin();
+
+    // 1. Seed Faculties
+    const { data: faculties, error: facError } = await supabase
+      .from('faculties')
+      .insert([
+        { name: 'Faculty of Agriculture', description: 'Agricultural Sciences' },
+        { name: 'Faculty of Computer Science & Engineering', description: 'Computing and Engineering' },
+        { name: 'Faculty of Business Administration', description: 'Business and Management' }
+      ])
+      .select();
+
+    if (facError) throw facError;
+
+    // 2. Find IDs
+    const agriId = faculties.find((f: any) => f.name.includes('Agriculture'))?.id;
+    const cseId = faculties.find((f: any) => f.name.includes('Computer'))?.id;
+    const busId = faculties.find((f: any) => f.name.includes('Business'))?.id;
+
+    // 3. Seed Departments
+    const { error: deptError } = await supabase
+      .from('departments')
+      .insert([
+        { faculty_id: agriId, name: 'Agronomy' },
+        { faculty_id: agriId, name: 'Soil Science' },
+        { faculty_id: agriId, name: 'Horticulture' },
+        { faculty_id: cseId, name: 'Computer Science' },
+        { faculty_id: cseId, name: 'Software Engineering' },
+        { faculty_id: busId, name: 'Finance' },
+        { faculty_id: busId, name: 'Marketing' },
+      ]);
+
+    if (deptError) throw deptError;
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Seeding error:', err);
+    return { error: err.message };
   }
 }
 

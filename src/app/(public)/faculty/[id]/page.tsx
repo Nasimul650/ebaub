@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, User, Mail, GraduationCap } from 'lucide-react';
+import { ArrowLeft, User, Mail, GraduationCap, ChevronRight, Home } from 'lucide-react';
 import { getFacultyById } from '@/utils/supabase/queries';
 
 interface Props {
@@ -16,12 +16,42 @@ export default async function FacultyDetailPage({ params }: Props) {
     notFound();
   }
 
+  const deptName = faculty.departments?.name;
+  const facName = faculty.departments?.faculties?.name;
+
   return (
-    <div className="bg-slate-50 min-h-screen py-16 sm:py-24">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link href="/faculty" className="inline-flex items-center gap-2 text-slate-500 hover:text-campus-800 font-semibold mb-12 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to Faculty Directory
-        </Link>
+    <div className="bg-slate-50 min-h-screen pb-20">
+      
+      {/* Breadcrumb Navigation */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <nav className="flex items-center gap-2 text-xs font-semibold text-slate-500 overflow-x-auto whitespace-nowrap hide-scrollbar">
+            <Link href="/" className="hover:text-campus-800 transition-colors flex items-center gap-1">
+              <Home className="w-3 h-3" /> Home
+            </Link>
+            <ChevronRight className="w-3 h-3 text-slate-400" />
+            <Link href="/faculty" className="hover:text-campus-800 transition-colors">
+              Faculty Directory
+            </Link>
+            {facName && (
+              <>
+                <ChevronRight className="w-3 h-3 text-slate-400" />
+                <span className="text-slate-600">{facName}</span>
+              </>
+            )}
+            {deptName && (
+              <>
+                <ChevronRight className="w-3 h-3 text-slate-400" />
+                <span className="text-slate-600">{deptName}</span>
+              </>
+            )}
+            <ChevronRight className="w-3 h-3 text-slate-400" />
+            <span className="text-campus-800">{faculty.name}</span>
+          </nav>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         
         <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden relative">
           <div className="h-48 bg-gradient-to-r from-campus-900 to-campus-800"></div>

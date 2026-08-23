@@ -4,11 +4,12 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, UserPen } from 'lucide-react';
 import FacultyForm from '@/components/admin/FacultyForm';
 import { updateFaculty } from '@/app/actions/cms';
-import { getFacultyById } from '@/utils/supabase/queries';
+import { getFacultyById, getFacultiesWithDepartments } from '@/utils/supabase/queries';
 
 export default async function EditFacultyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const facultyData = await getFacultyById(id);
+  const hierarchy = await getFacultiesWithDepartments();
 
   if (!facultyData) {
     notFound();
@@ -33,7 +34,7 @@ export default async function EditFacultyPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      <FacultyForm action={updateAction} initialData={facultyData} />
+      <FacultyForm action={updateAction} initialData={facultyData} hierarchy={hierarchy} />
     </div>
   );
 }
