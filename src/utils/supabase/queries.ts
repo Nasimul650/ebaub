@@ -284,3 +284,99 @@ export async function getFacultyById(id: string): Promise<FacultyItem | null> {
     return null;
   }
 }
+
+// ==========================================
+// ACADEMIC PROGRAMS
+// ==========================================
+
+export interface ProgramItem {
+  id: string;
+  department_id: string;
+  name: string;
+  degree_level: string;
+  duration_years: number;
+  description?: string;
+  created_at: string;
+  departments?: AcademicDepartment;
+}
+
+export async function getAllPrograms(limit = 100): Promise<ProgramItem[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('programs')
+      .select('*, departments(*, faculties(*))')
+      .order('name', { ascending: true })
+      .limit(limit);
+
+    if (error) throw error;
+    return data as unknown as ProgramItem[];
+  } catch (err) {
+    console.error('Error fetching all programs:', err);
+    return [];
+  }
+}
+
+export async function getProgramById(id: string): Promise<ProgramItem | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('programs')
+      .select('*, departments(*, faculties(*))')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as unknown as ProgramItem;
+  } catch (err) {
+    console.error(`Error fetching program ${id}:`, err);
+    return null;
+  }
+}
+
+// ==========================================
+// ACADEMIC CALENDAR
+// ==========================================
+
+export interface CalendarEventItem {
+  id: string;
+  title: string;
+  start_date: string;
+  end_date?: string;
+  category?: string;
+  description?: string;
+  created_at: string;
+}
+
+export async function getAcademicCalendar(): Promise<CalendarEventItem[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('academic_calendar')
+      .select('*')
+      .order('start_date', { ascending: true });
+
+    if (error) throw error;
+    return data as CalendarEventItem[];
+  } catch (err) {
+    console.error('Error fetching calendar:', err);
+    return [];
+  }
+}
+
+export async function getCalendarEventById(id: string): Promise<CalendarEventItem | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('academic_calendar')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as CalendarEventItem;
+  } catch (err) {
+    console.error(`Error fetching calendar event ${id}:`, err);
+    return null;
+  }
+}

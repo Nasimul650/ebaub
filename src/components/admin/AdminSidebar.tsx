@@ -47,11 +47,12 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
   const navItems = [
     { label: 'CMS Dashboard', href: '/admin', icon: LayoutDashboard },
     { label: 'Academic Structure', href: '/admin/structure', icon: Building2 },
+    { label: 'Programs CMS', href: '/admin/programs', icon: BookOpen },
+    { label: 'Academic Calendar', href: '/admin/calendar', icon: Calendar },
+    { label: 'Faculty CMS', href: '/admin/faculty', icon: Users },
     { label: 'Notices CMS', href: '/admin/notices', icon: Bell },
     { label: 'News CMS', href: '/admin/news', icon: Newspaper },
     { label: 'Events CMS', href: '/admin/events', icon: Calendar },
-    { label: 'Faculty CMS', href: '/admin/faculty', icon: Users },
-    { label: 'Programs CMS', href: '/admin/programs', icon: BookOpen },
     { label: 'Media Library', href: '/admin/media', icon: ImageIcon },
   ];
 

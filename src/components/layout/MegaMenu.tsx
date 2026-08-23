@@ -5,9 +5,11 @@ import { BookOpen, GraduationCap, Building2, Users, FileText, CheckCircle2, Arro
 interface MegaMenuProps {
   activeMenu: string | null;
   onItemClick?: () => void;
+  faculties?: any[];
+  programs?: any[];
 }
 
-export default function MegaMenu({ activeMenu, onItemClick }: MegaMenuProps) {
+export default function MegaMenu({ activeMenu, onItemClick, faculties = [], programs = [] }: MegaMenuProps) {
   if (!activeMenu) return null;
 
   return (
@@ -15,59 +17,47 @@ export default function MegaMenu({ activeMenu, onItemClick }: MegaMenuProps) {
       {activeMenu === 'academics' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs animate-in fade-in slide-in-from-top-2 duration-300">
           
-          {/* Col 1 */}
+          {/* Col 1: Programs */}
           <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors">
             <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-campus-900 tracking-wider">
               <GraduationCap className="w-4 h-4 text-campus-700" />
-              <span>Degree Programs</span>
+              <span>Programs</span>
             </div>
             <ul className="space-y-2.5 text-slate-700 font-medium">
-              <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
-                  <span>B.Sc. in CSE (160 Credits)</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
-                </Link>
-              </li>
-              <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
-                  <span>B.Sc. in Agriculture (Honours)</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
-                </Link>
-              </li>
-              <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
-                  <span>Bachelor of Business Administration</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
-                </Link>
-              </li>
+              {programs.length > 0 ? (
+                programs.map((prog: any) => (
+                  <li key={prog.id}>
+                    <Link href={`/academics/${prog.id}`} onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
+                      <span className="truncate pr-4">{prog.name}</span>
+                      <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all shrink-0" />
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li className="text-slate-400 italic">No programs available.</li>
+              )}
             </ul>
           </div>
 
-          {/* Col 2 */}
+          {/* Col 2: Faculties */}
           <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors">
             <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-blue-800 tracking-wider">
               <Building2 className="w-4 h-4 text-blue-600" />
               <span>Faculties</span>
             </div>
             <ul className="space-y-2.5 text-slate-700 font-medium">
-              <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
-                  <span>Faculty of CSE</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
-                </Link>
-              </li>
-              <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
-                  <span>Faculty of Agriculture</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
-                </Link>
-              </li>
-              <li>
-                <Link href="/academics" onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
-                  <span>Faculty of Business Administration</span>
-                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
-                </Link>
-              </li>
+              {faculties.length > 0 ? (
+                faculties.map((fac: any) => (
+                  <li key={fac.id}>
+                    <Link href="/academics" onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
+                      <span className="truncate pr-4">{fac.name}</span>
+                      <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all shrink-0" />
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <li className="text-slate-400 italic">No faculties available.</li>
+              )}
             </ul>
           </div>
 
@@ -87,6 +77,12 @@ export default function MegaMenu({ activeMenu, onItemClick }: MegaMenuProps) {
               <li>
                 <Link href="/academics" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
                   <span>Undergraduate Curriculums & Credits</span>
+                  <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
+                </Link>
+              </li>
+              <li>
+                <Link href="/academic-calendar" onClick={onItemClick} className="hover:text-campus-800 transition-colors flex items-center justify-between group">
+                  <span>Academic Calendar & Deadlines</span>
                   <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-campus-700 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               </li>

@@ -17,7 +17,7 @@ import MegaMenu from './MegaMenu';
 import PortalDropdown from './PortalDropdown';
 import MobileNavDrawer from './MobileNavDrawer';
 
-export default function Navbar() {
+export default function Navbar({ faculties = [], programs = [] }: { faculties?: any[], programs?: any[] } = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [aiWidgetOpen, setAiWidgetOpen] = useState(false);
@@ -239,6 +239,8 @@ export default function Navbar() {
               <MegaMenu 
                 activeMenu={activeMegaMenu} 
                 onItemClick={closeAllDropdowns}
+                faculties={faculties}
+                programs={programs}
               />
             </div>
           </div>
