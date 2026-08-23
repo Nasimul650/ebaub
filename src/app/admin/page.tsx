@@ -1,15 +1,16 @@
 import React from 'react';
-import { getNotices, getNews, getEvents, getPrograms } from '@/lib/mock/mockServices';
+import { getAllNotices, getAllNews, getAllEvents, getAllPrograms } from '@/utils/supabase/queries';
 import AdminWelcomeBanner from '@/components/admin/AdminWelcomeBanner';
 import AdminMetricsGrid from '@/components/admin/AdminMetricsGrid';
 import AdminQuickActions from '@/components/admin/AdminQuickActions';
+import AdminRecentActivity from '@/components/admin/AdminRecentActivity';
 
 export default async function CMSDashboardPage() {
   const [notices, news, events, programs] = await Promise.all([
-    getNotices(),
-    getNews(),
-    getEvents(),
-    getPrograms()
+    getAllNotices(),
+    getAllNews(),
+    getAllEvents(50),
+    getAllPrograms(50)
   ]);
 
   return (
@@ -25,8 +26,13 @@ export default async function CMSDashboardPage() {
         programCount={programs.length} 
       />
 
-      {/* Quick CMS Shortcuts */}
-      <AdminQuickActions />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Quick CMS Shortcuts */}
+        <AdminQuickActions />
+
+        {/* Dynamic Recent Activity */}
+        <AdminRecentActivity notices={notices} news={news} events={events} />
+      </div>
     </div>
   );
 }

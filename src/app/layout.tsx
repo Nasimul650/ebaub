@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 import CommandMenu from '@/components/CommandMenu';
-import PublicAI from '@/components/PublicAI';
+import PublicAIFloatingWidget from '@/components/public/PublicAIFloatingWidget';
 
 export default function RootLayout({
   children,
@@ -34,7 +34,7 @@ export default function RootLayout({
       <body className="font-sans bg-campus-50 text-slate-900 antialiased selection:bg-campus-900 selection:text-white">
         <CommandMenu />
         {children}
-        <PublicAI />
+        <PublicAIFloatingWidget />
       </body>
     </html>
   );
