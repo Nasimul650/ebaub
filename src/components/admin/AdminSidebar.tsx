@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   ShieldCheck, 
   LayoutDashboard, 
+  Building2,
   Bell, 
   Newspaper, 
   Calendar, 
@@ -45,6 +46,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
 
   const navItems = [
     { label: 'CMS Dashboard', href: '/admin', icon: LayoutDashboard },
+    { label: 'Academic Structure', href: '/admin/structure', icon: Building2 },
     { label: 'Notices CMS', href: '/admin/notices', icon: Bell },
     { label: 'News CMS', href: '/admin/news', icon: Newspaper },
     { label: 'Events CMS', href: '/admin/events', icon: Calendar },

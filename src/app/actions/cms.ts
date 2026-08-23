@@ -417,3 +417,85 @@ export async function seedAcademicData() {
   }
 }
 
+
+// ==========================================
+// ACADEMIC STRUCTURE ACTIONS
+// ==========================================
+
+export async function createAcademicFaculty(prevState: any, formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+
+    if (!name) return { error: 'Faculty name is required' };
+
+    const { error } = await supabase.from('faculties').insert({ name, description });
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/admin/structure');
+    revalidatePath('/admin/faculty');
+    revalidatePath('/admin/faculty/create');
+    revalidatePath('/faculty');
+    
+    return { success: true, message: 'Faculty added successfully!' };
+  } catch (error: any) {
+    return { error: error.message || 'Failed to create faculty' };
+  }
+}
+
+export async function createAcademicDepartment(prevState: any, formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const faculty_id = formData.get('faculty_id') as string;
+
+    if (!name || !faculty_id) return { error: 'Name and Faculty are required' };
+
+    const { error } = await supabase.from('departments').insert({ name, description, faculty_id });
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/admin/structure');
+    revalidatePath('/admin/faculty');
+    revalidatePath('/admin/faculty/create');
+    revalidatePath('/faculty');
+    
+    return { success: true, message: 'Department added successfully!' };
+  } catch (error: any) {
+    return { error: error.message || 'Failed to create department' };
+  }
+}
+
+export async function deleteAcademicFaculty(id: string) {
+  try {
+    const { supabase } = await requireAdmin();
+    const { error } = await supabase.from('faculties').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/admin/structure');
+    revalidatePath('/admin/faculty');
+    revalidatePath('/faculty');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Delete faculty error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function deleteAcademicDepartment(id: string) {
+  try {
+    const { supabase } = await requireAdmin();
+    const { error } = await supabase.from('departments').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/admin/structure');
+    revalidatePath('/admin/faculty');
+    revalidatePath('/faculty');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Delete department error:', error);
+    return { error: error.message };
+  }
+}
+
