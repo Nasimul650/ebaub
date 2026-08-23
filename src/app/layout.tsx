@@ -1,9 +1,17 @@
 import type { Metadata } from 'next';
+import { Roboto_Condensed } from 'next/font/google';
 import './globals.css';
 
+const robotoCondensed = Roboto_Condensed({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  display: 'swap',
+  variable: '--font-roboto-condensed',
+});
+
 export const metadata: Metadata = {
-  title: 'EBAUB Digital Campus | Eastern Bank Agricultural University',
-  description: 'Official digital campus web portal and modern headless CMS for Eastern Bank Agricultural University (EBAUB) CSE Department 2-Year Anniversary presentation.',
+  title: 'EBAUB Digital Campus | EXIM Bank Agricultural University Bangladesh',
+  description: 'Official digital campus web portal and modern headless CMS for EXIM Bank Agricultural University Bangladesh (EBAUB) CSE Department 2-Year Anniversary presentation.',
 };
 
 export default function RootLayout({
@@ -12,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-slate-100 text-slate-900 antialiased selection:bg-emerald-600 selection:text-white">
+    <html lang="en" className={robotoCondensed.variable}>
+      <body className="font-sans bg-campus-50 text-slate-900 antialiased selection:bg-campus-900 selection:text-white">
         {children}
       </body>
     </html>

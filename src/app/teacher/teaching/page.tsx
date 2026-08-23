@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, Users, BookOpen } from 'lucide-react';
+import TeachingCourseGrid from '@/components/teacher/TeachingCourseGrid';
 
 export default function TeachingOverviewPage() {
   const courses = [
@@ -10,26 +10,11 @@ export default function TeachingOverviewPage() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-2xl font-extrabold text-white">Teaching Overview</h1>
-        <p className="text-xs text-slate-400 mt-1">Assigned faculty courses & class schedules</p>
+        <h1 className="text-2xl font-extrabold text-slate-900 heading-display">Teaching Overview</h1>
+        <p className="text-xs text-slate-500 mt-1">Assigned faculty courses & class schedules</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {courses.map((course, i) => (
-          <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold text-xs">
-                {course.code}
-              </span>
-              <span className="text-xs text-slate-400 font-medium">{course.students} Enrolled Students</span>
-            </div>
-            <h3 className="text-lg font-bold text-white">{course.title}</h3>
-            <div className="text-xs text-slate-300 pt-2 border-t border-slate-800">
-              <span className="font-semibold text-slate-400">Class Schedule:</span> {course.schedule}
-            </div>
-          </div>
-        ))}
-      </div>
+      <TeachingCourseGrid courses={courses} />
     </div>
   );
 }

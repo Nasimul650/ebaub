@@ -14,7 +14,7 @@ import {
 } from '@/types';
 
 export const initialSiteSettings: SiteSettings = {
-  universityName: 'Eastern Bank Agricultural University',
+  universityName: 'EXIM Bank Agricultural University Bangladesh',
   shortName: 'EBAUB',
   tagline: 'Empowering Future Leaders through Innovation, Science, and Agriculture',
   address: 'EBAUB Campus, Rajshahi, Bangladesh',
@@ -193,7 +193,7 @@ export const initialNotices: NoticeItem[] = [
     title: 'CSE Department 2-Year Anniversary Ceremony & Tech Presentation',
     slug: 'cse-2yr-anniversary-ceremony',
     summary: 'All students, faculty members, and university administration are cordially invited to the CSE Department 2-Year Anniversary Ceremony.',
-    content: `Eastern Bank Agricultural University (EBAUB) Department of Computer Science & Engineering is thrilled to celebrate its 2-Year Anniversary!
+    content: `EXIM Bank Agricultural University Bangladesh (EBAUB) Department of Computer Science & Engineering is thrilled to celebrate its 2-Year Anniversary!
 
 Event Highlights:
 - Keynote address by Honorable Vice Chancellor & CSE Department Head
@@ -244,7 +244,7 @@ export const initialNews: NewsItem[] = [
     title: 'EBAUB CSE Unveils Next-Generation Digital Campus Prototype',
     slug: 'ebaub-cse-unveils-digital-campus',
     summary: 'The Department of Computer Science & Engineering introduces a unified platform bridging public university information with interactive digital workspaces for students and teachers.',
-    content: `Eastern Bank Agricultural University has reached a landmark technological achievement. Designed and engineered by the CSE Department, the new EBAUB Digital Campus replaces the outdated website experience with a lightning-fast, custom headless CMS, student study hub, and AI-powered teacher tools.
+    content: `EXIM Bank Agricultural University Bangladesh has reached a landmark technological achievement. Designed and engineered by the CSE Department, the new EBAUB Digital Campus replaces the outdated website experience with a lightning-fast, custom headless CMS, student study hub, and AI-powered teacher tools.
 
 The platform provides seamless mobile responsiveness, modern visual design, and intelligent assistance for campus visitors and academic members alike.`,
     coverImage: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80',

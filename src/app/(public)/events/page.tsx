@@ -1,60 +1,97 @@
 import React from 'react';
 import Link from 'next/link';
 import { Calendar, MapPin, Clock, ArrowRight } from 'lucide-react';
-import { getEvents } from '@/lib/mock/mockServices';
+import { getAllEvents } from '@/utils/supabase/queries';
+
+export const metadata = {
+  title: 'Events | EBAUB',
+  description: 'Upcoming events and academic calendar at EXIM Bank Agricultural University Bangladesh',
+};
 
 export default async function EventsPage() {
-  const events = await getEvents();
+  const events = await getAllEvents(20);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-      
-      {/* Header */}
-      <div className="space-y-4 max-w-3xl">
-        <span className="px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold">
-          Campus Events Calendar
-        </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Upcoming Ceremonies, Tech Workshops & Conferences
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+      <div className="text-center max-w-3xl mx-auto mb-16">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 heading-display mb-6">
+          Campus Events
         </h1>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          Stay up to date with major university events, workshops, and ceremonial gatherings.
+        <p className="text-lg text-slate-600">
+          Stay connected with upcoming academic events, workshops, seminars, and student activities across the campus.
         </p>
       </div>
 
-      {/* Events List */}
-      <div className="space-y-6">
-        {events.map(event => (
-          <div
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {events.map((event) => (
+          <Link
             key={event.id}
-            className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center"
+            href={`/events/${event.id}`}
+            className="flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
           >
-            {event.bannerImage && (
-              <div className="w-full md:w-1/3 h-48 rounded-xl overflow-hidden shrink-0">
-                <img src={event.bannerImage} alt={event.title} className="w-full h-full object-cover" />
+            <div className="h-48 bg-slate-100 relative overflow-hidden">
+              {event.image_url ? (
+                <img 
+                  src={event.image_url} 
+                  alt={event.title} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-campus-50">
+                  <Calendar className="w-12 h-12 text-campus-200" />
+                </div>
+              )}
+              <div className="absolute top-4 right-4 px-3 py-1 bg-white/95 backdrop-blur-sm rounded-full text-xs font-bold shadow-sm flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${
+                  event.status === 'Ongoing' ? 'bg-green-500' :
+                  event.status === 'Completed' ? 'bg-slate-400' :
+                  event.status === 'Cancelled' ? 'bg-red-500' :
+                  'bg-amber-500'
+                }`}></span>
+                {event.status || 'Upcoming'}
               </div>
-            )}
-
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
-                  <Calendar className="w-4 h-4" /> {new Date(event.startTime).toLocaleDateString()}
-                </span>
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <Clock className="w-4 h-4 text-emerald-400" /> {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <MapPin className="w-4 h-4 text-sky-400" /> {event.location}
-                </span>
-              </div>
-
-              <h3 className="text-xl font-bold text-white">{event.title}</h3>
-              <p className="text-xs text-slate-300 leading-relaxed">{event.description}</p>
             </div>
-          </div>
-        ))}
-      </div>
 
+            <div className="p-6 flex-1 flex flex-col">
+              <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-campus-800 transition-colors line-clamp-2">
+                {event.title}
+              </h3>
+
+              <div className="space-y-2 mt-auto mb-6">
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <Calendar className="w-4 h-4 text-campus-600" />
+                  <span>{new Date(event.event_date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                </div>
+                {event.time && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <Clock className="w-4 h-4 text-campus-600" />
+                    <span>{event.time}</span>
+                  </div>
+                )}
+                {event.location && (
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <MapPin className="w-4 h-4 text-campus-600" />
+                    <span className="truncate">{event.location}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-bold text-campus-800">
+                <span>View Event Details</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </Link>
+        ))}
+
+        {events.length === 0 && (
+          <div className="col-span-full py-20 text-center">
+            <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-slate-700">No Events Scheduled</h3>
+            <p className="text-slate-500 mt-2">Check back later for upcoming campus events.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

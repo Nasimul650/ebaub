@@ -1,46 +1,203 @@
 @import "tailwindcss";
 
+/* ============================================================
+   EBAUB Campus Green Color Palette
+   #E8F5E9 → #A5D6A7 → #66BB6A → #1B5E20
+   ============================================================ */
+@theme {
+  --color-campus-50: #E8F5E9;
+  --color-campus-100: #C8E6C9;
+  --color-campus-200: #A5D6A7;
+  --color-campus-300: #81C784;
+  --color-campus-400: #66BB6A;
+  --color-campus-500: #4CAF50;
+  --color-campus-600: #43A047;
+  --color-campus-700: #388E3C;
+  --color-campus-800: #2E7D32;
+  --color-campus-900: #1B5E20;
+  --color-campus-950: #0D3B13;
+  --font-sans: var(--font-roboto-condensed), 'Roboto Condensed', 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+}
+
 @layer base {
   :root {
-    --color-primary: #064e3b;
-    --color-primary-light: #059669;
-    --color-primary-dark: #022c22;
+    --color-primary: #1B5E20;
+    --color-primary-light: #66BB6A;
+    --color-primary-dark: #0D3B13;
     --color-gold: #d97706;
     --color-gold-hover: #b45309;
     --color-gold-light: #f59e0b;
     
-    --color-canvas-bg: #f8fafc;
+    --color-canvas-bg: #E8F5E9;
     --color-sheet-bg: #ffffff;
-    --color-sheet-border: rgba(226, 232, 240, 0.8);
+    --color-sheet-border: rgba(165, 214, 167, 0.4);
     
     --color-text-main: #0f172a;
-    --color-text-muted: #64748b;
+    --color-text-muted: #475569;
     --color-text-subtle: #94a3b8;
+
+    /* Shadcn UI compatible tokens */
+    --primary: 126 52% 23%; /* campus-900 #1B5E20 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 100% 50%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --font-roboto-condensed-stack: var(--font-roboto-condensed), 'Roboto Condensed', 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+
+  html {
+    /* Bump the base size to ~17px (from default 16px) because Condensed fonts naturally look smaller */
+    font-size: 106.25%; 
   }
 
   body {
-    background-color: #f1f5f9;
-    color: var(--color-text-main);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #E8F5E9;
+    color: #334155;
+    font-family: var(--font-roboto-condensed-stack);
+    /* Condensed fonts need neutral or slightly positive tracking to breathe */
+    letter-spacing: 0.01em; 
     overflow-x: hidden;
     scroll-behavior: smooth;
+    line-height: 1.65; /* slightly taller line height for condensed readability */
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: 0em; /* Removed negative tracking */
+    font-weight: 700;
+  }
+
+  p {
+    line-height: 1.625;
+  }
+
+  /* Global Clickable Elements Cursor Pointer */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="checkbox"],
+  input[type="radio"],
+  a,
+  select,
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }
 
-/* Ambient glow blobs in background (Inspired by 11.mp4) */
-.ambient-glow-canvas {
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
-    radial-gradient(circle at 90% 30%, rgba(16, 185, 129, 0.14) 0%, transparent 45%),
-    radial-gradient(circle at 50% 80%, rgba(217, 119, 6, 0.1) 0%, transparent 50%),
-    #f8fafc;
+/* ============================================================
+   EXPLICIT KEYFRAME ANIMATIONS & UTILITY CLASSES
+   ============================================================ */
+
+/* 1. Backdrop Blur & Opacity Fade In */
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+.animate-backdrop {
+  animation: backdropFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Floating Sheet Canvas */
-.floating-sheet {
-  background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.03);
+/* 2. Modal Zoom In & Spring Slide */
+@keyframes modalZoomIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-24px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-modal-zoom {
+  animation: modalZoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 3. Dropdown Menu Slide & Scale */
+@keyframes dropdownSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-dropdown {
+  transform-origin: top right;
+  animation: dropdownSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 4. Mega Menu Full-Width Slide */
+@keyframes megaMenuSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-megamenu {
+  animation: megaMenuSlide 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 5. Floating AI Widget Spring Bounce */
+@keyframes widgetSpringUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(50px) translateX(20px);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-4px) translateX(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) translateX(0);
+  }
+}
+.animate-widget-spring {
+  transform-origin: bottom right;
+  animation: widgetSpringUp 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* 6. Chat Message Slide In */
+@keyframes messageSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-message {
+  animation: messageSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Heading Display with tight tracking for premium editorial feel */
+.heading-display {
+  font-family: var(--font-roboto-condensed-stack);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
 }
 
 /* Clean Card Surface */
@@ -57,25 +214,13 @@
   border-color: #cbd5e1;
 }
 
-/* Subtle Gradient Glow inside cards */
-.hero-card-glow {
-  background: linear-gradient(135deg, rgba(240, 253, 250, 0.8) 0%, rgba(239, 246, 255, 0.6) 100%);
-}
-
-.heading-display {
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.12;
-  color: #0f172a;
-}
-
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {

@@ -1,0 +1,1 @@
+ALTER TABLE public.news ADD COLUMN summary TEXT, ADD COLUMN image_url TEXT, ADD COLUMN category TEXT; ALTER TABLE public.notices ADD COLUMN date DATE, ADD COLUMN priority TEXT, ADD COLUMN description TEXT, ADD COLUMN attachment_url TEXT;
