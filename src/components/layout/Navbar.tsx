@@ -11,20 +11,23 @@ import {
   X, 
   ChevronDown
 } from 'lucide-react';
-import PublicAIFloatingWidget from '../public/PublicAIFloatingWidget';
 import MegaMenu from './MegaMenu';
 import PortalDropdown from './PortalDropdown';
 import MobileNavDrawer from './MobileNavDrawer';
 
 export default function Navbar({ faculties = [], programs = [] }: { faculties?: any[], programs?: any[] } = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [aiWidgetOpen, setAiWidgetOpen] = useState(false);
   const [portalDropdownOpen, setPortalDropdownOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
 
   const closeAllDropdowns = () => {
     setActiveMegaMenu(null);
     setPortalDropdownOpen(false);
+  };
+
+  const triggerCommandMenu = () => {
+    closeAllDropdowns();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
   };
 
   const handleMegaMenuHover = (menuName: string) => {
@@ -49,11 +52,6 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
   const openSearch = () => {
     closeAllDropdowns();
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
-  };
-
-  const openAiWidget = () => {
-    closeAllDropdowns();
-    setAiWidgetOpen(true);
   };
 
   return (
@@ -184,7 +182,10 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
 
             {/* Public AI Launcher */}
             <button
-              onClick={openAiWidget}
+              onClick={() => {
+                closeAllDropdowns();
+                window.dispatchEvent(new Event('toggle-ai-chat'));
+              }}
               onMouseEnter={() => setActiveMegaMenu(null)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-campus-50 hover:bg-campus-100 text-campus-900 border border-campus-200 text-xs font-bold transition-all hover:scale-105 active:scale-95"
             >
@@ -249,9 +250,6 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
           onClick={closeAllDropdowns}
         />
       )}
-
-      {/* Public Floating AI Assistant */}
-      <PublicAIFloatingWidget isOpen={aiWidgetOpen} onClose={() => setAiWidgetOpen(false)} />
     </>
   );
 }
