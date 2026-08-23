@@ -658,3 +658,32 @@ export async function upsertAdmissionInfo(prevState: any, formData: FormData) {
   }
 }
 
+// ==========================================
+// PAGE BUILDER ACTIONS
+// ==========================================
+
+import type { ContentBlock } from '@/types';
+
+export async function updatePageBlocks(slug: string, blocks: ContentBlock[]) {
+  try {
+    const { supabase } = await requireAdmin();
+
+    const { error } = await supabase
+      .from('pages')
+      .update({ content_blocks: blocks })
+      .eq('slug', slug);
+
+    if (error) {
+      return { error: 'Failed to save page blocks: ' + error.message };
+    }
+
+    revalidatePath(`/${slug}`);
+    revalidatePath(`/admin/pages/${slug}`);
+
+    return { success: true, message: 'Page blocks saved successfully.' };
+  } catch (error: any) {
+    console.error('Update page blocks error:', error);
+    return { error: error.message || 'Failed to save page blocks' };
+  }
+}
+

@@ -18,7 +18,8 @@ import {
   PanelLeftOpen,
   Users,
   Mail,
-  GraduationCap
+  GraduationCap,
+  FileText
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 
@@ -58,6 +59,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
     { label: 'News CMS', href: '/admin/news', icon: Newspaper },
     { label: 'Events CMS', href: '/admin/events', icon: Calendar },
     { label: 'Media Library', href: '/admin/media', icon: ImageIcon },
+    { label: 'Pages', href: '/admin/pages/about', icon: FileText },
   ];
 
   // Resolve Profile Data

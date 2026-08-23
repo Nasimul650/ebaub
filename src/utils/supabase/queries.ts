@@ -442,3 +442,35 @@ export async function getAllMessages(): Promise<ContactMessage[]> {
   }
 }
 
+// ==========================================
+// PAGE BUILDER QUERIES
+// ==========================================
+
+import type { Page } from '@/types';
+
+/**
+ * Fetches a page by its unique slug for the block-based page builder.
+ * Returns null if the page doesn't exist or on error.
+ */
+export async function getPageBySlug(slug: string): Promise<Page | null> {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('pages')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      console.error('Error fetching page:', error.message);
+      return null;
+    }
+
+    return data as Page;
+  } catch (err) {
+    console.error('Unexpected error fetching page:', err);
+    return null;
+  }
+}
+
