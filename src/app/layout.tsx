@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
-import { Roboto_Condensed } from 'next/font/google';
-import localFont from 'next/font/local';
+import { Roboto_Condensed, Noto_Sans_Bengali } from 'next/font/google';
 import './globals.css';
 
 const robotoCondensed = Roboto_Condensed({
@@ -10,19 +9,9 @@ const robotoCondensed = Roboto_Condensed({
   variable: '--font-roboto-condensed',
 });
 
-const liShadhinata = localFont({
-  src: [
-    {
-      path: './fonts/li-shadhinata/li-shadhinata-regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: './fonts/li-shadhinata/li-shadhinata-italic.ttf',
-      weight: '400',
-      style: 'italic',
-    }
-  ],
+const notoSansBengali = Noto_Sans_Bengali({
+  subsets: ['bengali'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
   variable: '--font-bangla',
 });
@@ -41,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${robotoCondensed.variable} ${liShadhinata.variable}`}>
+    <html lang="en" className={`${robotoCondensed.variable} ${notoSansBengali.variable}`}>
       <body className="font-sans bg-campus-50 text-slate-900 antialiased selection:bg-campus-900 selection:text-white">
         <CommandMenu />
         {children}
