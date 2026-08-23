@@ -13,12 +13,13 @@ export async function GET(request: Request) {
   const searchTerm = `%${q}%`;
 
   try {
-    // Run all searches concurrently
+    const term = `%${q}%`;
+    // Run all searches concurrently using broader OR conditions
     const [newsRes, noticesRes, facultyRes, programsRes] = await Promise.all([
-      supabase.from('news').select('id, title').ilike('title', searchTerm).limit(4),
-      supabase.from('notices').select('id, title').ilike('title', searchTerm).limit(4),
-      supabase.from('faculty').select('id, name').ilike('name', searchTerm).limit(4),
-      supabase.from('programs').select('id, name').ilike('name', searchTerm).limit(4),
+      supabase.from('news').select('id, title').or(`title.ilike.${term},summary.ilike.${term}`).limit(4),
+      supabase.from('notices').select('id, title').or(`title.ilike.${term},category.ilike.${term}`).limit(4),
+      supabase.from('faculty_members').select('id, name').or(`name.ilike.${term},title.ilike.${term},bio.ilike.${term}`).limit(4),
+      supabase.from('programs').select('id, name').or(`name.ilike.${term},degree_level.ilike.${term}`).limit(4),
     ]);
 
     const results: Array<{ id: string; title: string; type: string; url: string }> = [];
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
 
     if (facultyRes.data) {
       facultyRes.data.forEach(item => {
-        results.push({ id: `faculty-${item.id}`, title: item.name, type: 'Faculty', url: `/faculty` });
+        results.push({ id: `faculty-${item.id}`, title: item.name, type: 'Faculty', url: `/faculty/${item.id}` });
       });
     }
 
