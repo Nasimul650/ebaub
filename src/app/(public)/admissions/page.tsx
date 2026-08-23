@@ -1,21 +1,21 @@
 import React from 'react';
-import { getPrograms } from '@/lib/mock/mockServices';
-import PageHeader from '@/components/shared/PageHeader';
-import AdmissionStepsGrid from '@/components/admissions/AdmissionStepsGrid';
-import EligibilityRequirements from '@/components/admissions/EligibilityRequirements';
+import { getAdmissionsData } from '@/utils/supabase/queries';
+import AdmissionsContent from '@/components/admissions/AdmissionsContent';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admissions | EXIM Bank Agricultural University Bangladesh',
+  description: 'Apply now for undergraduate and graduate programs across various faculties at EBAUB.',
+};
+
+export const revalidate = 3600; // Cache for 1 hour
 
 export default async function AdmissionsPage() {
-  const programs = await getPrograms();
+  const faculties = await getAdmissionsData();
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-16">
-      <PageHeader
-        badge="EBAUB Admissions Office"
-        headline="Begin Your Academic Journey at EBAUB"
-        description="Admissions are now open for the Spring 2027 academic session across all faculties."
-      />
-      <AdmissionStepsGrid />
-      <EligibilityRequirements programs={programs} />
-    </div>
+    <main className="w-full bg-white">
+      <AdmissionsContent faculties={faculties} />
+    </main>
   );
 }

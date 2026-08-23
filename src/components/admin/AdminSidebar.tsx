@@ -17,7 +17,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Users,
-  Mail
+  Mail,
+  GraduationCap
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 
@@ -49,6 +50,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
     { label: 'CMS Dashboard', href: '/admin', icon: LayoutDashboard },
     { label: 'Academic Structure', href: '/admin/structure', icon: Building2 },
     { label: 'Programs CMS', href: '/admin/programs', icon: BookOpen },
+    { label: 'Admissions CMS', href: '/admin/admissions', icon: GraduationCap },
     { label: 'Academic Calendar', href: '/admin/calendar', icon: Calendar },
     { label: 'Faculty CMS', href: '/admin/faculty', icon: Users },
     { label: 'Contact Inbox', href: '/admin/messages', icon: Mail },

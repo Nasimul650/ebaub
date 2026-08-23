@@ -628,3 +628,33 @@ export async function updateCalendarEvent(id: string, prevState: any, formData: 
   }
 }
 
+
+export async function upsertAdmissionInfo(prevState: any, formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const faculty_id = formData.get('faculty_id') as string;
+    const requirements = formData.get('requirements') as string;
+    const process_steps = formData.get('process_steps') as string;
+    const important_dates = formData.get('important_dates') as string;
+
+    if (!faculty_id) throw new Error('Faculty ID is required');
+
+    const { error } = await supabase
+      .from('admissions_info')
+      .upsert(
+        { faculty_id, requirements, process_steps, important_dates },
+        { onConflict: 'faculty_id' }
+      );
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/admissions');
+    revalidatePath('/admin/admissions');
+    
+    return { success: true, message: 'Admissions information saved successfully.' };
+  } catch (error: any) {
+    console.error('Upsert admission info error:', error);
+    return { error: error.message || 'Failed to save admissions info' };
+  }
+}
+

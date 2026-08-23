@@ -220,8 +220,19 @@ export interface AcademicDepartment {
   faculties?: AcademicFaculty;
 }
 
+export interface AdmissionsInfo {
+  id: string;
+  faculty_id: string;
+  requirements: string | null;
+  process_steps: string | null;
+  important_dates: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface FacultyHierarchy extends AcademicFaculty {
   departments: AcademicDepartment[];
+  admissions_info?: AdmissionsInfo;
 }
 
 export interface FacultyItem {
@@ -236,19 +247,39 @@ export interface FacultyItem {
   departments?: AcademicDepartment;
 }
 
-export async function getFacultiesWithDepartments(): Promise<FacultyHierarchy[]> {
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('faculties')
-      .select('*, departments(*)');
+export async function getFacultiesWithDepartments() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('faculties')
+    .select('*, departments(*)')
+    .order('name', { ascending: true });
 
-    if (error) throw error;
-    return data as unknown as FacultyHierarchy[];
-  } catch (err) {
-    console.error('Error fetching faculties with departments:', err);
+  if (error) {
+    console.error('Error fetching faculties with departments:', error);
     return [];
   }
+
+  return data as FacultyHierarchy[];
+}
+
+export async function getAdmissionsData() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('faculties')
+    .select('*, departments(*), admissions_info(*)')
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching admissions data:', error);
+    return [];
+  }
+
+  // Supabase returns a 1-to-1 relationship as an array sometimes or object.
+  // Assuming admissions_info is a 1-to-1 relationship, we map it safely.
+  return (data as any[]).map(faculty => ({
+    ...faculty,
+    admissions_info: Array.isArray(faculty.admissions_info) ? faculty.admissions_info[0] : faculty.admissions_info
+  })) as FacultyHierarchy[];
 }
 
 export async function getAllFaculty(limit = 100): Promise<FacultyItem[]> {
