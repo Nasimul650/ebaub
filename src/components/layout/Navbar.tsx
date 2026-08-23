@@ -111,21 +111,15 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
               </button>
             </div>
 
-            {/* Admissions Mega Menu Trigger */}
-            <div className="relative">
-              <button
-                onClick={() => toggleMegaMenu('admissions')}
-                onMouseEnter={() => handleMegaMenuHover('admissions')}
-                className={`px-3.5 py-2 rounded-lg flex items-center gap-1 transition-all duration-200 font-medium ${
-                  activeMegaMenu === 'admissions'
-                    ? 'bg-campus-100 text-campus-800 scale-105'
-                    : 'hover:bg-campus-100 hover:text-campus-800'
-                }`}
-              >
-                <span>Admissions</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${activeMegaMenu === 'admissions' ? 'rotate-180 text-campus-700' : 'text-slate-400'}`} />
-              </button>
-            </div>
+            {/* Admissions Simple Link */}
+            <Link 
+              href="/admissions" 
+              onMouseEnter={() => setActiveMegaMenu(null)}
+              onClick={closeAllDropdowns}
+              className="px-3.5 py-2 rounded-lg hover:text-campus-800 hover:bg-campus-100 transition-colors font-medium"
+            >
+              Admissions
+            </Link>
 
             <Link 
               href="/faculty" 
