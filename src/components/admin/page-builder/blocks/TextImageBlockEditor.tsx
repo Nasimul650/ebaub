@@ -39,7 +39,7 @@ export default function TextImageBlockEditor({ data, onChange }: Props) {
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-1">Image Upload</label>
           <FileUpload
-            bucket="media"
+            bucket="public_media"
             accept="image/*"
             onUploadSuccess={(url) => onChange({ ...data, image_url: url })}
           />
