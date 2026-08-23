@@ -189,3 +189,66 @@ export interface QuizGeneration {
   isPublished: boolean;
   createdAt: string;
 }
+
+// ==========================================
+// PAGE BUILDER BLOCK TYPES
+// ==========================================
+
+export type BlockType = 'hero' | 'text_image' | 'stats' | 'cta_banner' | 'rich_text';
+
+export interface HeroBlockData {
+  badge: string;
+  headline: string;
+  subheadline: string;
+}
+
+export interface TextImageBlockData {
+  title: string;
+  paragraph: string;
+  image_url: string;
+  image_alignment: 'left' | 'right';
+}
+
+export interface StatItem {
+  value: string;
+  label: string;
+}
+
+export interface StatsBlockData {
+  headline: string;
+  stats: StatItem[];
+}
+
+export interface CtaBannerBlockData {
+  headline: string;
+  description: string;
+  button_text: string;
+  button_link: string;
+}
+
+export interface RichTextBlockData {
+  title: string;
+  content: string;
+}
+
+export type BlockData =
+  | HeroBlockData
+  | TextImageBlockData
+  | StatsBlockData
+  | CtaBannerBlockData
+  | RichTextBlockData;
+
+export interface ContentBlock {
+  type: BlockType;
+  data: BlockData;
+}
+
+export interface Page {
+  id: string;
+  slug: string;
+  title: string;
+  content_blocks: ContentBlock[];
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}

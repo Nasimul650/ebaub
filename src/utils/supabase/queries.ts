@@ -220,8 +220,19 @@ export interface AcademicDepartment {
   faculties?: AcademicFaculty;
 }
 
+export interface AdmissionsInfo {
+  id: string;
+  faculty_id: string;
+  requirements: string | null;
+  process_steps: string | null;
+  important_dates: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface FacultyHierarchy extends AcademicFaculty {
   departments: AcademicDepartment[];
+  admissions_info?: AdmissionsInfo;
 }
 
 export interface FacultyItem {
@@ -236,19 +247,39 @@ export interface FacultyItem {
   departments?: AcademicDepartment;
 }
 
-export async function getFacultiesWithDepartments(): Promise<FacultyHierarchy[]> {
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('faculties')
-      .select('*, departments(*)');
+export async function getFacultiesWithDepartments() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('faculties')
+    .select('*, departments(*)')
+    .order('name', { ascending: true });
 
-    if (error) throw error;
-    return data as unknown as FacultyHierarchy[];
-  } catch (err) {
-    console.error('Error fetching faculties with departments:', err);
+  if (error) {
+    console.error('Error fetching faculties with departments:', error);
     return [];
   }
+
+  return data as FacultyHierarchy[];
+}
+
+export async function getAdmissionsData() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('faculties')
+    .select('*, departments(*), admissions_info(*)')
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching admissions data:', error);
+    return [];
+  }
+
+  // Supabase returns a 1-to-1 relationship as an array sometimes or object.
+  // Assuming admissions_info is a 1-to-1 relationship, we map it safely.
+  return (data as any[]).map(faculty => ({
+    ...faculty,
+    admissions_info: Array.isArray(faculty.admissions_info) ? faculty.admissions_info[0] : faculty.admissions_info
+  })) as FacultyHierarchy[];
 }
 
 export async function getAllFaculty(limit = 100): Promise<FacultyItem[]> {
@@ -284,3 +315,162 @@ export async function getFacultyById(id: string): Promise<FacultyItem | null> {
     return null;
   }
 }
+
+// ==========================================
+// ACADEMIC PROGRAMS
+// ==========================================
+
+export interface ProgramItem {
+  id: string;
+  department_id: string;
+  name: string;
+  degree_level: string;
+  duration_years: number;
+  description?: string;
+  created_at: string;
+  departments?: AcademicDepartment;
+}
+
+export async function getAllPrograms(limit = 100): Promise<ProgramItem[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('programs')
+      .select('*, departments(*, faculties(*))')
+      .order('name', { ascending: true })
+      .limit(limit);
+
+    if (error) throw error;
+    return data as unknown as ProgramItem[];
+  } catch (err) {
+    console.error('Error fetching all programs:', err);
+    return [];
+  }
+}
+
+export async function getProgramById(id: string): Promise<ProgramItem | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('programs')
+      .select('*, departments(*, faculties(*))')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as unknown as ProgramItem;
+  } catch (err) {
+    console.error(`Error fetching program ${id}:`, err);
+    return null;
+  }
+}
+
+// ==========================================
+// ACADEMIC CALENDAR
+// ==========================================
+
+export interface CalendarEventItem {
+  id: string;
+  title: string;
+  start_date: string;
+  end_date?: string;
+  category?: string;
+  description?: string;
+  created_at: string;
+}
+
+export async function getAcademicCalendar(): Promise<CalendarEventItem[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('academic_calendar')
+      .select('*')
+      .order('start_date', { ascending: true });
+
+    if (error) throw error;
+    return data as CalendarEventItem[];
+  } catch (err) {
+    console.error('Error fetching calendar:', err);
+    return [];
+  }
+}
+
+export async function getCalendarEventById(id: string): Promise<CalendarEventItem | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('academic_calendar')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as CalendarEventItem;
+  } catch (err) {
+    console.error(`Error fetching calendar event ${id}:`, err);
+    return null;
+  }
+}
+
+// ==========================================
+// CONTACT MESSAGES
+// ==========================================
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: string;
+  created_at: string;
+}
+
+export async function getAllMessages(): Promise<ContactMessage[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as ContactMessage[];
+  } catch (err) {
+    console.error('Error fetching contact messages:', err);
+    return [];
+  }
+}
+
+// ==========================================
+// PAGE BUILDER QUERIES
+// ==========================================
+
+import type { Page } from '@/types';
+
+/**
+ * Fetches a page by its unique slug for the block-based page builder.
+ * Returns null if the page doesn't exist or on error.
+ */
+export async function getPageBySlug(slug: string): Promise<Page | null> {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('pages')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      console.error('Error fetching page:', error.message);
+      return null;
+    }
+
+    return data as Page;
+  } catch (err) {
+    console.error('Unexpected error fetching page:', err);
+    return null;
+  }
+}
+

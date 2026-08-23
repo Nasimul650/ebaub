@@ -16,7 +16,8 @@
   --color-campus-800: #2E7D32;
   --color-campus-900: #1B5E20;
   --color-campus-950: #0D3B13;
-  --font-sans: var(--font-roboto-condensed), 'Roboto Condensed', 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --font-sans: var(--font-roboto-condensed), var(--font-bangla), 'Roboto Condensed', 'Roboto', 'Inter', sans-serif;
+  --font-bangla: var(--font-bangla), 'Noto Sans Bengali', sans-serif;
 }
 
 @layer base {
@@ -42,7 +43,7 @@
     --secondary: 45 100% 50%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --font-roboto-condensed-stack: var(--font-roboto-condensed), 'Roboto Condensed', 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --font-roboto-condensed-stack: var(--font-roboto-condensed), var(--font-bangla), 'Roboto Condensed', 'Roboto', 'Inter', sans-serif;
   }
 
   html {
@@ -230,4 +231,15 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

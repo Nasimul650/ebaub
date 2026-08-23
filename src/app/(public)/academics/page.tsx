@@ -1,14 +1,18 @@
 import React from 'react';
-import { getFaculties, getDepartments, getPrograms } from '@/lib/mock/mockServices';
+import { getFacultiesWithDepartments, getAllPrograms } from '@/utils/supabase/queries';
 import PageHeader from '@/components/shared/PageHeader';
-import FacultiesGrid from '@/components/academics/FacultiesGrid';
-import ProgramDetailsList from '@/components/academics/ProgramDetailsList';
+import ProgramDirectoryView from '@/components/academics/ProgramDirectoryView';
 
-export default async function AcademicsPage() {
-  const [faculties, departments, programs] = await Promise.all([
-    getFaculties(),
-    getDepartments(),
-    getPrograms()
+interface Props {
+  searchParams: Promise<{ faculty?: string }>;
+}
+
+export default async function AcademicsPage({ searchParams }: Props) {
+  const { faculty } = await searchParams;
+  
+  const [hierarchy, programs] = await Promise.all([
+    getFacultiesWithDepartments(),
+    getAllPrograms(200)
   ]);
 
   return (
@@ -18,8 +22,11 @@ export default async function AcademicsPage() {
         headline="Explore EBAUB Faculties, Departments & Curriculums"
         description="Discover our industry-aligned undergraduate degree offerings designed to build technical proficiency and leadership capabilities."
       />
-      <FacultiesGrid faculties={faculties} />
-      <ProgramDetailsList programs={programs} departments={departments} />
+      <ProgramDirectoryView 
+        hierarchy={hierarchy} 
+        allPrograms={programs} 
+        initialFacultyId={faculty} 
+      />
     </div>
   );
 }

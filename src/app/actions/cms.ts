@@ -9,7 +9,7 @@ function generateSlug(title: string) {
 }
 
 // Helper to authenticate and authorize CMS actions
-async function requireAdmin() {
+export async function requireAdmin() {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
@@ -496,6 +496,194 @@ export async function deleteAcademicDepartment(id: string) {
   } catch (error: any) {
     console.error('Delete department error:', error);
     return { error: error.message };
+  }
+}
+
+
+// ==========================================
+// PROGRAM ACTIONS
+// ==========================================
+
+export async function createProgram(prevState: any, formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const name = formData.get('name') as string;
+    const degree_level = formData.get('degree_level') as string;
+    const duration_years = parseInt(formData.get('duration_years') as string) || 4;
+    const description = formData.get('description') as string;
+    const department_id = formData.get('department_id') as string;
+
+    if (!name || !department_id || !degree_level) {
+      return { error: 'Name, Degree Level, and Department are required.' };
+    }
+
+    const { error } = await supabase.from('programs').insert({
+      name,
+      degree_level,
+      duration_years,
+      description,
+      department_id
+    });
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/academics');
+    revalidatePath('/admin/programs');
+    
+    return { success: true, message: 'Program added successfully!' };
+  } catch (error: any) {
+    return { error: error.message || 'Failed to create program.' };
+  }
+}
+
+export async function updateProgram(id: string, prevState: any, formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const name = formData.get('name') as string;
+    const degree_level = formData.get('degree_level') as string;
+    const duration_years = parseInt(formData.get('duration_years') as string);
+    const description = formData.get('description') as string;
+    const department_id = formData.get('department_id') as string;
+
+    const updates: any = {};
+    if (name) updates.name = name;
+    if (degree_level) updates.degree_level = degree_level;
+    if (duration_years) updates.duration_years = duration_years;
+    if (description !== null) updates.description = description;
+    if (department_id) updates.department_id = department_id;
+
+    const { error } = await supabase.from('programs').update(updates).eq('id', id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/academics');
+    revalidatePath('/admin/programs');
+    
+    return { success: true, message: 'Program updated successfully!' };
+  } catch (error: any) {
+    return { error: error.message || 'Failed to update program.' };
+  }
+}
+
+// ==========================================
+// CALENDAR ACTIONS
+// ==========================================
+
+export async function createCalendarEvent(prevState: any, formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const title = formData.get('title') as string;
+    const start_date = formData.get('start_date') as string;
+    const end_date = formData.get('end_date') as string;
+    const category = formData.get('category') as string;
+    const description = formData.get('description') as string;
+
+    if (!title || !start_date) {
+      return { error: 'Title and Start Date are required.' };
+    }
+
+    const { error } = await supabase.from('academic_calendar').insert({
+      title,
+      start_date,
+      end_date: end_date || null,
+      category,
+      description
+    });
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/academic-calendar');
+    revalidatePath('/admin/calendar');
+    
+    return { success: true, message: 'Calendar event added successfully!' };
+  } catch (error: any) {
+    return { error: error.message || 'Failed to create calendar event.' };
+  }
+}
+
+export async function updateCalendarEvent(id: string, prevState: any, formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const title = formData.get('title') as string;
+    const start_date = formData.get('start_date') as string;
+    const end_date = formData.get('end_date') as string;
+    const category = formData.get('category') as string;
+    const description = formData.get('description') as string;
+
+    const updates: any = {};
+    if (title) updates.title = title;
+    if (start_date) updates.start_date = start_date;
+    if (end_date !== undefined) updates.end_date = end_date || null;
+    if (category !== undefined) updates.category = category;
+    if (description !== undefined) updates.description = description;
+
+    const { error } = await supabase.from('academic_calendar').update(updates).eq('id', id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/academic-calendar');
+    revalidatePath('/admin/calendar');
+    
+    return { success: true, message: 'Calendar event updated successfully!' };
+  } catch (error: any) {
+    return { error: error.message || 'Failed to update calendar event.' };
+  }
+}
+
+
+export async function upsertAdmissionInfo(prevState: any, formData: FormData) {
+  try {
+    const { supabase } = await requireAdmin();
+    const faculty_id = formData.get('faculty_id') as string;
+    const requirements = formData.get('requirements') as string;
+    const process_steps = formData.get('process_steps') as string;
+    const important_dates = formData.get('important_dates') as string;
+
+    if (!faculty_id) throw new Error('Faculty ID is required');
+
+    const { error } = await supabase
+      .from('admissions_info')
+      .upsert(
+        { faculty_id, requirements, process_steps, important_dates },
+        { onConflict: 'faculty_id' }
+      );
+
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/admissions');
+    revalidatePath('/admin/admissions');
+    
+    return { success: true, message: 'Admissions information saved successfully.' };
+  } catch (error: any) {
+    console.error('Upsert admission info error:', error);
+    return { error: error.message || 'Failed to save admissions info' };
+  }
+}
+
+// ==========================================
+// PAGE BUILDER ACTIONS
+// ==========================================
+
+import type { ContentBlock } from '@/types';
+
+export async function updatePageBlocks(slug: string, blocks: ContentBlock[]) {
+  try {
+    const { supabase } = await requireAdmin();
+
+    const { error } = await supabase
+      .from('pages')
+      .update({ content_blocks: blocks })
+      .eq('slug', slug);
+
+    if (error) {
+      return { error: 'Failed to save page blocks: ' + error.message };
+    }
+
+    revalidatePath(`/${slug}`);
+    revalidatePath(`/admin/pages/${slug}`);
+
+    return { success: true, message: 'Page blocks saved successfully.' };
+  } catch (error: any) {
+    console.error('Update page blocks error:', error);
+    return { error: error.message || 'Failed to save page blocks' };
   }
 }
 
