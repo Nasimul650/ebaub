@@ -3,7 +3,7 @@
 ## Project Status
 
 - Project: EBAUB Digital Campus — Prototype
-- Institution: Eastern Bank Agricultural University (EBAUB)
+- Institution: EXIM Bank Agricultural University Bangladesh (EBAUB)
 - Purpose: 5-day prototype for the CSE Department 2-Year Anniversary presentation
 - Audience: CSE judges/teachers, university administration, other departments, ceremony attendees
 - Current phase: Planning / documentation

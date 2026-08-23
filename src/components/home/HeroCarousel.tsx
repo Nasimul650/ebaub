@@ -23,7 +23,7 @@ const slides: SlideData[] = [
     image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=2000&q=85',
     badge: 'CSE Dept. 2-Year Anniversary Milestone',
     headline: 'Empowering the Next Generation of Computer Scientists & Engineers.',
-    subhead: 'Eastern Bank Agricultural University combines world-class computing research, practical software engineering, and modern digital campus workflows.',
+    subhead: 'EXIM Bank Agricultural University Bangladesh combines world-class computing research, practical software engineering, and modern digital campus workflows.',
     ctaText: 'Explore Degree Programs',
     ctaLink: '/academics',
     secondaryText: 'Admission Guidelines',

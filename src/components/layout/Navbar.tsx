@@ -81,7 +81,7 @@ export default function Navbar() {
               <div className="font-extrabold text-base tracking-tight text-slate-900 flex items-center gap-1.5">
                 EBAUB <span className="text-campus-800 font-semibold text-[11px] px-2 py-0.5 bg-campus-50 border border-campus-200 rounded-md">Campus</span>
               </div>
-              <p className="text-[10px] text-slate-500 font-medium">Eastern Bank Agricultural University</p>
+              <p className="text-[10px] text-slate-500 font-medium">EXIM Bank Agricultural University Bangladesh</p>
             </div>
           </Link>
 

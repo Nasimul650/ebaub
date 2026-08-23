@@ -15,7 +15,7 @@ Treat those files as the current source of truth.
 PROJECT CONTEXT
 ==================================================
 
-This is a 5-day prototype for the CSE Department's 2-year anniversary presentation at Eastern Bank Agricultural University (EBAUB).
+This is a 5-day prototype for the CSE Department's 2-year anniversary presentation at EXIM Bank Agricultural University Bangladesh (EBAUB).
 
 The audience includes:
 - CSE teachers and judges

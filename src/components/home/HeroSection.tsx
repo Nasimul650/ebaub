@@ -172,7 +172,7 @@ export default function HeroSection() {
 
           {/* Muted Subtitle */}
           <p className="hero-anim-item text-lg text-slate-600 font-normal leading-relaxed max-w-lg">
-            Eastern Bank Agricultural University (EBAUB) combines rigorous academic foundations, hands-on engineering, and digital campus workflows.
+            EXIM Bank Agricultural University Bangladesh (EBAUB) combines rigorous academic foundations, hands-on engineering, and digital campus workflows.
           </p>
 
           {/* CTA Button: Primary Deep Green */}

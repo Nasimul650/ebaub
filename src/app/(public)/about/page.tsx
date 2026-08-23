@@ -10,7 +10,7 @@ export default async function AboutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-16">
       <PageHeader
-        badge="About Eastern Bank Agricultural University"
+        badge="About EXIM Bank Agricultural University Bangladesh"
         headline="Pioneering Excellence in Science, Agriculture & Technology"
         description={`Established in ${settings.establishedYear}, ${settings.universityName} (${settings.shortName}) stands as a beacon of academic leadership in Rajshahi, Bangladesh.`}
       />

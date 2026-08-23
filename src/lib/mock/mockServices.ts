@@ -279,7 +279,7 @@ export async function askPublicAI(query: string): Promise<string> {
   const q = query.toLowerCase();
 
   if (q.includes('program') || q.includes('course') || q.includes('degree') || q.includes('cse') || q.includes('bsc')) {
-    return `Eastern Bank Agricultural University (EBAUB) offers premier undergraduate programs including:
+    return `EXIM Bank Agricultural University Bangladesh (EBAUB) offers premier undergraduate programs including:
 1. **Bachelor of Science in Computer Science & Engineering (B.Sc. CSE)**: 4-year (160 credits) covering Software Engineering, AI, Data Structures, Web Engineering & Cloud Systems.
 2. **Bachelor of Science in Agriculture (Honours)**: 4-year (175 credits) in Agronomy & Crop Technology.
 3. **Bachelor of Business Administration (BBA)**: 4-year (130 credits) in Finance, Marketing & Digital Enterprise.
@@ -315,7 +315,7 @@ Applications for Spring 2027 are currently open! You can submit applications onl
 2. **Fall 2026 Final Examination Schedule**: Examinations commence on September 10, 2026. Clear all library dues before downloading admit cards.`;
   }
 
-  return `Welcome to Eastern Bank Agricultural University (EBAUB) Digital Assistant! I can help you discover information about our **Academic Programs**, **CSE 2-Year Anniversary Ceremony**, **Admissions Requirements**, **Notices & Events**, and **Campus Contact Info**. How can I assist your search today?`;
+  return `Welcome to EXIM Bank Agricultural University Bangladesh (EBAUB) Digital Assistant! I can help you discover information about our **Academic Programs**, **CSE 2-Year Anniversary Ceremony**, **Admissions Requirements**, **Notices & Events**, and **Campus Contact Info**. How can I assist your search today?`;
 }
 
 // ------------------------------------

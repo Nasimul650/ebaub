@@ -10,8 +10,8 @@ const robotoCondensed = Roboto_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: 'EBAUB Digital Campus | Eastern Bank Agricultural University',
-  description: 'Official digital campus web portal and modern headless CMS for Eastern Bank Agricultural University (EBAUB) CSE Department 2-Year Anniversary presentation.',
+  title: 'EBAUB Digital Campus | EXIM Bank Agricultural University Bangladesh',
+  description: 'Official digital campus web portal and modern headless CMS for EXIM Bank Agricultural University Bangladesh (EBAUB) CSE Department 2-Year Anniversary presentation.',
 };
 
 export default function RootLayout({

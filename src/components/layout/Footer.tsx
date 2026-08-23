@@ -17,7 +17,7 @@ export default function Footer() {
               <span className="font-extrabold text-base text-white">EBAUB Digital Campus</span>
             </div>
             <p className="text-xs text-campus-200/80 leading-relaxed">
-              Eastern Bank Agricultural University is dedicated to developing world-class engineers, computer scientists, and agricultural leaders through modern education and technology.
+              EXIM Bank Agricultural University Bangladesh is dedicated to developing world-class engineers, computer scientists, and agricultural leaders through modern education and technology.
             </p>
             <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-campus-300">
               <ShieldCheck className="w-4 h-4 text-campus-400" />
@@ -69,7 +69,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-6 border-t border-campus-900 flex flex-col sm:flex-row items-center justify-between text-xs text-campus-300 gap-4">
-          <p>© {new Date().getFullYear()} Eastern Bank Agricultural University (EBAUB). All rights reserved.</p>
+          <p>© {new Date().getFullYear()} EXIM Bank Agricultural University Bangladesh (EBAUB). All rights reserved.</p>
           <p className="flex items-center gap-1 text-campus-300">
             Engineered by <span className="font-bold text-white">EBAUB CSE Department</span>
           </p>
