@@ -380,3 +380,34 @@ export async function getCalendarEventById(id: string): Promise<CalendarEventIte
     return null;
   }
 }
+
+// ==========================================
+// CONTACT MESSAGES
+// ==========================================
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: string;
+  created_at: string;
+}
+
+export async function getAllMessages(): Promise<ContactMessage[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as ContactMessage[];
+  } catch (err) {
+    console.error('Error fetching contact messages:', err);
+    return [];
+  }
+}
+

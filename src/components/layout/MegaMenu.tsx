@@ -40,16 +40,16 @@ export default function MegaMenu({ activeMenu, onItemClick, faculties = [], prog
           </div>
 
           {/* Col 2: Faculties */}
-          <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors">
+          <div className="space-y-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-50 transition-colors flex flex-col h-full">
             <div className="flex items-center gap-2 text-[11px] uppercase font-bold text-blue-800 tracking-wider">
               <Building2 className="w-4 h-4 text-blue-600" />
               <span>Faculties</span>
             </div>
-            <ul className="space-y-2.5 text-slate-700 font-medium">
+            <ul className="space-y-2.5 text-slate-700 font-medium flex-1">
               {faculties.length > 0 ? (
                 faculties.map((fac: any) => (
                   <li key={fac.id}>
-                    <Link href="/academics" onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
+                    <Link href={`/academics?faculty=${fac.id}`} onClick={onItemClick} className="hover:text-blue-700 transition-colors flex items-center justify-between group">
                       <span className="truncate pr-4">{fac.name}</span>
                       <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all shrink-0" />
                     </Link>
@@ -59,6 +59,12 @@ export default function MegaMenu({ activeMenu, onItemClick, faculties = [], prog
                 <li className="text-slate-400 italic">No faculties available.</li>
               )}
             </ul>
+            <div className="pt-3 mt-auto border-t border-slate-200/60">
+              <Link href="/academics" onClick={onItemClick} className="inline-flex items-center gap-1.5 text-blue-700 font-bold hover:text-blue-800 transition-colors group">
+                View All Faculties
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
           </div>
 
           {/* Col 3 */}

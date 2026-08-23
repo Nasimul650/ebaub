@@ -9,7 +9,7 @@ function generateSlug(title: string) {
 }
 
 // Helper to authenticate and authorize CMS actions
-async function requireAdmin() {
+export async function requireAdmin() {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   

@@ -3,7 +3,13 @@ import { getFacultiesWithDepartments, getAllPrograms } from '@/utils/supabase/qu
 import PageHeader from '@/components/shared/PageHeader';
 import ProgramDirectoryView from '@/components/academics/ProgramDirectoryView';
 
-export default async function AcademicsPage() {
+interface Props {
+  searchParams: Promise<{ faculty?: string }>;
+}
+
+export default async function AcademicsPage({ searchParams }: Props) {
+  const { faculty } = await searchParams;
+  
   const [hierarchy, programs] = await Promise.all([
     getFacultiesWithDepartments(),
     getAllPrograms(200)
@@ -16,7 +22,11 @@ export default async function AcademicsPage() {
         headline="Explore EBAUB Faculties, Departments & Curriculums"
         description="Discover our industry-aligned undergraduate degree offerings designed to build technical proficiency and leadership capabilities."
       />
-      <ProgramDirectoryView hierarchy={hierarchy} allPrograms={programs} />
+      <ProgramDirectoryView 
+        hierarchy={hierarchy} 
+        allPrograms={programs} 
+        initialFacultyId={faculty} 
+      />
     </div>
   );
 }

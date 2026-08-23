@@ -16,7 +16,7 @@ export default function CampusInfoCard({ settings }: Props) {
           <MapPin className="w-5 h-5 text-campus-700 shrink-0 mt-0.5" />
           <div>
             <div className="font-bold text-slate-900">Address</div>
-            <div className="text-slate-600 mt-0.5">{settings.address}</div>
+            <div className="text-slate-600 mt-0.5">69-69/1, Boro Indara More, Chapai Nawabganj, 6300, Bangladesh</div>
           </div>
         </div>
 

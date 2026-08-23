@@ -1,25 +1,43 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BookOpen, ArrowRight, ChevronDown, ChevronRight, GraduationCap } from 'lucide-react';
+import { BookOpen, ArrowRight, ChevronDown, ChevronRight, GraduationCap, Search } from 'lucide-react';
 import { FacultyHierarchy, ProgramItem } from '@/utils/supabase/queries';
 
 export default function ProgramDirectoryView({ 
   hierarchy, 
-  allPrograms 
+  allPrograms,
+  initialFacultyId 
 }: { 
   hierarchy: FacultyHierarchy[]; 
-  allPrograms: ProgramItem[] 
+  allPrograms: ProgramItem[];
+  initialFacultyId?: string;
 }) {
   const [expandedFacultyId, setExpandedFacultyId] = useState<string | null>(
-    hierarchy.length > 0 ? hierarchy[0].id : null
+    initialFacultyId || (hierarchy.length > 0 ? hierarchy[0].id : null)
   );
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Update expanded faculty if the URL param changes
+  useEffect(() => {
+    if (initialFacultyId) {
+      setExpandedFacultyId(initialFacultyId);
+      setSelectedDepartmentId(null);
+    }
+  }, [initialFacultyId]);
 
   const toggleFaculty = (id: string) => {
     setExpandedFacultyId(expandedFacultyId === id ? null : id);
   };
+
+  // Filter hierarchy for the sidebar based on search query
+  const filteredHierarchy = hierarchy.filter(fac => {
+    const matchesFac = fac.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDep = fac.departments?.some(dep => dep.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesFac || matchesDep;
+  });
 
   const filteredPrograms = selectedDepartmentId
     ? allPrograms.filter(p => p.department_id === selectedDepartmentId)
@@ -33,7 +51,21 @@ export default function ProgramDirectoryView({
   return (
     <div className="flex flex-col md:flex-row gap-8 items-start">
       {/* Left Sidebar (Hierarchy) */}
-      <div className="w-full md:w-72 shrink-0 space-y-2 sticky top-24">
+      <div className="w-full md:w-72 shrink-0 space-y-4 sticky top-24">
+        {/* Search Box */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="w-4 h-4 text-slate-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Find faculty or department..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-campus-600 focus:ring-4 focus:ring-campus-600/10 outline-none text-sm bg-white shadow-sm transition-all"
+          />
+        </div>
+
         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
           <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
             <Building2Icon className="w-4 h-4 text-campus-700" /> Academic Faculties
@@ -44,6 +76,7 @@ export default function ProgramDirectoryView({
               onClick={() => {
                 setExpandedFacultyId(null);
                 setSelectedDepartmentId(null);
+                setSearchQuery(''); // clear search when clicking all
               }}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
                 !expandedFacultyId ? 'bg-campus-800 text-white' : 'text-slate-600 hover:bg-slate-200'
@@ -52,7 +85,7 @@ export default function ProgramDirectoryView({
               All Programs
             </button>
 
-            {hierarchy.map(fac => (
+            {filteredHierarchy.map(fac => (
               <div key={fac.id} className="space-y-1">
                 <button
                   onClick={() => {
