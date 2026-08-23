@@ -11,7 +11,6 @@ import {
   X, 
   ChevronDown
 } from 'lucide-react';
-import CommandMenuModal from '../public/CommandMenuModal';
 import PublicAIFloatingWidget from '../public/PublicAIFloatingWidget';
 import MegaMenu from './MegaMenu';
 import PortalDropdown from './PortalDropdown';
@@ -19,7 +18,6 @@ import MobileNavDrawer from './MobileNavDrawer';
 
 export default function Navbar({ faculties = [], programs = [] }: { faculties?: any[], programs?: any[] } = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [aiWidgetOpen, setAiWidgetOpen] = useState(false);
   const [portalDropdownOpen, setPortalDropdownOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
@@ -50,7 +48,7 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
 
   const openSearch = () => {
     closeAllDropdowns();
-    setCommandMenuOpen(true);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
   };
 
   const openAiWidget = () => {
@@ -255,12 +253,8 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
         <div 
           className="fixed inset-0 top-18 z-40 bg-campus-950/5 backdrop-blur-[0.5px]"
           onClick={closeAllDropdowns}
-          onMouseEnter={closeAllDropdowns}
         />
       )}
-
-      {/* Command Menu Modal */}
-      <CommandMenuModal isOpen={commandMenuOpen} onClose={() => setCommandMenuOpen(false)} />
 
       {/* Public Floating AI Assistant */}
       <PublicAIFloatingWidget isOpen={aiWidgetOpen} onClose={() => setAiWidgetOpen(false)} />

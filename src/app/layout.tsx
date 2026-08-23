@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: 'Official digital campus web portal and modern headless CMS for EXIM Bank Agricultural University Bangladesh (EBAUB) CSE Department 2-Year Anniversary presentation.',
 };
 
+import CommandMenu from '@/components/CommandMenu';
+
 export default function RootLayout({
   children,
 }: {
@@ -22,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={robotoCondensed.variable}>
       <body className="font-sans bg-campus-50 text-slate-900 antialiased selection:bg-campus-900 selection:text-white">
+        <CommandMenu />
         {children}
       </body>
     </html>
