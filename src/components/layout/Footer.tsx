@@ -30,7 +30,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-emerald-400 shrink-0" />
-                <span>+880 1700 000000</span>
+                <span>02-588893525 to 588893529</span>
               </div>
             </div>
           </div>
