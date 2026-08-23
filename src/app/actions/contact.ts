@@ -47,3 +47,18 @@ export async function updateMessageStatus(id: string, status: string) {
     return { error: error.message };
   }
 }
+
+export async function deleteContactMessage(id: string) {
+  try {
+    const { supabase } = await requireAdmin();
+    const { error } = await supabase.from('contact_messages').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+
+    revalidatePath('/admin/messages');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Delete message error:', error);
+    return { error: error.message };
+  }
+}
+
