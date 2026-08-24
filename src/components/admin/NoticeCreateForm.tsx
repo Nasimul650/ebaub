@@ -58,7 +58,7 @@ export default function NoticeCreateForm({ onSubmit }: NoticeCreateFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label className="block text-slate-700 font-semibold mb-1">Category</label>
               <select

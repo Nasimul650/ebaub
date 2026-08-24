@@ -166,7 +166,7 @@ export default function HeroSection() {
           </div>
 
           {/* Massive, tight typography for H1 */}
-          <h1 className="hero-anim-item text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 heading-display leading-[1.06]">
+          <h1 className="hero-anim-item text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 heading-display leading-[1.06] break-words">
             Empowering the next generation of engineers.
           </h1>
 

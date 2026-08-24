@@ -83,7 +83,7 @@ export default function AdmissionsInquirySection() {
         </div>
 
         {/* 3 Institutional Trust Badges */}
-        <div className="grid grid-cols-3 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div className="p-5 rounded-2xl bg-campus-50 border border-slate-200/80 text-center space-y-2 shadow-sm">
             <div className="w-8 h-8 rounded-lg bg-campus-700 text-white flex items-center justify-center mx-auto text-xs font-bold shadow-2xs">
               ★

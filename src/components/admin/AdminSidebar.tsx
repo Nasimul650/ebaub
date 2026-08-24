@@ -34,6 +34,7 @@ type Profile = {
 export default function AdminSidebar({ profile }: { profile?: Profile | null }) {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -84,7 +85,11 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
   else if (profile?.role) roleDisplay = profile.role;
 
   return (
-    <aside className={`relative bg-campus-950 flex flex-col shrink-0 transition-all duration-300 ease-in-out z-20 ${isCollapsed ? 'w-20' : 'w-full md:w-64'}`}>
+    <>
+    {isMobileOpen && (
+      <div className="md:hidden fixed inset-0 z-40 bg-campus-950/80 backdrop-blur-sm" onClick={() => setIsMobileOpen(false)} />
+    )}
+    <aside className={`bg-campus-950 flex flex-col shrink-0 transition-all duration-300 ease-in-out z-50 ${isMobileOpen ? 'fixed inset-y-0 left-0 w-64' : 'w-full md:relative md:w-64 h-[76px] md:h-auto overflow-hidden md:overflow-visible'} ${isCollapsed ? 'md:w-20' : ''}`}>
       
       {/* Collapse Toggle Button (Hidden on Mobile) */}
       <button 
@@ -96,20 +101,26 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
       </button>
 
       {/* Header Logo */}
-      <div className="p-5 border-b border-campus-900 flex items-center h-[76px] overflow-hidden">
+      <div className="p-5 border-b border-campus-900 flex items-center justify-between h-[76px] shrink-0">
         <Link href="/" className="flex items-center gap-3 min-w-max">
           <div className="w-10 h-10 rounded-xl bg-campus-400 flex items-center justify-center text-slate-950 shadow-xs shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <div className={`transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
+          <div className={`transition-all duration-300 ${isCollapsed && !isMobileOpen ? 'md:opacity-0 md:w-0' : 'opacity-100 w-auto'}`}>
             <div className="font-extrabold text-sm text-white truncate">Headless CMS</div>
             <div className="text-[10px] text-campus-200 font-bold uppercase truncate">EBAUB Admin</div>
           </div>
         </Link>
+        <button 
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          className="md:hidden text-white p-2 rounded-lg bg-campus-800"
+        >
+          {isMobileOpen ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
+        </button>
       </div>
 
       {/* Nav Items */}
-      <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden text-xs font-semibold custom-scrollbar">
+      <nav className={`p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden text-xs font-semibold custom-scrollbar ${!isMobileOpen ? 'hidden md:block' : 'block'}`}>
         {navItems.map(item => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -166,7 +177,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
         </div>
 
         {/* Profile Trigger */}
-        <div className="flex items-center justify-between gap-2 w-full overflow-hidden">
+        <div className={`flex items-center justify-between gap-2 w-full overflow-hidden ${!isMobileOpen ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex items-center gap-3 min-w-max">
             <div 
               onClick={() => isCollapsed && setIsMenuOpen(!isMenuOpen)}
@@ -208,5 +219,6 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
       </div>
 
     </aside>
+    </>
   );
 }
