@@ -94,7 +94,7 @@ export default function PublicAIFloatingWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-[60] w-[360px] sm:w-[400px] h-[550px] max-h-[80vh] bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-900 animate-widget-spring">
+        <div className="fixed bottom-4 right-4 z-[60] w-[90vw] h-[80vh] md:w-[400px] md:h-[600px] md:bottom-24 md:right-6 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-900 animate-widget-spring">
           
           {/* Header */}
           <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-campus-50/90 backdrop-blur-sm">

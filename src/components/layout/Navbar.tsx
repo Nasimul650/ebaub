@@ -240,7 +240,12 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
         )}
 
         {/* Mobile Navigation Drawer */}
-        <MobileNavDrawer isOpen={mobileMenuOpen} />
+        <MobileNavDrawer 
+          isOpen={mobileMenuOpen} 
+          onClose={() => setMobileMenuOpen(false)}
+          faculties={faculties}
+          programs={programs}
+        />
       </header>
 
       {/* Backdrop overlay to close mega menu when mouse exits down */}

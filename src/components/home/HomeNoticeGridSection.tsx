@@ -26,7 +26,7 @@ export default function HomeNoticeGridSection({ notices }: { notices: NoticeItem
           <p className="text-xs text-slate-500 mt-1">There are currently no new campus circulars.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {notices.map(notice => (
             <Link
               key={notice.id}
