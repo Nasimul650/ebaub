@@ -475,64 +475,169 @@ export async function getPageBySlug(slug: string): Promise<Page | null> {
 }
 
 // ==========================================
-// SITE SETTINGS (STATIC CONTENT MANAGER)
+// SITE SETTINGS (PAGE-BASED STATIC CONTENT MANAGER)
 // ==========================================
 
 export * from '@/types/settings';
 import type { GlobalSiteSettings } from '@/types/settings';
-import { DEFAULT_SITE_SETTINGS } from '@/types/settings';
+import { DEFAULT_SITE_SETTINGS, PAGE_SETTINGS_DEFAULTS } from '@/types/settings';
 
 /**
- * Fetches all global site settings or a specific section ('hero', 'general', 'contact', 'socials').
- * Gracefully merges with default values if settings don't exist yet in Supabase.
+ * Fetches page-specific site settings (e.g. 'home', 'academics', 'admissions', 'faculty', 'student_life', 'contact', 'global_footer').
+ * Merges with PAGE_SETTINGS_DEFAULTS so missing fields or missing DB rows always fallback cleanly.
  */
-export async function getSiteSettings<T = GlobalSiteSettings>(section?: string): Promise<T> {
+export async function getPageSiteSettings<T = any>(pageId: string): Promise<T> {
+  const defaultData = (PAGE_SETTINGS_DEFAULTS as any)[pageId] || {};
   try {
     const supabase = await createClient();
 
-    let query = supabase.from('site_settings').select('id, data');
-    if (section) {
-      query = query.eq('id', section);
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('data')
+      .eq('id', pageId)
+      .single();
+
+    if (error || !data || !data.data) {
+      return { ...defaultData } as T;
     }
 
-    const { data, error } = await query;
+    return {
+      ...defaultData,
+      ...(typeof data.data === 'object' && data.data !== null ? data.data : {})
+    } as T;
+  } catch (err) {
+    console.error(`Error fetching site settings for page '${pageId}':`, err);
+    return { ...defaultData } as T;
+  }
+}
 
-    if (error || !data || data.length === 0) {
-      if (section && section in DEFAULT_SITE_SETTINGS) {
-        return (DEFAULT_SITE_SETTINGS as any)[section] as T;
-      }
-      return DEFAULT_SITE_SETTINGS as unknown as T;
+/**
+ * Fetches all page-based site settings dictionary for the Admin Settings dashboard.
+ */
+export async function getAllPageSiteSettings(): Promise<Record<string, any>> {
+  const result: Record<string, any> = {
+    global_footer: { ...PAGE_SETTINGS_DEFAULTS.global_footer },
+    home: { ...PAGE_SETTINGS_DEFAULTS.home },
+    academics: { ...PAGE_SETTINGS_DEFAULTS.academics },
+    admissions: { ...PAGE_SETTINGS_DEFAULTS.admissions },
+    faculty: { ...PAGE_SETTINGS_DEFAULTS.faculty },
+    student_life: { ...PAGE_SETTINGS_DEFAULTS.student_life },
+    contact: { ...PAGE_SETTINGS_DEFAULTS.contact },
+  };
+
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('id, data');
+
+    if (error || !data) {
+      return result;
     }
-
-    // Build merged settings object
-    const merged: GlobalSiteSettings = {
-      hero: { ...DEFAULT_SITE_SETTINGS.hero },
-      general: { ...DEFAULT_SITE_SETTINGS.general },
-      contact: { ...DEFAULT_SITE_SETTINGS.contact },
-      socials: { ...DEFAULT_SITE_SETTINGS.socials }
-    };
 
     data.forEach((row: { id: string; data: any }) => {
-      if (row.id in merged) {
-        (merged as any)[row.id] = {
-          ...(merged as any)[row.id],
+      if (row.id in result) {
+        result[row.id] = {
+          ...result[row.id],
           ...(typeof row.data === 'object' && row.data !== null ? row.data : {})
         };
+      } else {
+        result[row.id] = row.data;
       }
     });
 
-    if (section) {
-      return (merged as any)[section] as T;
-    }
-
-    return merged as unknown as T;
+    return result;
   } catch (err) {
-    console.error('Error fetching site settings:', err);
-    if (section && section in DEFAULT_SITE_SETTINGS) {
-      return (DEFAULT_SITE_SETTINGS as any)[section] as T;
-    }
-    return DEFAULT_SITE_SETTINGS as unknown as T;
+    console.error('Error fetching all page site settings:', err);
+    return result;
   }
+}
+
+/**
+ * Legacy getSiteSettings query for backward compatibility with existing components.
+ */
+export async function getSiteSettings<T = GlobalSiteSettings>(section?: string): Promise<T> {
+  if (section && section in PAGE_SETTINGS_DEFAULTS) {
+    return getPageSiteSettings(section) as Promise<T>;
+  }
+
+  // If section is hero/general/contact/socials, map to respective page setting
+  if (section === 'hero') {
+    const home = await getPageSiteSettings('home');
+    return {
+      headline: home.hero_headline,
+      subtitle: home.hero_subtitle,
+      video_url: home.hero_video_url,
+      fallback_image_url: home.hero_fallback_image_url,
+      badge_text: home.badge_text
+    } as unknown as T;
+  }
+
+  if (section === 'general') {
+    const footer = await getPageSiteSettings('global_footer');
+    return {
+      site_name: footer.site_name,
+      short_name: footer.short_name,
+      tagline: footer.tagline,
+      meta_description: 'Official portal of EXIM Bank Agricultural University Bangladesh (EBAUB).',
+      accreditation: footer.accreditation
+    } as unknown as T;
+  }
+
+  if (section === 'contact') {
+    return getPageSiteSettings('contact') as Promise<T>;
+  }
+
+  if (section === 'socials') {
+    const footer = await getPageSiteSettings('global_footer');
+    return {
+      facebook_url: footer.facebook_url,
+      linkedin_url: footer.linkedin_url,
+      youtube_url: footer.youtube_url,
+      student_portal_url: footer.student_portal_url,
+      teacher_portal_url: footer.teacher_portal_url
+    } as unknown as T;
+  }
+
+  // Default: Return merged GlobalSiteSettings
+  const [globalFooter, home, contact] = await Promise.all([
+    getPageSiteSettings('global_footer'),
+    getPageSiteSettings('home'),
+    getPageSiteSettings('contact')
+  ]);
+
+  return {
+    hero: {
+      headline: home.hero_headline,
+      subtitle: home.hero_subtitle,
+      video_url: home.hero_video_url,
+      fallback_image_url: home.hero_fallback_image_url,
+      badge_text: home.badge_text
+    },
+    general: {
+      site_name: globalFooter.site_name,
+      short_name: globalFooter.short_name,
+      tagline: globalFooter.tagline,
+      meta_description: 'Official portal of EXIM Bank Agricultural University Bangladesh (EBAUB).',
+      accreditation: globalFooter.accreditation
+    },
+    contact: {
+      campus_address: contact.campus_address,
+      inquiries_email: contact.inquiries_email,
+      admissions_email: globalFooter.admissions_email,
+      hotline_phone: contact.hotline_phone,
+      admissions_phone: contact.admissions_phone,
+      office_hours: contact.office_hours
+    },
+    socials: {
+      facebook_url: globalFooter.facebook_url,
+      linkedin_url: globalFooter.linkedin_url,
+      youtube_url: globalFooter.youtube_url,
+      student_portal_url: globalFooter.student_portal_url,
+      teacher_portal_url: globalFooter.teacher_portal_url
+    }
+  } as unknown as T;
 }
 
 

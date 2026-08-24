@@ -1,6 +1,5 @@
 'use server';
 
-import { createClient } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/app/actions/cms';
 
@@ -11,26 +10,27 @@ export interface SettingsActionResult {
 }
 
 /**
- * Server action to update a specific global site settings section ('hero', 'general', 'contact', 'socials').
+ * Server action to update static page settings for a specific page:
+ * ('global_footer', 'home', 'academics', 'admissions', 'faculty', 'student_life', 'contact').
  * Requires Admin authentication.
- * Automatically triggers site-wide cache revalidation.
+ * Automatically triggers cache revalidation for the targeted public route.
  */
 export async function updateSiteSettings(
-  section: string,
+  pageId: string,
   payload: Record<string, any>
 ): Promise<SettingsActionResult> {
   try {
     const { supabase } = await requireAdmin();
 
-    if (!section || !payload || typeof payload !== 'object') {
-      return { error: 'Invalid section name or settings data provided.' };
+    if (!pageId || !payload || typeof payload !== 'object') {
+      return { error: 'Invalid page identifier or settings data provided.' };
     }
 
     const { error } = await supabase
       .from('site_settings')
       .upsert(
         {
-          id: section,
+          id: pageId,
           data: payload,
           updated_at: new Date().toISOString()
         },
@@ -38,21 +38,51 @@ export async function updateSiteSettings(
       );
 
     if (error) {
-      console.error(`Error updating site settings for ${section}:`, error.message);
-      return { error: `Failed to update ${section} settings: ${error.message}` };
+      console.error(`Error updating site settings for page '${pageId}':`, error.message);
+      return { error: `Failed to update settings for ${pageId}: ${error.message}` };
     }
 
-    // Revalidate layout and home
-    revalidatePath('/', 'layout');
+    // Revalidate specific public paths
+    switch (pageId) {
+      case 'global_footer':
+        revalidatePath('/', 'layout');
+        break;
+      case 'home':
+        revalidatePath('/');
+        break;
+      case 'academics':
+        revalidatePath('/academics');
+        break;
+      case 'admissions':
+        revalidatePath('/admissions');
+        break;
+      case 'faculty':
+        revalidatePath('/faculty');
+        break;
+      case 'student_life':
+        revalidatePath('/events');
+        break;
+      case 'contact':
+        revalidatePath('/contact');
+        break;
+      default:
+        revalidatePath('/', 'layout');
+        break;
+    }
+
     revalidatePath('/admin/settings');
 
-    const formattedSection = section.charAt(0).toUpperCase() + section.slice(1);
+    const formattedName = pageId
+      .split('_')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+
     return {
       success: true,
-      message: `${formattedSection} settings saved successfully!`
+      message: `${formattedName} settings saved successfully! Public page updated.`
     };
   } catch (error: any) {
-    console.error(`Unexpected error updating ${section} settings:`, error);
+    console.error(`Unexpected error updating ${pageId} settings:`, error);
     return { error: error.message || 'An unexpected error occurred.' };
   }
 }
