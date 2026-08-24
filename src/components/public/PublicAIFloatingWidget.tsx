@@ -10,6 +10,7 @@ export default function PublicAIFloatingWidget() {
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
     api: '/api/chat',
+    maxSteps: 5
   });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);

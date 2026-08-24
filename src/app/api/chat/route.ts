@@ -1,5 +1,7 @@
 import { google } from '@ai-sdk/google';
-import { streamText } from 'ai';
+import { streamText, tool } from 'ai';
+import { z } from 'zod';
+import { createClient } from '@/utils/supabase/server';
 import { 
   getLatestNews, 
   getActiveNotices, 
@@ -60,7 +62,7 @@ export async function POST(req: Request) {
 
     const dynamicContext = formatContextData(news, notices, programs, aboutPage, faculties);
 
-    const systemPrompt = `You are the EBAUB AI Assistant. Base your answers ONLY on the provided context below. If the answer is not in the context, politely state that you do not have that information and refer them to info@ebaub.edu.bd.
+    const systemPrompt = `You are the EBAUB AI Agent. When asked a question about the university, you MUST use the search_internal_database tool first. If the internal database yields no results, use the search_web tool and append 'site:https://ebaub.ac.bd/# or site:https://www.facebook.com/ebaub.chapai' to the query. For general knowledge or math questions, answer directly using your native intelligence.
 
 STATIC CONTEXT:
 University Name: EXIM Bank Agricultural University Bangladesh (EBAUB)
@@ -68,7 +70,7 @@ Location: 69-69/1, Boro Indara More, Chapai Nawabganj, 6300, Bangladesh
 Email: info@ebaub.edu.bd
 Phone: 02-588893525 to 588893529
 
-DYNAMIC CONTEXT:
+DYNAMIC RECENT CONTEXT:
 ${dynamicContext}
 `;
 
@@ -76,6 +78,61 @@ ${dynamicContext}
       model: google('gemini-3.5-flash-lite'),
       system: systemPrompt,
       messages,
+      maxSteps: 5,
+      tools: {
+        search_internal_database: tool({
+          description: "Searches the official EBAUB university database for news, notices, faculty, and programs.",
+          parameters: z.object({
+            query: z.string().describe("The search query (e.g. name of a faculty member, notice keyword, program)"),
+          }),
+          execute: async ({ query }) => {
+            const supabase = await createClient();
+            const term = `%${query}%`;
+            
+            const [newsRes, noticesRes, facultyRes, programsRes] = await Promise.all([
+              supabase.from('news').select('id, title, summary').or(`title.ilike.${term},summary.ilike.${term}`).limit(3),
+              supabase.from('notices').select('id, title, description, category').or(`title.ilike.${term},category.ilike.${term}`).limit(3),
+              supabase.from('faculty_members').select('id, name, title, bio').or(`name.ilike.${term},title.ilike.${term},bio.ilike.${term}`).limit(3),
+              supabase.from('programs').select('id, name, degree_level').or(`name.ilike.${term},degree_level.ilike.${term}`).limit(3),
+            ]);
+
+            return {
+              news: newsRes.data || [],
+              notices: noticesRes.data || [],
+              faculty: facultyRes.data || [],
+              programs: programsRes.data || []
+            };
+          }
+        }),
+        search_web: tool({
+          description: "Searches the live internet for recent information if the internal database fails.",
+          parameters: z.object({
+            query: z.string().describe("The search query to look up on the web"),
+          }),
+          execute: async ({ query }) => {
+            try {
+              const res = await fetch('https://api.tavily.com/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  api_key: process.env.TAVILY_API_KEY || 'default',
+                  query: query,
+                  search_depth: 'basic'
+                })
+              });
+              
+              if (!res.ok) {
+                return { error: 'Web search unavailable due to rate limit or missing API key.', query };
+              }
+              
+              const data = await res.json();
+              return { results: data.results || [] };
+            } catch (error) {
+              return { error: 'Web search unavailable.', query };
+            }
+          }
+        })
+      }
     });
 
     return result.toDataStreamResponse();
