@@ -26,7 +26,7 @@ export default function HomeNewsGridSection({ news }: { news: NewsItem[] }) {
           <p className="text-xs text-slate-500 mt-1">Check back later for updates from the campus.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {news.map(article => (
             <Link
               key={article.id}

@@ -15,8 +15,9 @@ export default function NewsTable({ newsList, onDelete }: NewsTableProps) {
       <div className="p-4 border-b border-slate-100 font-bold text-slate-900">
         News Articles ({newsList.length})
       </div>
-      <table className="w-full text-left">
-        <thead className="bg-campus-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
+      <div className="w-full overflow-x-auto">
+        <table className="w-full text-left min-w-[600px]">
+          <thead className="bg-campus-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
           <tr>
             <th className="p-4">Title</th>
             <th className="p-4">Category</th>
@@ -41,7 +42,8 @@ export default function NewsTable({ newsList, onDelete }: NewsTableProps) {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   );
 }

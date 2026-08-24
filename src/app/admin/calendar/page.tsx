@@ -26,7 +26,7 @@ export default async function AdminCalendarPage() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden text-xs shadow-xs">
-        <div className="overflow-x-auto">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left min-w-[800px]">
             <thead className="bg-campus-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
               <tr>

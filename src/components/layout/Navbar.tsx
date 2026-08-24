@@ -61,7 +61,7 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
         className="sticky top-0 z-50 bg-campus-50/95 backdrop-blur-md border-b border-campus-200/80 transition-all shadow-sm relative"
         onMouseLeave={() => setActiveMegaMenu(null)}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           
           {/* Logo & Brand Identity */}
           <Link 
@@ -75,9 +75,9 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
             </div>
             <div>
               <div className="font-extrabold text-base tracking-tight text-slate-900 flex items-center gap-1.5">
-                EBAUB <span className="text-campus-800 font-semibold text-[11px] px-2 py-0.5 bg-campus-50 border border-campus-200 rounded-md">Campus</span>
+                EBAUB <span className="hidden sm:inline-block text-campus-800 font-semibold text-[11px] px-2 py-0.5 bg-campus-50 border border-campus-200 rounded-md">Campus</span>
               </div>
-              <p className="text-[10px] text-slate-500 font-medium">EXIM Bank Agricultural University Bangladesh</p>
+              <p className="hidden sm:block text-[10px] text-slate-500 font-medium truncate max-w-[200px] lg:max-w-none">EXIM Bank Agricultural University</p>
             </div>
           </Link>
 
@@ -167,17 +167,17 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
           </nav>
 
           {/* Right Action Tools (Search, Public AI, Portals) */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             
             {/* Search Command Center Button */}
             <button
               onClick={openSearch}
               onMouseEnter={() => setActiveMegaMenu(null)}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white hover:bg-campus-50/80 text-slate-700 hover:text-campus-900 border border-campus-200 hover:border-campus-300 text-xs font-medium shadow-xs transition-all hover:scale-105 active:scale-95 group"
+              className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-white hover:bg-campus-50/80 text-slate-700 hover:text-campus-900 border border-campus-200 hover:border-campus-300 text-xs font-medium shadow-xs transition-all hover:scale-105 active:scale-95 group"
               title="Search"
             >
-              <Search className="w-3.5 h-3.5 text-campus-700 group-hover:text-campus-900 transition-colors" />
-              <span>Search</span>
+              <Search className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-700 group-hover:text-campus-900 transition-colors" />
+              <span className="hidden sm:inline">Search</span>
             </button>
 
             {/* Public AI Launcher */}
@@ -187,9 +187,9 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
                 window.dispatchEvent(new Event('toggle-ai-chat'));
               }}
               onMouseEnter={() => setActiveMegaMenu(null)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-campus-50 hover:bg-campus-100 text-campus-900 border border-campus-200 text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-campus-50 hover:bg-campus-100 text-campus-900 border border-campus-200 text-xs font-bold transition-all hover:scale-105 active:scale-95"
             >
-              <Bot className="w-3.5 h-3.5 text-campus-700" />
+              <Bot className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-700" />
               <span className="hidden sm:inline">Ask AI</span>
             </button>
 
@@ -198,11 +198,11 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
               <button
                 onClick={togglePortalDropdown}
                 onMouseEnter={() => setActiveMegaMenu(null)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300"
               >
-                <UserCheck className="w-3.5 h-3.5 text-campus-400" />
-                <span>Portals</span>
-                <ChevronDown className={`w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
+                <UserCheck className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-400" />
+                <span className="hidden sm:inline">Portals</span>
+                <ChevronDown className={`hidden sm:block w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               <PortalDropdown 
@@ -240,7 +240,12 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
         )}
 
         {/* Mobile Navigation Drawer */}
-        <MobileNavDrawer isOpen={mobileMenuOpen} />
+        <MobileNavDrawer 
+          isOpen={mobileMenuOpen} 
+          onClose={() => setMobileMenuOpen(false)}
+          faculties={faculties}
+          programs={programs}
+        />
       </header>
 
       {/* Backdrop overlay to close mega menu when mouse exits down */}

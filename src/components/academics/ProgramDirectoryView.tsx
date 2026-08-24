@@ -47,11 +47,14 @@ export default function ProgramDirectoryView({
 
   const currentFaculty = hierarchy.find(f => f.id === expandedFacultyId);
   const currentDepartment = currentFaculty?.departments?.find(d => d.id === selectedDepartmentId);
+  
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
     <div className="flex flex-col md:flex-row gap-8 items-start">
       {/* Left Sidebar (Hierarchy) */}
-      <div className="w-full md:w-72 shrink-0 space-y-4 sticky top-24">
+      <div className="w-full md:w-64 shrink-0 space-y-4 md:sticky md:top-24">
+        
         {/* Search Box */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -59,30 +62,37 @@ export default function ProgramDirectoryView({
           </div>
           <input
             type="text"
-            placeholder="Find faculty or department..."
+            placeholder="Search programs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-campus-600 focus:ring-4 focus:ring-campus-600/10 outline-none text-sm bg-white shadow-sm transition-all"
+            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-campus-400 focus:border-transparent transition-all"
           />
         </div>
 
         <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
-          <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-            <Building2Icon className="w-4 h-4 text-campus-700" /> Academic Faculties
+          <button 
+            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+            className="w-full flex md:hidden items-center justify-between text-sm font-extrabold text-slate-900 uppercase tracking-widest"
+          >
+            <span className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-campus-700" /> Filter Programs</span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${isMobileSidebarOpen ? 'rotate-180' : ''}`} />
+          </button>
+          <h2 className="hidden md:flex text-sm font-extrabold text-slate-900 uppercase tracking-widest mb-4 items-center gap-2">
+            <BookOpen className="w-4 h-4 text-campus-700" /> Academic Faculties
           </h2>
           
-          <div className="space-y-2">
+          <div className={`space-y-2 mt-4 md:mt-0 ${isMobileSidebarOpen || searchQuery ? 'block' : 'hidden md:block'}`}>
             <button
               onClick={() => {
                 setExpandedFacultyId(null);
                 setSelectedDepartmentId(null);
-                setSearchQuery(''); // clear search when clicking all
+                setIsMobileSidebarOpen(false);
               }}
               className={`w-full text-left px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
                 !expandedFacultyId ? 'bg-campus-800 text-white' : 'text-slate-600 hover:bg-slate-200'
               }`}
             >
-              All Programs
+              All Faculties & Programs
             </button>
 
             {filteredHierarchy.map(fac => (
@@ -109,7 +119,10 @@ export default function ProgramDirectoryView({
                     {fac.departments.map(dep => (
                       <button
                         key={dep.id}
-                        onClick={() => setSelectedDepartmentId(dep.id)}
+                        onClick={() => {
+                          setSelectedDepartmentId(dep.id);
+                          setIsMobileSidebarOpen(false);
+                        }}
                         className={`w-full text-left px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
                           selectedDepartmentId === dep.id ? 'bg-campus-100 text-campus-800' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'
                         }`}

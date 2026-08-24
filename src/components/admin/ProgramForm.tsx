@@ -75,7 +75,7 @@ export default function ProgramForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="degree_level" className="block text-sm font-bold text-slate-700">Degree Level *</label>
                 <select 

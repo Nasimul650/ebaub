@@ -91,7 +91,7 @@ export default function CurriculumTechSection() {
         {/* Glow backdrop */}
         <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/20 to-indigo-400/20 rounded-3xl blur-2xl -z-10" />
 
-        <div ref={cardsGridRef} className="grid grid-cols-2 gap-4">
+        <div ref={cardsGridRef} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Card 1 */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xl space-y-3 hover:translate-y-[-2px] transition-transform">
             <div className="w-10 h-10 rounded-xl bg-campus-100 text-campus-800 flex items-center justify-center font-bold text-sm shadow-2xs">

@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useChat } from 'ai/react';
 import { Bot, X, Send, Sparkles, Loader2, ArrowUp } from 'lucide-react';
+import AIMessageContent from '@/components/shared/AIMessageContent';
 
 export default function PublicAIFloatingWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +11,7 @@ export default function PublicAIFloatingWidget() {
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
     api: '/api/chat',
+    maxSteps: 5
   });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -57,22 +59,22 @@ export default function PublicAIFloatingWidget() {
   return (
     <>
       {/* Floating Action Buttons Container */}
-      <div className="fixed bottom-6 right-6 z-[60] flex items-center gap-3">
+      <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[70] flex flex-col-reverse md:flex-row items-center gap-3">
         {/* Back to Top Button */}
         <button
           onClick={scrollToTop}
-          className={`flex items-center justify-center w-12 h-12 rounded-full bg-white border border-slate-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 hover:border-campus-200 text-slate-500 hover:text-campus-900 transition-all duration-300 ${showBackToTop ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-90 pointer-events-none'}`}
+          className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-slate-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 hover:border-campus-200 text-slate-500 hover:text-campus-900 transition-all duration-300 ${showBackToTop && !isOpen ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-90 pointer-events-none'}`}
           aria-label="Back to Top"
         >
-          <ArrowUp className="w-5 h-5" />
+          <ArrowUp className="w-4 h-4 md:w-5 md:h-5" />
         </button>
 
         {/* AI Trigger Button (New Premium Design) */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 group relative ${
+          className={`flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300 group relative ${
             isOpen 
-              ? 'bg-white text-slate-600 scale-95 border border-slate-200 hover:bg-slate-50' 
+              ? 'bg-white text-slate-600 scale-95 border border-slate-200 hover:bg-slate-50 opacity-0 md:opacity-100 md:pointer-events-auto pointer-events-none' 
               : 'bg-gradient-to-br from-campus-800 to-campus-950 text-white hover:shadow-[0_12px_40px_rgba(27,94,32,0.3)] hover:-translate-y-1'
           }`}
           aria-label="Toggle AI Assistant"
@@ -82,11 +84,11 @@ export default function PublicAIFloatingWidget() {
             <div className="absolute inset-0 rounded-full border-2 border-campus-500 opacity-20 animate-ping group-hover:animate-none"></div>
           )}
           {isOpen ? (
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 md:w-6 md:h-6" />
           ) : (
             <div className="relative">
-              <Bot className="w-6 h-6" />
-              <Sparkles className="w-3 h-3 text-amber-400 absolute -top-1 -right-2 animate-pulse" />
+              <Bot className="w-5 h-5 md:w-6 md:h-6" />
+              <Sparkles className="w-2.5 h-2.5 md:w-3 md:h-3 text-amber-400 absolute -top-1 -right-1 md:-right-2 animate-pulse" />
             </div>
           )}
         </button>
@@ -94,7 +96,7 @@ export default function PublicAIFloatingWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-[60] w-[360px] sm:w-[400px] h-[550px] max-h-[80vh] bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-900 animate-widget-spring">
+        <div className="fixed bottom-4 left-4 right-4 z-[60] h-[80vh] md:left-auto md:w-[400px] md:h-[600px] md:bottom-24 md:right-6 bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden flex flex-col text-slate-900 animate-widget-spring">
           
           {/* Header */}
           <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-campus-50/90 backdrop-blur-sm">
@@ -166,22 +168,29 @@ export default function PublicAIFloatingWidget() {
                   className={`max-w-[85%] p-3.5 rounded-2xl leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-campus-900 text-white rounded-br-none shadow-md'
-                      : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none whitespace-pre-line shadow-sm'
+                      : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'
                   }`}
                 >
-                  <div>{msg.content}</div>
+                  <AIMessageContent content={msg.content} isUser={msg.role === 'user'} />
                 </div>
               </div>
             ))}
 
-            {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-              <div className="flex justify-start animate-message">
-                <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3 text-slate-500 flex items-center gap-2 shadow-sm">
-                  <Loader2 className="w-4 h-4 animate-spin text-campus-700" />
-                  <span>Fetching records...</span>
+            {isLoading && (() => {
+              const lastMsg = messages[messages.length - 1];
+              const lastMsgIsEmptyAssistant = lastMsg?.role === 'assistant' && !lastMsg?.content;
+              const isSearching = lastMsgIsEmptyAssistant && (lastMsg as any)?.toolInvocations?.some((t: any) => t.state === 'call');
+              const showSpinner = lastMsg?.role !== 'assistant' || lastMsgIsEmptyAssistant;
+              
+              return showSpinner ? (
+                <div className="flex justify-start animate-message">
+                  <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3 text-slate-500 flex items-center gap-2 shadow-sm">
+                    <Loader2 className="w-4 h-4 animate-spin text-campus-700" />
+                    <span>{isSearching ? 'Searching database...' : 'Fetching records...'}</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : null;
+            })()}
 
             {/* Scroll Anchor */}
             <div ref={messagesEndRef} className="h-0 w-0" />
