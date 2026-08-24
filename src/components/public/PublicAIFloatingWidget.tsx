@@ -175,14 +175,21 @@ export default function PublicAIFloatingWidget() {
               </div>
             ))}
 
-            {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-              <div className="flex justify-start animate-message">
-                <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3 text-slate-500 flex items-center gap-2 shadow-sm">
-                  <Loader2 className="w-4 h-4 animate-spin text-campus-700" />
-                  <span>Fetching records...</span>
+            {isLoading && (() => {
+              const lastMsg = messages[messages.length - 1];
+              const lastMsgIsEmptyAssistant = lastMsg?.role === 'assistant' && !lastMsg?.content;
+              const isSearching = lastMsgIsEmptyAssistant && (lastMsg as any)?.toolInvocations?.some((t: any) => t.state === 'call');
+              const showSpinner = lastMsg?.role !== 'assistant' || lastMsgIsEmptyAssistant;
+              
+              return showSpinner ? (
+                <div className="flex justify-start animate-message">
+                  <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3 text-slate-500 flex items-center gap-2 shadow-sm">
+                    <Loader2 className="w-4 h-4 animate-spin text-campus-700" />
+                    <span>{isSearching ? 'Searching database...' : 'Fetching records...'}</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : null;
+            })()}
 
             {/* Scroll Anchor */}
             <div ref={messagesEndRef} className="h-0 w-0" />
