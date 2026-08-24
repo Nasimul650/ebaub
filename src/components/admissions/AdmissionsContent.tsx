@@ -5,18 +5,42 @@ import { FacultyHierarchy } from '@/utils/supabase/queries';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, FileText, CheckCircle, Calendar, GraduationCap, Building2 } from 'lucide-react';
+import { 
+  ArrowRight, 
+  FileText, 
+  CheckCircle, 
+  Calendar, 
+  GraduationCap, 
+  Building2, 
+  Sparkles,
+  Info,
+  Phone,
+  Mail
+} from 'lucide-react';
 import Link from 'next/link';
+import type { AdmissionsPageSettings } from '@/types/settings';
+import { PAGE_SETTINGS_DEFAULTS } from '@/types/settings';
 
 gsap.registerPlugin(ScrollTrigger);
 
 interface AdmissionsContentProps {
   faculties: FacultyHierarchy[];
+  admissionsSettings?: AdmissionsPageSettings;
 }
 
-export default function AdmissionsContent({ faculties }: AdmissionsContentProps) {
+export default function AdmissionsContent({ faculties, admissionsSettings }: AdmissionsContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   
+  const fallback = PAGE_SETTINGS_DEFAULTS.admissions;
+  const badge = admissionsSettings?.header_badge || fallback.header_badge;
+  const headline = admissionsSettings?.header_headline || fallback.header_headline;
+  const description = admissionsSettings?.header_description || fallback.header_description;
+  const applyCtaText = admissionsSettings?.apply_cta_text || fallback.apply_cta_text;
+  const deadlineText = admissionsSettings?.deadline_highlight_text || fallback.deadline_highlight_text;
+  const financialAid = admissionsSettings?.financial_aid_snippet || fallback.financial_aid_snippet;
+  const hotline = admissionsSettings?.admissions_hotline || fallback.admissions_hotline;
+  const email = admissionsSettings?.admissions_email || fallback.admissions_email;
+
   // Filter only faculties that have admissions data configured
   const activeFaculties = faculties.filter(f => f.admissions_info);
 
@@ -51,21 +75,48 @@ export default function AdmissionsContent({ faculties }: AdmissionsContentProps)
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-campus-950 text-white py-24 sm:py-32 flex items-center justify-center">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-campus-400 via-campus-900 to-transparent"></div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center hero-content">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-campus-900/50 border border-campus-800/50 text-emerald-400 text-sm font-bold tracking-wide uppercase mb-6">
-            <GraduationCap className="w-4 h-4" /> Fall 2027 Admissions Open
+        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center hero-content space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-campus-900/50 border border-campus-800/50 text-emerald-400 text-xs sm:text-sm font-bold tracking-wide uppercase font-bangla">
+            <GraduationCap className="w-4 h-4 shrink-0" />
+            <span>{badge}</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6">
-            Begin Your Journey at <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-campus-300">EXIM Bank Agricultural University</span>
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight heading-display leading-tight font-bangla">
+            {headline}
           </h1>
-          <p className="text-lg sm:text-xl text-slate-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Discover your potential with our rigorous academic programs. Explore requirements, application steps, and key dates below.
+          <p className="text-base sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed font-bangla">
+            {description}
           </p>
-          <button className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-campus-950 font-bold rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
-            Apply Now <ArrowRight className="w-5 h-5" />
-          </button>
+          <div className="pt-2">
+            <Link 
+              href="/contact"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-campus-950 font-bold rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)] font-bangla"
+            >
+              <span>{applyCtaText}</span>
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </div>
         </div>
       </section>
+
+      {/* Highlights & Financial Aid Callout Strip */}
+      {(deadlineText || financialAid) && (
+        <section className="w-full bg-campus-900 border-y border-campus-800 py-6 text-white text-xs sm:text-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            {deadlineText && (
+              <div className="flex items-center gap-3 bg-campus-950/60 p-4 rounded-2xl border border-campus-800/80">
+                <Calendar className="w-5 h-5 text-amber-400 shrink-0" />
+                <span className="font-bangla font-medium">{deadlineText}</span>
+              </div>
+            )}
+            {financialAid && (
+              <div className="flex items-center gap-3 bg-campus-950/60 p-4 rounded-2xl border border-campus-800/80">
+                <Sparkles className="w-5 h-5 text-emerald-400 shrink-0" />
+                <span className="font-bangla font-medium">{financialAid}</span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Faculty Sections */}
       <div className="py-12 sm:py-20 flex flex-col">
@@ -84,9 +135,9 @@ export default function AdmissionsContent({ faculties }: AdmissionsContentProps)
                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-campus-100 text-campus-800 mb-6 shadow-sm">
                       <Building2 className="w-6 h-6" />
                     </div>
-                    <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">{faculty.name}</h2>
+                    <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight font-bangla">{faculty.name}</h2>
                     {faculty.description && (
-                      <p className="text-slate-600 leading-relaxed text-sm mb-6">
+                      <p className="text-slate-600 leading-relaxed text-sm mb-6 font-bangla">
                         {faculty.description}
                       </p>
                     )}
@@ -94,7 +145,7 @@ export default function AdmissionsContent({ faculties }: AdmissionsContentProps)
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Associated Departments</h4>
                       <div className="flex flex-wrap gap-2">
                         {faculty.departments?.map(dept => (
-                          <span key={dept.id} className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg">
+                          <span key={dept.id} className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg font-bangla">
                             {dept.name}
                           </span>
                         ))}
@@ -165,7 +216,7 @@ function FacultyAdmissionsTabs({ facultyName, admissionsInfo }: { facultyName: s
         {activeTab === 'requirements' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-lg font-extrabold text-slate-900 mb-4">Academic Eligibility</h3>
-            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">
+            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-bangla">
               {admissionsInfo?.requirements || 'Eligibility requirements will be published soon.'}
             </div>
           </div>
@@ -174,7 +225,7 @@ function FacultyAdmissionsTabs({ facultyName, admissionsInfo }: { facultyName: s
         {activeTab === 'process' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-lg font-extrabold text-slate-900 mb-4">How to Apply</h3>
-            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">
+            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-bangla">
               {admissionsInfo?.process_steps || 'Application process steps will be published soon.'}
             </div>
           </div>
@@ -183,10 +234,10 @@ function FacultyAdmissionsTabs({ facultyName, admissionsInfo }: { facultyName: s
         {activeTab === 'dates' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <h3 className="text-lg font-extrabold text-slate-900 mb-4">Upcoming Deadlines</h3>
-            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">
+            <div className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap font-bangla">
               {admissionsInfo?.important_dates || 'Important dates will be published soon.'}
             </div>
-            <div className="mt-6 p-4 bg-slate-50 rounded-xl text-xs text-slate-500 border border-slate-100">
+            <div className="mt-6 p-4 bg-slate-50 rounded-xl text-xs text-slate-500 border border-slate-100 font-bangla">
               * Dates are subject to change by the academic council. Please check your registered email for direct updates regarding {facultyName} schedules.
             </div>
           </div>

@@ -1,6 +1,7 @@
 import React from 'react';
-import { getAdmissionsData } from '@/utils/supabase/queries';
+import { getAdmissionsData, getPageSiteSettings } from '@/utils/supabase/queries';
 import AdmissionsContent from '@/components/admissions/AdmissionsContent';
+import type { AdmissionsPageSettings } from '@/types/settings';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -11,11 +12,17 @@ export const metadata: Metadata = {
 export const revalidate = 3600; // Cache for 1 hour
 
 export default async function AdmissionsPage() {
-  const faculties = await getAdmissionsData();
+  const [faculties, admissionsSettings] = await Promise.all([
+    getAdmissionsData(),
+    getPageSiteSettings<AdmissionsPageSettings>('admissions')
+  ]);
 
   return (
     <main className="w-full bg-white">
-      <AdmissionsContent faculties={faculties} />
+      <AdmissionsContent 
+        faculties={faculties} 
+        admissionsSettings={admissionsSettings} 
+      />
     </main>
   );
 }

@@ -50,6 +50,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
 
   const navItems = [
     { label: 'CMS Dashboard', href: '/admin', icon: LayoutDashboard },
+    { label: 'Site Settings', href: '/admin/settings', icon: Settings },
     { label: 'Academic Structure', href: '/admin/structure', icon: Building2 },
     { label: 'Programs CMS', href: '/admin/programs', icon: BookOpen },
     { label: 'Admissions CMS', href: '/admin/admissions', icon: GraduationCap },

@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Sparkles, ArrowRight, GraduationCap, ChevronLeft, ChevronRight, Layers, ShieldCheck } from 'lucide-react';
 import { gsap, useGSAP } from '@/lib/gsapConfig';
+import type { HomePageSettings, HeroSettings } from '@/types/settings';
+import { PAGE_SETTINGS_DEFAULTS } from '@/types/settings';
 
 interface HeroSlide {
   id: number;
@@ -14,7 +16,7 @@ interface HeroSlide {
   metric: string;
 }
 
-const heroSlides: HeroSlide[] = [
+const defaultSlides: HeroSlide[] = [
   {
     id: 1,
     image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=85',
@@ -41,7 +43,36 @@ const heroSlides: HeroSlide[] = [
   },
 ];
 
-export default function HeroSection() {
+interface Props {
+  heroSettings?: Partial<HomePageSettings> | HeroSettings;
+}
+
+export default function HeroSection({ heroSettings }: Props) {
+  const fallback = PAGE_SETTINGS_DEFAULTS.home;
+  
+  const badgeText = (heroSettings as HomePageSettings)?.badge_text || (heroSettings as HeroSettings)?.badge_text || fallback.badge_text;
+  const headline = (heroSettings as HomePageSettings)?.hero_headline || (heroSettings as HeroSettings)?.headline || fallback.hero_headline;
+  const subtitle = (heroSettings as HomePageSettings)?.hero_subtitle || (heroSettings as HeroSettings)?.subtitle || fallback.hero_subtitle;
+  const fallbackImage = (heroSettings as HomePageSettings)?.hero_fallback_image_url || (heroSettings as HeroSettings)?.fallback_image_url || fallback.hero_fallback_image_url;
+  
+  const exploreCtaText = (heroSettings as HomePageSettings)?.explore_cta_text || fallback.explore_cta_text;
+  const admissionsCtaText = (heroSettings as HomePageSettings)?.admissions_cta_text || fallback.admissions_cta_text;
+  const accreditationMetric = (heroSettings as HomePageSettings)?.accreditation_metric || fallback.accreditation_metric;
+  const curriculumMetric = (heroSettings as HomePageSettings)?.curriculum_metric || fallback.curriculum_metric;
+
+  // If fallback cover image is provided, customize slide 1
+  const heroSlides = React.useMemo(() => {
+    if (!fallbackImage) return defaultSlides;
+    return [
+      {
+        ...defaultSlides[0],
+        image: fallbackImage,
+        badge: badgeText || defaultSlides[0].badge
+      },
+      ...defaultSlides.slice(1)
+    ];
+  }, [fallbackImage, badgeText]);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const heroContainerRef = useRef<HTMLDivElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
@@ -160,46 +191,46 @@ export default function HeroSection() {
         <div ref={leftColRef} className="space-y-8 text-left">
           
           {/* Badge */}
-          <div className="hero-anim-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-campus-50 border border-campus-200 text-campus-900 text-xs font-bold shadow-2xs">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span>CSE Department 2-Year Anniversary Prototype</span>
+          <div className="hero-anim-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-campus-50 border border-campus-200 text-campus-900 text-xs font-bold shadow-2xs font-bangla">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <span>{badgeText}</span>
           </div>
 
           {/* Massive, tight typography for H1 */}
-          <h1 className="hero-anim-item text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 heading-display leading-[1.06] break-words">
-            Empowering the next generation of engineers.
+          <h1 className="hero-anim-item text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 heading-display leading-[1.06] break-words font-bangla">
+            {headline}
           </h1>
 
           {/* Muted Subtitle */}
-          <p className="hero-anim-item text-lg text-slate-600 font-normal leading-relaxed max-w-lg">
-            EXIM Bank Agricultural University Bangladesh (EBAUB) combines rigorous academic foundations, hands-on engineering, and digital campus workflows.
+          <p className="hero-anim-item text-lg text-slate-600 font-normal leading-relaxed max-w-lg font-bangla">
+            {subtitle}
           </p>
 
-          {/* CTA Button: Primary Deep Green */}
+          {/* CTA Buttons */}
           <div className="hero-anim-item pt-2 flex flex-wrap items-center gap-4">
             <Link
               href="/academics"
-              className="px-8 py-4 rounded-xl bg-campus-800 hover:bg-campus-900 text-white font-bold text-sm sm:text-base shadow-lg flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="px-8 py-4 rounded-xl bg-campus-800 hover:bg-campus-900 text-white font-bold text-sm sm:text-base shadow-lg flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-[0.98] font-bangla"
             >
-              <span>Explore Degree Programs</span>
+              <span>{exploreCtaText}</span>
               <ArrowRight className="w-4 h-4 text-amber-300" />
             </Link>
 
             <Link
               href="/admissions"
-              className="px-8 py-4 rounded-xl bg-campus-100 hover:bg-campus-200 text-slate-800 font-bold text-sm sm:text-base transition-colors"
+              className="px-8 py-4 rounded-xl bg-campus-100 hover:bg-campus-200 text-slate-800 font-bold text-sm sm:text-base transition-colors font-bangla"
             >
-              Admission Guidelines
+              {admissionsCtaText}
             </Link>
           </div>
 
           {/* Trust Metric Micro Row */}
-          <div className="hero-anim-item pt-4 border-t border-slate-100 flex items-center gap-6 text-xs text-slate-500 font-medium">
+          <div className="hero-anim-item pt-4 border-t border-slate-100 flex items-center gap-6 text-xs text-slate-500 font-medium font-bangla">
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-campus-700" /> UGC Bangladesh Approved
+              <ShieldCheck className="w-4 h-4 text-campus-700" /> {accreditationMetric}
             </span>
             <span className="flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-amber-500" /> 160 Credit Curriculum
+              <Layers className="w-4 h-4 text-amber-500" /> {curriculumMetric}
             </span>
           </div>
 
@@ -236,7 +267,7 @@ export default function HeroSection() {
             <div className="relative z-10 p-5 flex items-center justify-between">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-[11px] font-bold shadow-sm border border-white/60">
                 <GraduationCap className="w-3.5 h-3.5 text-campus-800" />
-                <span>{active.badge}</span>
+                <span className="font-bangla">{active.badge}</span>
               </div>
 
               {/* Prev / Next controls */}
@@ -265,19 +296,19 @@ export default function HeroSection() {
                 className="p-5 rounded-xl bg-white/90 backdrop-blur-xl border border-white/80 shadow-xl space-y-3.5 text-slate-900"
               >
                 <div>
-                  <div className="text-[11px] text-campus-800 font-extrabold uppercase tracking-wider">
+                  <div className="text-[11px] text-campus-800 font-extrabold uppercase tracking-wider font-bangla">
                     {active.metric}
                   </div>
-                  <h3 className="font-extrabold text-base sm:text-lg text-slate-900 mt-0.5 leading-snug">
+                  <h3 className="font-extrabold text-base sm:text-lg text-slate-900 mt-0.5 leading-snug font-bangla">
                     {active.title}
                   </h3>
                 </div>
 
                 {/* Progress bar visual */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold">
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold font-bangla">
                     <span>Curriculum Progress</span>
-                    <span className="text-slate-900">{active.credits}</span>
+                    <span className="text-slate-900 font-mono">{active.credits}</span>
                   </div>
                   <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-campus-700 rounded-full w-[85%]" />
@@ -303,7 +334,7 @@ export default function HeroSection() {
 
                   <Link
                     href="/academics"
-                    className="text-campus-800 font-bold hover:underline flex items-center gap-1 text-[11px]"
+                    className="text-campus-800 font-bold hover:underline flex items-center gap-1 text-[11px] font-bangla"
                   >
                     <span>View Syllabus</span>
                     <ArrowRight className="w-3 h-3" />
