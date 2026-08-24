@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Sparkles, ArrowRight, GraduationCap, ChevronLeft, ChevronRight, Layers, ShieldCheck } from 'lucide-react';
 import { gsap, useGSAP } from '@/lib/gsapConfig';
+import type { HeroSettings } from '@/types/settings';
+import { DEFAULT_SITE_SETTINGS } from '@/types/settings';
 
 interface HeroSlide {
   id: number;
@@ -14,7 +16,7 @@ interface HeroSlide {
   metric: string;
 }
 
-const heroSlides: HeroSlide[] = [
+const defaultSlides: HeroSlide[] = [
   {
     id: 1,
     image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=85',
@@ -41,7 +43,26 @@ const heroSlides: HeroSlide[] = [
   },
 ];
 
-export default function HeroSection() {
+interface Props {
+  heroSettings?: HeroSettings;
+}
+
+export default function HeroSection({ heroSettings }: Props) {
+  const currentHero = heroSettings || DEFAULT_SITE_SETTINGS.hero;
+  
+  // If fallback_image_url is provided, customize slide 1
+  const heroSlides = React.useMemo(() => {
+    if (!currentHero.fallback_image_url) return defaultSlides;
+    return [
+      {
+        ...defaultSlides[0],
+        image: currentHero.fallback_image_url,
+        badge: currentHero.badge_text || defaultSlides[0].badge
+      },
+      ...defaultSlides.slice(1)
+    ];
+  }, [currentHero]);
+
   const [currentSlide, setCurrentSlide] = useState(0);
   const heroContainerRef = useRef<HTMLDivElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
@@ -162,17 +183,17 @@ export default function HeroSection() {
           {/* Badge */}
           <div className="hero-anim-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-campus-50 border border-campus-200 text-campus-900 text-xs font-bold shadow-2xs">
             <Sparkles className="w-4 h-4 text-amber-500" />
-            <span>CSE Department 2-Year Anniversary Prototype</span>
+            <span>{currentHero.badge_text || 'CSE Department 2-Year Anniversary Prototype'}</span>
           </div>
 
           {/* Massive, tight typography for H1 */}
           <h1 className="hero-anim-item text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 heading-display leading-[1.06] break-words">
-            Empowering the next generation of engineers.
+            {currentHero.headline || 'Empowering the next generation of engineers.'}
           </h1>
 
           {/* Muted Subtitle */}
           <p className="hero-anim-item text-lg text-slate-600 font-normal leading-relaxed max-w-lg">
-            EXIM Bank Agricultural University Bangladesh (EBAUB) combines rigorous academic foundations, hands-on engineering, and digital campus workflows.
+            {currentHero.subtitle || 'EXIM Bank Agricultural University Bangladesh (EBAUB) combines rigorous academic foundations, hands-on engineering, and digital campus workflows.'}
           </p>
 
           {/* CTA Button: Primary Deep Green */}

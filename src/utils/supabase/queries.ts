@@ -474,3 +474,65 @@ export async function getPageBySlug(slug: string): Promise<Page | null> {
   }
 }
 
+// ==========================================
+// SITE SETTINGS (STATIC CONTENT MANAGER)
+// ==========================================
+
+export * from '@/types/settings';
+import type { GlobalSiteSettings } from '@/types/settings';
+import { DEFAULT_SITE_SETTINGS } from '@/types/settings';
+
+/**
+ * Fetches all global site settings or a specific section ('hero', 'general', 'contact', 'socials').
+ * Gracefully merges with default values if settings don't exist yet in Supabase.
+ */
+export async function getSiteSettings<T = GlobalSiteSettings>(section?: string): Promise<T> {
+  try {
+    const supabase = await createClient();
+
+    let query = supabase.from('site_settings').select('id, data');
+    if (section) {
+      query = query.eq('id', section);
+    }
+
+    const { data, error } = await query;
+
+    if (error || !data || data.length === 0) {
+      if (section && section in DEFAULT_SITE_SETTINGS) {
+        return (DEFAULT_SITE_SETTINGS as any)[section] as T;
+      }
+      return DEFAULT_SITE_SETTINGS as unknown as T;
+    }
+
+    // Build merged settings object
+    const merged: GlobalSiteSettings = {
+      hero: { ...DEFAULT_SITE_SETTINGS.hero },
+      general: { ...DEFAULT_SITE_SETTINGS.general },
+      contact: { ...DEFAULT_SITE_SETTINGS.contact },
+      socials: { ...DEFAULT_SITE_SETTINGS.socials }
+    };
+
+    data.forEach((row: { id: string; data: any }) => {
+      if (row.id in merged) {
+        (merged as any)[row.id] = {
+          ...(merged as any)[row.id],
+          ...(typeof row.data === 'object' && row.data !== null ? row.data : {})
+        };
+      }
+    });
+
+    if (section) {
+      return (merged as any)[section] as T;
+    }
+
+    return merged as unknown as T;
+  } catch (err) {
+    console.error('Error fetching site settings:', err);
+    if (section && section in DEFAULT_SITE_SETTINGS) {
+      return (DEFAULT_SITE_SETTINGS as any)[section] as T;
+    }
+    return DEFAULT_SITE_SETTINGS as unknown as T;
+  }
+}
+
+

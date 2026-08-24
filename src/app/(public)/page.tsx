@@ -8,11 +8,14 @@ import AdmissionsInquirySection from '@/components/home/AdmissionsInquirySection
 import HomeNoticeGridSection from '@/components/home/HomeNoticeGridSection';
 import HomeNewsGridSection from '@/components/home/HomeNewsGridSection';
 import ScrollReveal from '@/components/shared/ScrollReveal';
-import { getLatestNews, getActiveNotices } from '@/utils/supabase/queries';
+import { getLatestNews, getActiveNotices, getSiteSettings } from '@/utils/supabase/queries';
 
 export default async function HomePage() {
-  const news = await getLatestNews();
-  const notices = await getActiveNotices();
+  const [news, notices, settings] = await Promise.all([
+    getLatestNews(),
+    getActiveNotices(),
+    getSiteSettings()
+  ]);
 
   return (
     <div className="w-full flex flex-col">
@@ -20,7 +23,7 @@ export default async function HomePage() {
       {/* 1. Hero & Social Proof */}
       <section className="w-full bg-transparent py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 sm:space-y-20">
-          <HeroSection />
+          <HeroSection heroSettings={settings.hero} />
           <SocialProofStrip />
         </div>
       </section>
