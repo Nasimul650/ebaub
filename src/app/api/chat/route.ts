@@ -107,21 +107,57 @@ async function searchInternalDatabase(query: string): Promise<string> {
   }
 }
 
+// Helper to detect conversational messages, greetings, and basic math to skip external searches
+function isConversationalOrMath(query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (q.length < 3) return true;
+
+  const greetings = [
+    'hi', 'hello', 'hey', 'assalam', 'assalamualaikum', 'good morning',
+    'good afternoon', 'good evening', 'thanks', 'thank you', 'ok', 'okay',
+    'bye', 'goodbye', 'who are you', 'what can you do', 'help'
+  ];
+  if (greetings.some(g => q === g || q.startsWith(g + ' ') || q.startsWith(g + '?') || q.startsWith(g + '!'))) {
+    return true;
+  }
+
+  // Basic math check (e.g. "1+1", "5 * 10", "what is 2 + 2")
+  if (/^(\d+[\s+\-*/^=]+\d+|what is \d+[\s+\-*/^=]+\d+)/i.test(q)) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-    const lastUserMessage = messages?.slice().reverse().find((m: any) => m.role === 'user')?.content || '';
+    const lastUserMessage = messages?.slice().reverse().find((m: any) => m.role === 'user')?.content?.trim() || '';
 
-    // Fast parallel fetch for global data, query-specific DB records, and Tavily live search
-    const [news, notices, programs, aboutPage, faculties, targetedDbResults, liveWebResults] = await Promise.all([
+    // Step 1: Always load base university structure & latest updates
+    const [news, notices, programs, aboutPage, faculties] = await Promise.all([
       getLatestNews(4),
       getActiveNotices(4),
       getAllPrograms(),
       getPageBySlug('about'),
-      getFacultiesWithDepartments(),
-      lastUserMessage.length > 2 ? searchInternalDatabase(lastUserMessage) : Promise.resolve(''),
-      lastUserMessage.length > 3 ? searchWebContext(lastUserMessage) : Promise.resolve('')
+      getFacultiesWithDepartments()
     ]);
+
+    let targetedDbResults = '';
+    let liveWebResults = '';
+
+    const isNonSearch = isConversationalOrMath(lastUserMessage);
+
+    // Step 2: Database-First Search (Supabase)
+    if (!isNonSearch && lastUserMessage.length > 2) {
+      targetedDbResults = await searchInternalDatabase(lastUserMessage);
+    }
+
+    // Step 3: Fallback to Tavily ONLY IF internal database found nothing and query is university-related
+    // If the database already answered or query is general, Tavily is completely bypassed
+    if (!isNonSearch && !targetedDbResults && lastUserMessage.length > 3) {
+      liveWebResults = await searchWebContext(lastUserMessage);
+    }
 
     const dynamicContext = formatContextData(news, notices, programs, aboutPage, faculties);
 
@@ -139,7 +175,7 @@ ${targetedDbResults ? `\nTARGETED DATABASE MATCHES:\n${targetedDbResults}` : ''}
 ${liveWebResults ? `\nLIVE UNIVERSITY SOCIAL MEDIA & ONLINE CONTEXT (OFFICIAL FACEBOOK / WEB):\n${liveWebResults}` : ''}
 
 INSTRUCTIONS:
-1. When asked about specific events, festivals, workshops, notices, or news (even if posted on the official Facebook page or portal), use the provided context to answer thoroughly and enthusiastically with dates, venues, themes, and key highlights.
+1. When asked about specific events, festivals, workshops, notices, or news (including from the official Facebook page or portal), use the provided context to answer thoroughly and enthusiastically with dates, venues, themes, and key highlights.
 2. For general university queries (programs, admissions, departments, tuition, contact), answer clearly and accurately using the context.
 3. For general knowledge or math questions, answer directly and concisely using your native intelligence.
 4. FORMATTING: Use clean, human-friendly formatting. Do NOT use raw LaTeX math delimiters like '$' or '$$'. Use bullet points and bold text for easy reading.
