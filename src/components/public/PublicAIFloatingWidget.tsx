@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useChat } from 'ai/react';
 import { Bot, X, Send, Sparkles, Loader2, ArrowUp } from 'lucide-react';
+import AIMessageContent from '@/components/shared/AIMessageContent';
 
 export default function PublicAIFloatingWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -167,10 +168,10 @@ export default function PublicAIFloatingWidget() {
                   className={`max-w-[85%] p-3.5 rounded-2xl leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-campus-900 text-white rounded-br-none shadow-md'
-                      : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none whitespace-pre-line shadow-sm'
+                      : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm'
                   }`}
                 >
-                  <div>{msg.content}</div>
+                  <AIMessageContent content={msg.content} isUser={msg.role === 'user'} />
                 </div>
               </div>
             ))}

@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import AIMessageContent from '@/components/shared/AIMessageContent';
 
 interface Message {
   role: string;
@@ -28,10 +29,10 @@ export default function AIChatFeed({ messages, loading }: Props) {
             className={`max-w-[85%] p-4 rounded-2xl leading-relaxed ${
               m.role === 'student'
                 ? 'bg-blue-600 text-white rounded-br-none shadow-xs'
-                : 'bg-campus-50 text-slate-800 border border-slate-200 rounded-bl-none whitespace-pre-line shadow-2xs'
+                : 'bg-campus-50 text-slate-800 border border-slate-200 rounded-bl-none shadow-2xs'
             }`}
           >
-            {m.content}
+            <AIMessageContent content={m.content} isUser={m.role === 'student'} />
           </div>
         </div>
       ))}
