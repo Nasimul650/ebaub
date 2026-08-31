@@ -133,32 +133,32 @@ export default function HeroSection({ heroSettings }: Props) {
       <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div ref={contentRef} className="max-w-3xl space-y-8">
           
-          <div className="hero-anim-item inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs sm:text-sm font-bold tracking-widest uppercase font-bangla backdrop-blur-sm">
+          <div className="hero-anim-item inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] sm:text-xs font-bold tracking-widest uppercase font-bangla backdrop-blur-sm">
             {badgeText}
           </div>
 
-          <h1 className="hero-anim-item text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight heading-display leading-[1.1] font-bangla drop-shadow-xl">
+          <h1 className="hero-anim-item text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight heading-display leading-[1.15] font-bangla drop-shadow-xl">
             {headline}
           </h1>
 
-          <p className="hero-anim-item text-lg sm:text-xl text-slate-300 font-medium leading-relaxed font-bangla max-w-2xl drop-shadow-lg">
+          <p className="hero-anim-item text-base sm:text-lg text-slate-300 font-medium leading-relaxed font-bangla max-w-2xl drop-shadow-lg">
             {subtitle}
           </p>
 
-          <div className="hero-anim-item flex flex-col sm:flex-row items-center gap-5 pt-4">
+          <div className="hero-anim-item flex flex-col sm:flex-row items-center gap-4 pt-4">
             <Link
               href="/admissions"
-              className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-base transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 font-bangla shadow-lg shadow-emerald-900/50"
+              className="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 font-bangla shadow-lg shadow-emerald-900/50"
             >
               <span>{admissionsCtaText}</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
               href="/academics"
-              className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl font-bold text-base transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 font-bangla"
+              className="w-full sm:w-auto px-7 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 font-bangla"
             >
-              <Play className="w-5 h-5" fill="currentColor" />
+              <Play className="w-4 h-4" fill="currentColor" />
               <span>{exploreCtaText}</span>
             </Link>
           </div>
