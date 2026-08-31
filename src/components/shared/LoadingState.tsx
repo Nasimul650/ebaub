@@ -8,7 +8,7 @@ interface LoadingStateProps {
 export default function LoadingState({ message = 'Loading...', fullScreen = false }: LoadingStateProps) {
   const containerClasses = fullScreen
     ? "fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-md"
-    : "w-full flex flex-col items-center justify-center min-h-[400px] p-8";
+    : "w-full flex flex-col items-center justify-center min-h-screen p-8";
 
   return (
     <div className={`${containerClasses}`}>
