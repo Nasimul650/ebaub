@@ -105,6 +105,14 @@ export default function HeroSection({ heroSettings }: Props) {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
 
+  // Autoplay feature: Advance slide every 5 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      nextSlide();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [currentSlide, heroSlides.length]);
+
   return (
     <div ref={heroContainerRef} className="relative w-full h-[75vh] min-h-[600px] flex items-center bg-black overflow-hidden">
       
@@ -133,7 +141,7 @@ export default function HeroSection({ heroSettings }: Props) {
       <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div ref={contentRef} className="max-w-3xl space-y-8">
           
-          <div className="hero-anim-item inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] sm:text-xs font-bold tracking-widest uppercase font-bangla backdrop-blur-sm">
+          <div className="hero-anim-item inline-flex items-center px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] sm:text-xs font-bold tracking-widest uppercase font-bangla backdrop-blur-sm">
             {badgeText}
           </div>
 
@@ -148,7 +156,7 @@ export default function HeroSection({ heroSettings }: Props) {
           <div className="hero-anim-item flex flex-col sm:flex-row items-center gap-4 pt-4">
             <Link
               href="/admissions"
-              className="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 font-bangla shadow-lg shadow-emerald-900/50"
+              className="w-full sm:w-auto px-7 py-3.5 bg-amber-500 hover:bg-amber-400 text-campus-950 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 font-bangla shadow-lg shadow-amber-900/20"
             >
               <span className="leading-none translate-y-[1px]">{admissionsCtaText}</span>
               <ArrowRight className="w-4 h-4" />
@@ -191,7 +199,7 @@ export default function HeroSection({ heroSettings }: Props) {
             onClick={() => setCurrentSlide(idx)}
             aria-label={`Go to slide ${idx + 1}`}
             className={`transition-all duration-300 rounded-full ${
-              idx === currentSlide ? 'w-10 h-2.5 bg-emerald-500' : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/60'
+              idx === currentSlide ? 'w-10 h-2.5 bg-amber-500' : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/60'
             }`}
           />
         ))}
