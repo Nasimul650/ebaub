@@ -148,18 +148,18 @@ export default function HeroSection({ heroSettings }: Props) {
           <div className="hero-anim-item flex flex-col sm:flex-row items-center gap-4 pt-4">
             <Link
               href="/admissions"
-              className="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 font-bangla shadow-lg shadow-emerald-900/50"
+              className="w-full sm:w-auto px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 font-bangla shadow-lg shadow-emerald-900/50"
             >
-              <span>{admissionsCtaText}</span>
+              <span className="leading-none translate-y-[1px]">{admissionsCtaText}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
               href="/academics"
-              className="w-full sm:w-auto px-7 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 font-bangla"
+              className="w-full sm:w-auto px-7 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 font-bangla"
             >
               <Play className="w-4 h-4" fill="currentColor" />
-              <span>{exploreCtaText}</span>
+              <span className="leading-none translate-y-[1px]">{exploreCtaText}</span>
             </Link>
           </div>
         </div>
