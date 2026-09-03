@@ -21,10 +21,14 @@ export default async function HomePage() {
   return (
     <div className="w-full flex flex-col">
       
-      {/* 1. Hero & Social Proof */}
-      <section className="w-full bg-transparent py-16 sm:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 sm:space-y-20">
-          <HeroSection heroSettings={homeSettings} />
+      {/* 1. Hero Section (Full Bleed) */}
+      <section className="w-full">
+        <HeroSection heroSettings={homeSettings} />
+      </section>
+
+      {/* 1.5 Social Proof */}
+      <section className="w-full bg-transparent pb-16 sm:pb-24 pt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SocialProofStrip />
         </div>
       </section>
