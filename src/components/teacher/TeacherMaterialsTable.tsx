@@ -14,12 +14,14 @@ import {
   Presentation, 
   Loader2, 
   AlertTriangle,
-  FolderOpen
+  FolderOpen,
+  Eye
 } from 'lucide-react';
 import type { CourseMaterial } from '@/types';
 import { formatFileSize } from '@/lib/utils';
 import { deleteCourseMaterial } from '@/app/actions/teacher';
 import UploadMaterialDialog from './UploadMaterialDialog';
+import ViewMaterialDialog from './ViewMaterialDialog';
 import { 
   Dialog, 
   DialogContent, 
@@ -38,6 +40,7 @@ export default function TeacherMaterialsTable({ initialMaterials }: TeacherMater
   const [selectedCourse, setSelectedCourse] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isUploadOpen, setIsUploadOpen] = useState<boolean>(false);
+  const [viewingMaterial, setViewingMaterial] = useState<CourseMaterial | null>(null);
 
   // Delete modal state
   const [deletingMaterial, setDeletingMaterial] = useState<CourseMaterial | null>(null);
@@ -234,13 +237,23 @@ export default function TeacherMaterialsTable({ initialMaterials }: TeacherMater
                   {/* Actions */}
                   <td className="p-4 text-right">
                     <div className="inline-flex items-center gap-1.5 justify-end">
-                      {/* View / Download */}
+                      {/* In-App Document Preview */}
+                      <button
+                        onClick={() => setViewingMaterial(mat)}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 hover:bg-campus-100 text-slate-600 hover:text-campus-900 transition-colors"
+                        title="View / Preview Document"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Download */}
                       <a
                         href={mat.file_url}
+                        download={mat.file_name}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 hover:bg-campus-100 text-slate-600 hover:text-campus-900 transition-colors"
-                        title="Download / View File"
+                        title="Download File"
                       >
                         <Download className="w-3.5 h-3.5" />
                       </a>
@@ -368,6 +381,13 @@ export default function TeacherMaterialsTable({ initialMaterials }: TeacherMater
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* In-App Document Preview Modal */}
+      <ViewMaterialDialog
+        material={viewingMaterial}
+        isOpen={!!viewingMaterial}
+        onClose={() => setViewingMaterial(null)}
+      />
     </div>
   );
 }
