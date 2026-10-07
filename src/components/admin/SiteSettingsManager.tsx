@@ -387,6 +387,105 @@ export default function SiteSettingsManager({ initialSettings }: Props) {
                   </div>
                 </div>
 
+                {/* DYNAMIC SLIDES MANAGER */}
+                <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-campus-600" />
+                        Dynamic Hero Carousel
+                      </h3>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Add multiple slides. If empty, the fallback image above will be used.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHomeData(prev => ({
+                          ...prev,
+                          hero_slides: [...(prev.hero_slides || []), { id: Date.now().toString(), image_url: '', badge_text: '', title: '' }]
+                        }));
+                      }}
+                      className="px-3 py-1.5 bg-campus-100 hover:bg-campus-200 text-campus-900 rounded-lg text-xs font-bold transition-colors"
+                    >
+                      + Add Slide
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {(homeData.hero_slides || []).map((slide, idx) => (
+                      <div key={slide.id} className="p-3 bg-white border border-slate-200 rounded-lg space-y-3 relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setHomeData(prev => {
+                              const slides = [...(prev.hero_slides || [])];
+                              slides.splice(idx, 1);
+                              return { ...prev, hero_slides: slides };
+                            });
+                          }}
+                          className="absolute top-2 right-2 p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors"
+                          title="Remove Slide"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        
+                        <div className="pr-8">
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Image URL *</label>
+                          <input
+                            type="url"
+                            value={slide.image_url}
+                            onChange={(e) => {
+                              const slides = [...(homeData.hero_slides || [])];
+                              slides[idx].image_url = e.target.value;
+                              setHomeData({ ...homeData, hero_slides: slides });
+                            }}
+                            placeholder="https://..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-1.5 text-xs focus:ring-1 focus:ring-campus-500 font-mono"
+                            required
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Title Overlay</label>
+                            <input
+                              type="text"
+                              value={slide.title || ''}
+                              onChange={(e) => {
+                                const slides = [...(homeData.hero_slides || [])];
+                                slides[idx].title = e.target.value;
+                                setHomeData({ ...homeData, hero_slides: slides });
+                              }}
+                              placeholder="Slide Title (optional)"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-1.5 text-xs focus:ring-1 focus:ring-campus-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Badge Text</label>
+                            <input
+                              type="text"
+                              value={slide.badge_text || ''}
+                              onChange={(e) => {
+                                const slides = [...(homeData.hero_slides || [])];
+                                slides[idx].badge_text = e.target.value;
+                                setHomeData({ ...homeData, hero_slides: slides });
+                              }}
+                              placeholder="Badge (optional)"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-1.5 text-xs focus:ring-1 focus:ring-campus-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {(!homeData.hero_slides || homeData.hero_slides.length === 0) && (
+                      <div className="text-center py-6 text-slate-400 text-xs italic">
+                        No dynamic slides added. The fallback image will be used.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
