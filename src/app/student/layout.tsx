@@ -1,19 +1,31 @@
 import React from 'react';
 import StudentSidebar from '@/components/student/StudentSidebar';
 import { createClient } from '@/utils/supabase/server';
+import { redirect } from 'next/navigation';
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
-  let profile = null;
-  if (user) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    profile = data;
+
+  if (!user) {
+    redirect('/login?portal=student');
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const rawRole = (profile?.role || user.user_metadata?.role || 'student').toString().toLowerCase();
+
+  // Secondary Server-Side Guard: Strictly allow Students only
+  if (rawRole !== 'student') {
+    if (rawRole === 'admin') {
+      redirect('/admin');
+    } else if (rawRole === 'teacher') {
+      redirect('/teacher');
+    }
   }
 
   return (

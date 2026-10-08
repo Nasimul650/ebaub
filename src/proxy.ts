@@ -5,6 +5,10 @@ export async function proxy(request: NextRequest) {
   return await updateSession(request)
 }
 
+// Export middleware alias for backward compatibility
+export const middleware = proxy
+export default proxy
+
 export const config = {
   matcher: [
     /*
@@ -12,7 +16,6 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
