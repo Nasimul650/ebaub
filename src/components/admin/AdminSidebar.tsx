@@ -19,7 +19,8 @@ import {
   Users,
   Mail,
   GraduationCap,
-  FileText
+  FileText,
+  UserCheck
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 
@@ -50,6 +51,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
 
   const navItems = [
     { label: 'CMS Dashboard', href: '/admin', icon: LayoutDashboard },
+    { label: 'User Accounts', href: '/admin/users', icon: UserCheck },
     { label: 'Site Settings', href: '/admin/settings', icon: Settings },
     { label: 'Academic Structure', href: '/admin/structure', icon: Building2 },
     { label: 'Programs CMS', href: '/admin/programs', icon: BookOpen },
@@ -124,7 +126,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
       <nav className={`p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden text-xs font-semibold custom-scrollbar ${!isMobileOpen ? 'hidden md:block' : 'block'}`}>
         {navItems.map(item => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}

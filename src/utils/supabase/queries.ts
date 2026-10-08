@@ -670,6 +670,96 @@ export async function getAllDepartments(): Promise<DepartmentOption[]> {
   }
 }
 
+export interface DepartmentWithFaculty {
+  id: string;
+  name: string;
+  code?: string;
+  faculty_id: string;
+  faculty_name?: string;
+}
+
+/**
+ * Fetches all departments joined with their parent faculty details
+ * to populate administrative dropdowns cleanly.
+ */
+export async function getDepartmentsWithFaculty(): Promise<DepartmentWithFaculty[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('departments')
+      .select('id, name, faculty_id, faculties(id, name)')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.warn('Error fetching departments with faculties join, trying basic select:', error.message);
+      const fallback = await supabase
+        .from('departments')
+        .select('id, name, faculty_id')
+        .order('name', { ascending: true });
+      return (fallback.data || []).map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        faculty_id: row.faculty_id,
+      }));
+    }
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      faculty_id: row.faculty_id,
+      faculty_name: Array.isArray(row.faculties) ? row.faculties[0]?.name : (row.faculties?.name || undefined),
+    }));
+  } catch (err) {
+    console.error('Unexpected error fetching departments with faculty:', err);
+    return [];
+  }
+}
+
+export interface UserProfileItem {
+  id: string;
+  institutional_id: string | null;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  role: string;
+  department_id: string | null;
+  faculty_id: string | null;
+  created_at: string;
+  department?: { id: string; name: string } | null;
+}
+
+/**
+ * Fetches university profiles for the Admin User Management dashboard.
+ */
+export async function getUniversityProfiles(roleFilter?: string): Promise<UserProfileItem[]> {
+  try {
+    const supabase = await createClient();
+    let query = supabase
+      .from('profiles')
+      .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, created_at, departments(id, name)')
+      .order('created_at', { ascending: false });
+
+    if (roleFilter && roleFilter !== 'ALL') {
+      query = query.eq('role', roleFilter.toUpperCase());
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Error fetching university profiles:', error.message);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      ...row,
+      department: row.departments || null,
+    }));
+  } catch (err) {
+    console.error('Unexpected error fetching university profiles:', err);
+    return [];
+  }
+}
+
 /**
  * Grabs the teacher's registered default department ID from profiles, teachers, or faculty_members.
  */
