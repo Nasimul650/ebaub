@@ -75,7 +75,7 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
             </div>
             <div>
               <div className="font-extrabold text-base tracking-tight text-slate-900 flex items-center gap-1.5">
-                EBAUB <span className="hidden sm:inline-block text-campus-800 font-semibold text-[11px] px-2 py-0.5 bg-campus-50 border border-campus-200 rounded-md">Campus</span>
+                EBAUB <span className="inline-block text-campus-800 font-semibold text-[10px] sm:text-[11px] px-2 py-0.5 bg-campus-50 border border-campus-200 rounded-md whitespace-nowrap">Digital Campus</span>
               </div>
               <p className="hidden sm:block text-[10px] text-slate-500 font-medium truncate max-w-[200px] lg:max-w-none">EXIM Bank Agricultural University</p>
             </div>

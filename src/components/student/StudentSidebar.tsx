@@ -91,7 +91,7 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
           </div>
           <div className={`transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
             <div className="font-extrabold text-sm text-white truncate">Student Hub</div>
-            <div className="text-[10px] text-campus-200 font-bold uppercase truncate">EBAUB Campus</div>
+            <div className="text-[10px] text-campus-200 font-bold uppercase truncate">EBAUB Digital Campus</div>
           </div>
         </Link>
       </div>

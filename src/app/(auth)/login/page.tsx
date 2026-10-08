@@ -77,7 +77,7 @@ function LoginFormContent() {
           <div className="w-10 h-10 rounded-xl bg-campus-900 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
             <GraduationCap className="w-5 h-5 text-campus-400" />
           </div>
-          <span className="font-extrabold text-xl text-slate-900 tracking-tight heading-display">EBAUB</span>
+          <span className="font-extrabold text-xl text-slate-900 tracking-tight heading-display">EBAUB Digital Campus</span>
         </Link>
 
         {/* Portal Destination Badge */}

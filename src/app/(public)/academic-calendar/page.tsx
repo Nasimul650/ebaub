@@ -4,7 +4,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import { getAcademicCalendar } from '@/utils/supabase/queries';
 
 export const metadata = {
-  title: 'Academic Calendar | EBAUB',
+  title: 'Academic Calendar | EBAUB Digital Campus',
   description: 'View the full academic calendar for EXIM Bank Agricultural University Bangladesh',
 };
 

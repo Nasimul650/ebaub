@@ -7,7 +7,7 @@ import { PAGE_SETTINGS_DEFAULTS } from '@/types/settings';
 import { Sparkles, Briefcase, ArrowRight } from 'lucide-react';
 
 export const metadata = {
-  title: 'Faculty Directory | EBAUB',
+  title: 'Faculty Directory | EBAUB Digital Campus',
   description: 'Meet the distinguished faculty members and academic staff at EXIM Bank Agricultural University Bangladesh',
 };
 

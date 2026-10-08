@@ -7,7 +7,7 @@ import type { StudentLifePageSettings } from '@/types/settings';
 import { PAGE_SETTINGS_DEFAULTS } from '@/types/settings';
 
 export const metadata = {
-  title: 'Campus Events & Student Life | EBAUB',
+  title: 'Campus Events & Student Life | EBAUB Digital Campus',
   description: 'Upcoming events and campus activities at EXIM Bank Agricultural University Bangladesh',
 };
 

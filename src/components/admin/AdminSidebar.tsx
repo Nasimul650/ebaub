@@ -109,7 +109,7 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
           </div>
           <div className={`transition-all duration-300 ${isCollapsed && !isMobileOpen ? 'md:opacity-0 md:w-0' : 'opacity-100 w-auto'}`}>
             <div className="font-extrabold text-sm text-white truncate">Headless CMS</div>
-            <div className="text-[10px] text-campus-200 font-bold uppercase truncate">EBAUB Admin</div>
+            <div className="text-[10px] text-campus-200 font-bold uppercase truncate">EBAUB Digital Campus</div>
           </div>
         </Link>
         <button 
