@@ -173,6 +173,7 @@ export interface DepartmentOption {
   id: string;
   name: string;
   faculty_id?: string;
+  faculty_name?: string;
 }
 
 export interface CourseMaterial {
@@ -186,6 +187,8 @@ export interface CourseMaterial {
   file_type: string;
   created_at: string;
   departments?: DepartmentOption[];
+  teacher_name?: string;
+  teacher_email?: string;
 }
 
 export interface QuizQuestion {

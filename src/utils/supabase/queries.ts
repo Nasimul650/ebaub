@@ -858,14 +858,71 @@ export async function getStudentDefaultDepartment(studentId: string): Promise<st
 }
 
 /**
- * Fetches course materials uploaded by a specific teacher, including joined tagged departments.
+ * Helper to enrich course material rows with resolved teacher uploader profiles
+ * and department + faculty metadata.
+ */
+async function enrichMaterialsWithDetails(supabase: any, rawData: any[]): Promise<CourseMaterial[]> {
+  if (!rawData || rawData.length === 0) return [];
+
+  // Extract unique teacher IDs
+  const teacherIds = Array.from(new Set(rawData.map((r: any) => r.teacher_id).filter(Boolean)));
+  const profileMap: Record<string, { full_name: string; email: string }> = {};
+
+  if (teacherIds.length > 0) {
+    try {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, first_name, last_name, email')
+        .in('id', teacherIds);
+
+      if (profiles) {
+        profiles.forEach((p: any) => {
+          const name = p.full_name || (p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : '') || p.email;
+          profileMap[p.id] = { full_name: name, email: p.email };
+        });
+      }
+    } catch (e) {
+      console.warn('Could not enrich materials with teacher profiles:', e);
+    }
+  }
+
+  return rawData.map((row: any) => {
+    const depts: DepartmentOption[] = (row.course_material_departments || [])
+      .map((cmd: any) => {
+        const dept = cmd.departments;
+        if (!dept) return null;
+        const facName = Array.isArray(dept.faculties)
+          ? dept.faculties[0]?.name
+          : dept.faculties?.name || undefined;
+        return {
+          id: dept.id,
+          name: dept.name,
+          faculty_id: dept.faculty_id,
+          faculty_name: facName,
+        };
+      })
+      .filter(Boolean);
+
+    const profile = profileMap[row.teacher_id];
+
+    return {
+      ...row,
+      departments: depts,
+      teacher_name: profile?.full_name || undefined,
+      teacher_email: profile?.email || undefined,
+    };
+  });
+}
+
+/**
+ * Fetches course materials uploaded by a specific teacher, including joined tagged departments and faculties.
  */
 export async function getTeacherMaterials(teacherId: string): Promise<CourseMaterial[]> {
   try {
     const supabase = await createClient();
     let query = supabase
       .from('course_materials')
-      .select('*, course_material_departments(department_id, departments(id, name))')
+      .select('*, course_material_departments(department_id, departments(id, name, faculty_id, faculties(id, name)))')
       .order('created_at', { ascending: false });
 
     if (teacherId && teacherId.trim() !== '') {
@@ -883,14 +940,33 @@ export async function getTeacherMaterials(teacherId: string): Promise<CourseMate
       return (fallbackQuery.data || []) as CourseMaterial[];
     }
 
-    return (data || []).map((row: any) => ({
-      ...row,
-      departments: (row.course_material_departments || [])
-        .map((cmd: any) => cmd.departments)
-        .filter(Boolean),
-    })) as CourseMaterial[];
+    return await enrichMaterialsWithDetails(supabase, data || []);
   } catch (err) {
     console.error('Unexpected error fetching course materials:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetches all course materials across the entire university,
+ * including tagged departments with faculty and teacher uploader profiles.
+ */
+export async function getAllCourseMaterials(): Promise<CourseMaterial[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('course_materials')
+      .select('*, course_material_departments(department_id, departments(id, name, faculty_id, faculties(id, name)))')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all course materials:', error.message);
+      return [];
+    }
+
+    return await enrichMaterialsWithDetails(supabase, data || []);
+  } catch (err) {
+    console.error('Unexpected error fetching all course materials:', err);
     return [];
   }
 }
@@ -915,7 +991,7 @@ export async function getCourseMaterialsForStudent({
 
     let query = supabase
       .from('course_materials')
-      .select('*, course_material_departments(department_id, departments(id, name))')
+      .select('*, course_material_departments(department_id, departments(id, name, faculty_id, faculties(id, name)))')
       .order('created_at', { ascending: false });
 
     if (searchQuery && searchQuery.trim() !== '') {
@@ -930,12 +1006,7 @@ export async function getCourseMaterialsForStudent({
       return [];
     }
 
-    let materials: CourseMaterial[] = (data || []).map((row: any) => ({
-      ...row,
-      departments: (row.course_material_departments || [])
-        .map((cmd: any) => cmd.departments)
-        .filter(Boolean),
-    }));
+    let materials: CourseMaterial[] = await enrichMaterialsWithDetails(supabase, data || []);
 
     // If a specific department is chosen (and not 'all')
     if (selectedDepartmentId && selectedDepartmentId !== 'all') {
