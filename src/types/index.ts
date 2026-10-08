@@ -169,6 +169,12 @@ export interface TeachingMaterial {
   createdAt: string;
 }
 
+export interface DepartmentOption {
+  id: string;
+  name: string;
+  faculty_id?: string;
+}
+
 export interface CourseMaterial {
   id: string;
   teacher_id: string;
@@ -179,6 +185,7 @@ export interface CourseMaterial {
   file_size: number;
   file_type: string;
   created_at: string;
+  departments?: DepartmentOption[];
 }
 
 export interface QuizQuestion {

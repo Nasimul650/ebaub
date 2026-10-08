@@ -100,7 +100,7 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
       <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden text-xs font-semibold custom-scrollbar">
         {navItems.map(item => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href === '/student/files' && pathname.startsWith('/student/materials'));
           return (
             <Link
               key={item.href}

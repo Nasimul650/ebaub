@@ -641,22 +641,141 @@ export async function getSiteSettings<T = GlobalSiteSettings>(section?: string):
 }
 
 // ==========================================
-// COURSE MATERIALS (TEACHER WORKSPACE)
+// COURSE MATERIALS & MULTI-DEPARTMENT TAGGING
 // ==========================================
 
-import type { CourseMaterial } from '@/types';
-export type { CourseMaterial };
+import type { CourseMaterial, DepartmentOption } from '@/types';
+export type { CourseMaterial, DepartmentOption };
 
 /**
- * Fetches all course materials uploaded by a specific teacher, ordered by created_at descending.
- * Returns an empty array gracefully on database error or missing table.
+ * Fetches all available departments across the university.
+ */
+export async function getAllDepartments(): Promise<DepartmentOption[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('departments')
+      .select('id, name, faculty_id')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching departments:', error.message);
+      return [];
+    }
+
+    return (data || []) as DepartmentOption[];
+  } catch (err) {
+    console.error('Unexpected error fetching departments:', err);
+    return [];
+  }
+}
+
+/**
+ * Grabs the teacher's registered default department ID from profiles, teachers, or faculty_members.
+ */
+export async function getTeacherDefaultDepartment(teacherId: string): Promise<string | null> {
+  if (!teacherId || teacherId.trim() === '') return null;
+  try {
+    const supabase = await createClient();
+
+    // 1. Check profiles table department_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department_id')
+      .eq('id', teacherId)
+      .single();
+
+    if (profile?.department_id) {
+      return profile.department_id;
+    }
+
+    // 2. Check teachers extension table
+    const { data: teacher } = await supabase
+      .from('teachers')
+      .select('department_id')
+      .eq('id', teacherId)
+      .single();
+
+    if (teacher?.department_id) {
+      return teacher.department_id;
+    }
+
+    // 3. Fallback: check faculty_members table by matching user email
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', teacherId)
+      .single();
+
+    if (userProfile?.email) {
+      const { data: facultyMember } = await supabase
+        .from('faculty_members')
+        .select('department_id')
+        .eq('email', userProfile.email)
+        .single();
+
+      if (facultyMember?.department_id) {
+        return facultyMember.department_id;
+      }
+    }
+
+    // 4. Fallback to first department
+    const { data: firstDept } = await supabase
+      .from('departments')
+      .select('id')
+      .order('name', { ascending: true })
+      .limit(1)
+      .single();
+
+    return firstDept?.id || null;
+  } catch (err) {
+    console.error('Error getting teacher default department:', err);
+    return null;
+  }
+}
+
+/**
+ * Grabs the student's registered default department ID.
+ */
+export async function getStudentDefaultDepartment(studentId: string): Promise<string | null> {
+  if (!studentId || studentId.trim() === '') return null;
+  try {
+    const supabase = await createClient();
+
+    // 1. Check profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department_id')
+      .eq('id', studentId)
+      .single();
+
+    if (profile?.department_id) {
+      return profile.department_id;
+    }
+
+    // 2. Check students extension table
+    const { data: student } = await supabase
+      .from('students')
+      .select('department_id')
+      .eq('id', studentId)
+      .single();
+
+    return student?.department_id || null;
+  } catch (err) {
+    console.error('Error getting student default department:', err);
+    return null;
+  }
+}
+
+/**
+ * Fetches course materials uploaded by a specific teacher, including joined tagged departments.
  */
 export async function getTeacherMaterials(teacherId: string): Promise<CourseMaterial[]> {
   try {
     const supabase = await createClient();
     let query = supabase
       .from('course_materials')
-      .select('*')
+      .select('*, course_material_departments(department_id, departments(id, name))')
       .order('created_at', { ascending: false });
 
     if (teacherId && teacherId.trim() !== '') {
@@ -666,13 +785,89 @@ export async function getTeacherMaterials(teacherId: string): Promise<CourseMate
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching teacher course materials:', error.message);
+      console.warn('Error fetching teacher materials with junction, trying base query:', error.message);
+      const fallbackQuery = await supabase
+        .from('course_materials')
+        .select('*')
+        .order('created_at', { ascending: false });
+      return (fallbackQuery.data || []) as CourseMaterial[];
+    }
+
+    return (data || []).map((row: any) => ({
+      ...row,
+      departments: (row.course_material_departments || [])
+        .map((cmd: any) => cmd.departments)
+        .filter(Boolean),
+    })) as CourseMaterial[];
+  } catch (err) {
+    console.error('Unexpected error fetching course materials:', err);
+    return [];
+  }
+}
+
+export interface StudentMaterialsFilter {
+  selectedDepartmentId?: string;
+  searchQuery?: string;
+  studentDeptId?: string;
+}
+
+/**
+ * Fetches course materials for students with department filtering, search,
+ * and smart sorting where materials matching the student's own department appear first.
+ */
+export async function getCourseMaterialsForStudent({
+  selectedDepartmentId,
+  searchQuery,
+  studentDeptId,
+}: StudentMaterialsFilter = {}): Promise<CourseMaterial[]> {
+  try {
+    const supabase = await createClient();
+
+    let query = supabase
+      .from('course_materials')
+      .select('*, course_material_departments(department_id, departments(id, name))')
+      .order('created_at', { ascending: false });
+
+    if (searchQuery && searchQuery.trim() !== '') {
+      const term = `%${searchQuery.trim()}%`;
+      query = query.or(`title.ilike.${term},course_code.ilike.${term},file_name.ilike.${term}`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching student course materials:', error.message);
       return [];
     }
 
-    return (data || []) as CourseMaterial[];
+    let materials: CourseMaterial[] = (data || []).map((row: any) => ({
+      ...row,
+      departments: (row.course_material_departments || [])
+        .map((cmd: any) => cmd.departments)
+        .filter(Boolean),
+    }));
+
+    // If a specific department is chosen (and not 'all')
+    if (selectedDepartmentId && selectedDepartmentId !== 'all') {
+      materials = materials.filter((m) =>
+        m.departments && m.departments.some((d) => d.id === selectedDepartmentId)
+      );
+    } else if (studentDeptId) {
+      // If "all" or omitted, order so materials matching student's department appear first
+      materials.sort((a, b) => {
+        const aMatches = a.departments?.some((d) => d.id === studentDeptId) ? 1 : 0;
+        const bMatches = b.departments?.some((d) => d.id === studentDeptId) ? 1 : 0;
+
+        if (bMatches !== aMatches) {
+          return bMatches - aMatches; // matching department first
+        }
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+    }
+
+    return materials;
   } catch (err) {
-    console.error('Unexpected error fetching course materials:', err);
+    console.error('Unexpected error fetching student materials:', err);
     return [];
   }
 }

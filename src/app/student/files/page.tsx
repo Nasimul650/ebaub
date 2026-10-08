@@ -1,18 +1,34 @@
 import React from 'react';
-import { getTeachingMaterials } from '@/lib/mock/mockServices';
-import CourseFilesTable from '@/components/student/CourseFilesTable';
+import { createClient } from '@/utils/supabase/server';
+import { 
+  getCourseMaterialsForStudent, 
+  getAllDepartments, 
+  getStudentDefaultDepartment 
+} from '@/utils/supabase/queries';
+import StudentMaterialsClient from '@/components/student/StudentMaterialsClient';
+import type { CourseMaterial } from '@/types';
 
 export default async function StudentFilesPage() {
-  const materials = await getTeachingMaterials();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let studentDeptId: string | null = null;
+  if (user?.id) {
+    studentDeptId = await getStudentDefaultDepartment(user.id);
+  }
+
+  const [departments, materials] = await Promise.all([
+    getAllDepartments(),
+    getCourseMaterialsForStudent({ studentDeptId: studentDeptId || undefined })
+  ]);
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 heading-display">Course Files Library</h1>
-        <p className="text-xs text-slate-500 mt-1">Direct file repository for enrolled department courses</p>
-      </div>
-
-      <CourseFilesTable materials={materials} />
+    <div className="max-w-6xl mx-auto pb-12">
+      <StudentMaterialsClient 
+        initialMaterials={materials}
+        departments={departments}
+        studentDepartmentId={studentDeptId}
+      />
     </div>
   );
 }

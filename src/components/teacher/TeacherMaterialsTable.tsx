@@ -17,7 +17,7 @@ import {
   FolderOpen,
   Eye
 } from 'lucide-react';
-import type { CourseMaterial } from '@/types';
+import type { CourseMaterial, DepartmentOption } from '@/types';
 import { formatFileSize } from '@/lib/utils';
 import { deleteCourseMaterial } from '@/app/actions/teacher';
 import UploadMaterialDialog from './UploadMaterialDialog';
@@ -33,9 +33,15 @@ import {
 
 interface TeacherMaterialsTableProps {
   initialMaterials: CourseMaterial[];
+  departments?: DepartmentOption[];
+  defaultDepartmentId?: string | null;
 }
 
-export default function TeacherMaterialsTable({ initialMaterials }: TeacherMaterialsTableProps) {
+export default function TeacherMaterialsTable({ 
+  initialMaterials,
+  departments = [],
+  defaultDepartmentId = null
+}: TeacherMaterialsTableProps) {
   const [materials, setMaterials] = useState<CourseMaterial[]>(initialMaterials);
   const [selectedCourse, setSelectedCourse] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -70,7 +76,8 @@ export default function TeacherMaterialsTable({ initialMaterials }: TeacherMater
         !q ||
         m.title.toLowerCase().includes(q) ||
         m.file_name.toLowerCase().includes(q) ||
-        m.course_code.toLowerCase().includes(q);
+        m.course_code.toLowerCase().includes(q) ||
+        (m.departments && m.departments.some((d) => d.name.toLowerCase().includes(q)));
 
       return matchesCourse && matchesQuery;
     });
@@ -190,8 +197,8 @@ export default function TeacherMaterialsTable({ initialMaterials }: TeacherMater
           <table className="w-full text-left min-w-[760px]">
             <thead className="bg-campus-50/80 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
-                <th className="p-4 w-[40%]">Title & File Name</th>
-                <th className="p-4 w-[18%]">Course</th>
+                <th className="p-4 w-[38%]">Title & File Name</th>
+                <th className="p-4 w-[20%]">Course & Tags</th>
                 <th className="p-4 w-[14%]">Size</th>
                 <th className="p-4 w-[16%]">Upload Date</th>
                 <th className="p-4 w-[12%] text-right">Actions</th>
@@ -217,11 +224,25 @@ export default function TeacherMaterialsTable({ initialMaterials }: TeacherMater
                     </div>
                   </td>
 
-                  {/* Course */}
+                  {/* Course & Tags */}
                   <td className="p-4">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-campus-100/70 text-campus-900 font-extrabold text-[11px] border border-campus-200/60 font-mono">
-                      {mat.course_code}
-                    </span>
+                    <div className="flex flex-col gap-1.5 items-start">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-campus-100/70 text-campus-900 font-extrabold text-[11px] border border-campus-200/60 font-mono">
+                        {mat.course_code}
+                      </span>
+                      {mat.departments && mat.departments.length > 0 && (
+                        <div className="flex flex-wrap gap-1 max-w-[220px]">
+                          {mat.departments.map((dept) => (
+                            <span
+                              key={dept.id}
+                              className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-medium border border-slate-200/80"
+                            >
+                              {dept.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </td>
 
                   {/* Size */}
@@ -310,6 +331,8 @@ export default function TeacherMaterialsTable({ initialMaterials }: TeacherMater
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         existingCourses={uniqueCourses}
+        departments={departments}
+        defaultDepartmentId={defaultDepartmentId}
         onSuccess={() => {
           // Re-fetch or window refresh to ensure sync
           window.location.reload();

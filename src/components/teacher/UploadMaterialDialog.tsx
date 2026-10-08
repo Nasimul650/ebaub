@@ -18,16 +18,20 @@ import {
   FileText, 
   X,
   FileArchive,
-  BookOpen
+  BookOpen,
+  Tag
 } from 'lucide-react';
 import { uploadCourseMaterial } from '@/app/actions/teacher';
 import { formatFileSize } from '@/lib/utils';
+import type { DepartmentOption } from '@/types';
 
 interface UploadMaterialDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   existingCourses?: string[];
+  departments?: DepartmentOption[];
+  defaultDepartmentId?: string | null;
 }
 
 const COMMON_COURSES = [
@@ -48,18 +52,34 @@ export default function UploadMaterialDialog({
   isOpen,
   onClose,
   onSuccess,
-  existingCourses = []
+  existingCourses = [],
+  departments = [],
+  defaultDepartmentId = null
 }: UploadMaterialDialogProps) {
   const [courseCode, setCourseCode] = useState('CSE-2101');
   const [customCourse, setCustomCourse] = useState('');
-  const [isCustomCourse, setIsCustomCourse] = useState(false);
+  const [isCustomCourse, setIsCustomCourse] = useState(true);
   const [title, setTitle] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<string[]>(() => {
+    return defaultDepartmentId ? [defaultDepartmentId] : [];
+  });
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-populate with default department when opened if none selected
+  React.useEffect(() => {
+    if (isOpen) {
+      if (defaultDepartmentId && selectedDepartmentIds.length === 0) {
+        setSelectedDepartmentIds([defaultDepartmentId]);
+      } else if (!defaultDepartmentId && departments.length > 0 && selectedDepartmentIds.length === 0) {
+        setSelectedDepartmentIds([departments[0].id]);
+      }
+    }
+  }, [isOpen, defaultDepartmentId, departments]);
 
   const resetForm = () => {
     setTitle('');
@@ -68,9 +88,21 @@ export default function UploadMaterialDialog({
     setSuccessMessage(null);
     setIsCustomCourse(false);
     setCustomCourse('');
+    setSelectedDepartmentIds(defaultDepartmentId ? [defaultDepartmentId] : (departments[0]?.id ? [departments[0].id] : []));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleAddDepartment = (deptId: string) => {
+    if (!deptId) return;
+    if (!selectedDepartmentIds.includes(deptId)) {
+      setSelectedDepartmentIds((prev) => [...prev, deptId]);
+    }
+  };
+
+  const handleRemoveDepartment = (deptId: string) => {
+    setSelectedDepartmentIds((prev) => prev.filter((id) => id !== deptId));
   };
 
   const handleClose = () => {
@@ -145,6 +177,11 @@ export default function UploadMaterialDialog({
       return;
     }
 
+    if (selectedDepartmentIds.length === 0) {
+      setErrorMessage('Please select at least one target department for this course material.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -152,6 +189,9 @@ export default function UploadMaterialDialog({
       formData.append('course_code', finalCourse);
       formData.append('title', title.trim());
       formData.append('file', file);
+      selectedDepartmentIds.forEach((deptId) => {
+        formData.append('department_ids', deptId);
+      });
 
       const res = await uploadCourseMaterial(formData);
 
@@ -173,6 +213,10 @@ export default function UploadMaterialDialog({
       setIsSubmitting(false);
     }
   };
+
+  const unselectedDepartments = departments.filter(
+    (d) => !selectedDepartmentIds.includes(d.id)
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -245,6 +289,76 @@ export default function UploadMaterialDialog({
                     <option key={c} value={c}>{c}</option>
                   ))}
               </select>
+            )}
+          </div>
+
+          {/* Target Departments Multi-Select */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <label className="font-bold text-slate-700 flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-campus-700" />
+                <span>Target Department(s)</span>
+                <span className="text-red-500">*</span>
+              </label>
+              <span className="text-[11px] text-slate-400 font-medium">
+                {selectedDepartmentIds.length} selected
+              </span>
+            </div>
+
+            {/* Selected Badges */}
+            <div className="p-2.5 bg-campus-50/50 border border-slate-200 rounded-xl min-h-[46px] flex flex-wrap items-center gap-1.5">
+              {selectedDepartmentIds.length === 0 ? (
+                <span className="text-[11px] text-slate-400 px-1 italic">
+                  Select at least one department below
+                </span>
+              ) : (
+                selectedDepartmentIds.map((id) => {
+                  const dept = departments.find((d) => d.id === id);
+                  const name = dept ? dept.name : id;
+                  return (
+                    <span
+                      key={id}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-campus-900 text-white text-xs font-semibold shadow-2xs animate-in fade-in"
+                    >
+                      <span className="max-w-[200px] truncate">{name}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDepartment(id)}
+                        disabled={isSubmitting}
+                        className="p-0.5 hover:bg-campus-800 rounded text-campus-200 hover:text-white transition-colors"
+                        title={`Remove ${name}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Add Department Dropdown */}
+            {unselectedDepartments.length > 0 && (
+              <div className="pt-0.5">
+                <select
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleAddDepartment(e.target.value);
+                    }
+                  }}
+                  disabled={isSubmitting}
+                  className="w-full text-xs px-3 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-campus-700 transition-colors"
+                >
+                  <option value="" disabled>
+                    + Tag another department...
+                  </option>
+                  {unselectedDepartments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
           </div>
 
@@ -347,7 +461,7 @@ export default function UploadMaterialDialog({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !file || !title.trim()}
+              disabled={isSubmitting || !file || !title.trim() || selectedDepartmentIds.length === 0}
               className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
