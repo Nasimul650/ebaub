@@ -20,12 +20,20 @@ export interface GlobalFooterSettings {
   teacher_portal_url: string;
 }
 
+export interface HeroSlideConfig {
+  id: string;
+  image_url: string;
+  badge_text?: string;
+  title?: string;
+}
+
 export interface HomePageSettings {
   badge_text: string;
   hero_headline: string;
   hero_subtitle: string;
   hero_video_url?: string;
   hero_fallback_image_url?: string;
+  hero_slides?: HeroSlideConfig[];
   explore_cta_text?: string;
   admissions_cta_text?: string;
   accreditation_metric?: string;
@@ -152,6 +160,26 @@ export const PAGE_SETTINGS_DEFAULTS: {
     hero_subtitle: 'EXIM Bank Agricultural University Bangladesh (EBAUB) combines rigorous academic foundations, hands-on engineering, and digital campus workflows.',
     hero_video_url: '',
     hero_fallback_image_url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=85',
+    hero_slides: [
+      {
+        id: 'slide-1',
+        image_url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=2000&q=85',
+        badge_text: 'CSE Dept. 2-Year Milestone',
+        title: 'Excellence in Computing',
+      },
+      {
+        id: 'slide-2',
+        image_url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=2000&q=85',
+        badge_text: 'Smart Agriculture Lab',
+        title: 'Precision Research',
+      },
+      {
+        id: 'slide-3',
+        image_url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=2000&q=85',
+        badge_text: 'Admissions Open',
+        title: 'Shape the Future',
+      }
+    ],
     explore_cta_text: 'Explore Degree Programs',
     admissions_cta_text: 'Admission Guidelines',
     accreditation_metric: 'UGC Bangladesh Approved',

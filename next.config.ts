@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '55mb',
+    },
+    proxyClientMaxBodySize: '55mb',
+  },
   async redirects() {
     return [
       {
@@ -8,7 +14,7 @@ const nextConfig: NextConfig = {
         destination: '/notices/:id',
         permanent: true,
       }
-    ]
+    ];
   }
 };
 

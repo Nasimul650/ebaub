@@ -1,20 +1,23 @@
 import React from 'react';
-import { getTeachingMaterials } from '@/lib/mock/mockServices';
-import MaterialUploadForm from '@/components/teacher/MaterialUploadForm';
-import TeacherMaterialsGrid from '@/components/teacher/TeacherMaterialsGrid';
+import { createClient } from '@/utils/supabase/server';
+import { getTeacherMaterials } from '@/utils/supabase/queries';
+import TeacherMaterialsTable from '@/components/teacher/TeacherMaterialsTable';
+import type { CourseMaterial } from '@/types';
 
 export default async function TeacherMaterialsPage() {
-  const materials = await getTeachingMaterials();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let materials: CourseMaterial[] = [];
+  if (user?.id) {
+    materials = await getTeacherMaterials(user.id);
+  } else {
+    materials = await getTeacherMaterials('');
+  }
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 heading-display">Course Materials Manager</h1>
-        <p className="text-xs text-slate-500 mt-1">Publish lecture slides, lab manuals, and syllabus files for students</p>
-      </div>
-
-      <MaterialUploadForm />
-      <TeacherMaterialsGrid materials={materials} />
+    <div className="max-w-6xl mx-auto pb-12">
+      <TeacherMaterialsTable initialMaterials={materials} />
     </div>
   );
 }

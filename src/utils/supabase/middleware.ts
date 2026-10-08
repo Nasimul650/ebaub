@@ -47,6 +47,15 @@ export async function updateSession(request: NextRequest) {
   if (!user && isProtected) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    const targetPath = request.nextUrl.pathname
+    url.searchParams.set('redirectTo', targetPath)
+    if (targetPath.startsWith('/teacher')) {
+      url.searchParams.set('portal', 'teacher')
+    } else if (targetPath.startsWith('/student')) {
+      url.searchParams.set('portal', 'student')
+    } else if (targetPath.startsWith('/admin')) {
+      url.searchParams.set('portal', 'admin')
+    }
     
     const redirectResponse = NextResponse.redirect(url)
     

@@ -640,4 +640,39 @@ export async function getSiteSettings<T = GlobalSiteSettings>(section?: string):
   } as unknown as T;
 }
 
+// ==========================================
+// COURSE MATERIALS (TEACHER WORKSPACE)
+// ==========================================
 
+import type { CourseMaterial } from '@/types';
+export type { CourseMaterial };
+
+/**
+ * Fetches all course materials uploaded by a specific teacher, ordered by created_at descending.
+ * Returns an empty array gracefully on database error or missing table.
+ */
+export async function getTeacherMaterials(teacherId: string): Promise<CourseMaterial[]> {
+  try {
+    const supabase = await createClient();
+    let query = supabase
+      .from('course_materials')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (teacherId && teacherId.trim() !== '') {
+      query = query.eq('teacher_id', teacherId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching teacher course materials:', error.message);
+      return [];
+    }
+
+    return (data || []) as CourseMaterial[];
+  } catch (err) {
+    console.error('Unexpected error fetching course materials:', err);
+    return [];
+  }
+}

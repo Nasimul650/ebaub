@@ -8,7 +8,7 @@ import type { HomePageSettings, HeroSettings } from '@/types/settings';
 import { PAGE_SETTINGS_DEFAULTS } from '@/types/settings';
 
 interface HeroSlide {
-  id: number;
+  id: string | number;
   image: string;
   badge: string;
   title: string;
@@ -49,18 +49,32 @@ export default function HeroSection({ heroSettings }: Props) {
   
   const exploreCtaText = (heroSettings as HomePageSettings)?.explore_cta_text || fallback.explore_cta_text;
   const admissionsCtaText = (heroSettings as HomePageSettings)?.admissions_cta_text || fallback.admissions_cta_text;
+  const dynamicSlides = (heroSettings as HomePageSettings)?.hero_slides;
 
   const heroSlides = React.useMemo(() => {
-    if (!fallbackImage) return defaultSlides;
+    // If the database has dynamic slides configured, use those directly
+    if (dynamicSlides && dynamicSlides.length > 0) {
+      return dynamicSlides.map(slide => ({
+        id: slide.id,
+        image: slide.image_url,
+        badge: slide.badge_text || badgeText,
+        title: slide.title || headline
+      }));
+    }
+
+    // Otherwise, fall back to the default hardcoded slides
+    if (!fallbackImage) return defaultSlides.map(s => ({ ...s, id: String(s.id) }));
+    
     return [
       {
         ...defaultSlides[0],
+        id: String(defaultSlides[0].id),
         image: fallbackImage,
         badge: badgeText || defaultSlides[0].badge
       },
-      ...defaultSlides.slice(1)
+      ...defaultSlides.slice(1).map(s => ({ ...s, id: String(s.id) }))
     ];
-  }, [fallbackImage, badgeText]);
+  }, [dynamicSlides, fallbackImage, badgeText, headline]);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const heroContainerRef = useRef<HTMLDivElement>(null);
