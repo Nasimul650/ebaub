@@ -10,6 +10,14 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface CurrentUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'ADMIN' | 'TEACHER' | 'STUDENT';
+  institutionalId?: string | null;
+}
+
 export interface Faculty {
   id: string;
   title: string;
