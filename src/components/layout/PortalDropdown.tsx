@@ -185,6 +185,12 @@ export default function PortalDropdown({
             <span>{headerInfo.badgeText}</span>
           </span>
 
+          {user.role === 'STUDENT' && user.batch && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs">
+              <span>{user.batch}</span>
+            </span>
+          )}
+
           {user.institutionalId && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white text-slate-700 border border-slate-200 shadow-2xs">
               <Hash className="w-2.5 h-2.5 text-slate-400" />

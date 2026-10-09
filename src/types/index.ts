@@ -7,6 +7,7 @@ export interface UserProfile {
   role: UserRole;
   avatarUrl?: string;
   departmentId?: string;
+  batch?: string | null;
   createdAt: string;
 }
 
@@ -16,6 +17,7 @@ export interface CurrentUser {
   fullName: string;
   role: 'ADMIN' | 'TEACHER' | 'STUDENT';
   institutionalId?: string | null;
+  batch?: string | null;
 }
 
 export interface Faculty {

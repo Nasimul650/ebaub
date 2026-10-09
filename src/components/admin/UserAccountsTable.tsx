@@ -167,7 +167,7 @@ export default function UserAccountsTable({
         if (p.department_id !== selectedDepartment) return false;
       }
 
-      // 4. Search Query (matches Name, ID, Email, Department)
+      // 4. Search Query (matches Name, ID, Email, Department, Faculty, Batch)
       const q = searchQuery.toLowerCase().trim();
       if (q) {
         const fullName = (p.full_name || `${p.first_name || ''} ${p.last_name || ''}`).toLowerCase();
@@ -175,13 +175,15 @@ export default function UserAccountsTable({
         const id = (p.institutional_id || '').toLowerCase();
         const dept = (p.department?.name || '').toLowerCase();
         const faculty = (fac || '').toLowerCase();
+        const batch = (p.batch || '').toLowerCase();
 
         const matches = 
           fullName.includes(q) ||
           email.includes(q) ||
           id.includes(q) ||
           dept.includes(q) ||
-          faculty.includes(q);
+          faculty.includes(q) ||
+          batch.includes(q);
 
         if (!matches) return false;
       }
@@ -268,11 +270,12 @@ export default function UserAccountsTable({
   const handleExportCSV = () => {
     if (sortedProfiles.length === 0) return;
 
-    const headers = ['Full Name', 'Institutional ID', 'Role', 'Faculty', 'Department', 'Email', 'Created Date'];
+    const headers = ['Full Name', 'Institutional ID', 'Role', 'Batch', 'Faculty', 'Department', 'Email', 'Created Date'];
     const rows = sortedProfiles.map((p) => [
       `"${(p.full_name || `${p.first_name || ''} ${p.last_name || ''}`).replace(/"/g, '""').trim()}"`,
       `"${(p.institutional_id || '').replace(/"/g, '""')}"`,
       `"${p.role}"`,
+      `"${(p.batch || 'N/A').replace(/"/g, '""')}"`,
       `"${(p.faculty_name || p.department?.faculty_name || 'N/A').replace(/"/g, '""')}"`,
       `"${(p.department?.name || 'N/A').replace(/"/g, '""')}"`,
       `"${p.email}"`,
@@ -302,7 +305,7 @@ export default function UserAccountsTable({
     }
   };
 
-  const getRoleBadge = (role: string) => {
+  const getRoleBadge = (role: string, batch?: string | null) => {
     const r = (role || '').toUpperCase();
     if (r === 'ADMIN') {
       return (
@@ -321,10 +324,20 @@ export default function UserAccountsTable({
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-campus-50 text-campus-800 border border-campus-200">
-        <GraduationCap className="w-3 h-3" />
-        <span>Student</span>
-      </span>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-campus-50 text-campus-800 border border-campus-200">
+          <GraduationCap className="w-3 h-3" />
+          <span>Student</span>
+        </span>
+        {batch && (
+          <span 
+            className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200"
+            title={`Batch: ${batch}`}
+          >
+            {batch}
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -833,7 +846,7 @@ export default function UserAccountsTable({
 
                     {/* Role */}
                     <td className="p-4">
-                      {getRoleBadge(p.role)}
+                      {getRoleBadge(p.role, p.batch)}
                     </td>
 
                     {/* Faculty & Department */}
@@ -1030,7 +1043,7 @@ export default function UserAccountsTable({
                   </DialogDescription>
                 </div>
               </div>
-              {inspectingUser && getRoleBadge(inspectingUser.role)}
+              {inspectingUser && getRoleBadge(inspectingUser.role, inspectingUser.batch)}
             </div>
           </DialogHeader>
 
@@ -1092,6 +1105,15 @@ export default function UserAccountsTable({
                     {inspectingUser.department?.name || 'Unassigned'}
                   </span>
                 </div>
+
+                {inspectingUser.batch && (
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <span className="text-slate-500 font-medium">Batch / Cohort:</span>
+                    <span className="font-extrabold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-200">
+                      {inspectingUser.batch}
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                   <span className="text-slate-500 font-medium">Account Created:</span>

@@ -726,6 +726,7 @@ export interface UserProfileItem {
   department_id: string | null;
   faculty_id: string | null;
   faculty_name?: string | null;
+  batch?: string | null;
   created_at: string;
   department?: { 
     id: string; 
@@ -757,14 +758,28 @@ export async function getUniversityProfiles(roleFilter?: string): Promise<UserPr
 
     let query = supabase
       .from('profiles')
-      .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, created_at, departments(id, name, faculty_id, faculties(id, name))')
+      .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, batch, created_at, departments(id, name, faculty_id, faculties(id, name))')
       .order('created_at', { ascending: false });
 
     if (roleFilter && roleFilter !== 'ALL') {
       query = query.eq('role', roleFilter.toUpperCase());
     }
 
-    const { data, error } = await query;
+    let { data, error } = await query;
+    if (error && error.message.includes('batch')) {
+      // Graceful fallback if migration not yet applied
+      let fallbackQuery = supabase
+        .from('profiles')
+        .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, created_at, departments(id, name, faculty_id, faculties(id, name))')
+        .order('created_at', { ascending: false });
+      if (roleFilter && roleFilter !== 'ALL') {
+        fallbackQuery = fallbackQuery.eq('role', roleFilter.toUpperCase());
+      }
+      const fallbackRes = await fallbackQuery;
+      data = fallbackRes.data as any;
+      error = fallbackRes.error;
+    }
+
     if (error) {
       console.error('Error fetching university profiles:', error.message);
       return [];
@@ -787,6 +802,7 @@ export async function getUniversityProfiles(roleFilter?: string): Promise<UserPr
 
       return {
         ...row,
+        batch: row.batch || null,
         faculty_name: facultyName,
         department: dept ? {
           id: dept.id,

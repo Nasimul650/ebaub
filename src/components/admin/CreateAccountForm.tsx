@@ -18,7 +18,8 @@ import {
   RefreshCw,
   Mail,
   User,
-  Hash
+  Hash,
+  Tag
 } from 'lucide-react';
 import { createUniversityAccount, type AdminAccountResult } from '@/app/actions/admin-users';
 import type { DepartmentWithFaculty } from '@/utils/supabase/queries';
@@ -35,6 +36,7 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [departmentId, setDepartmentId] = useState('');
+  const [batch, setBatch] = useState('');
   const [deptList, setDeptList] = useState<DepartmentWithFaculty[]>(departments);
 
   React.useEffect(() => {
@@ -102,6 +104,7 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
     setEmail('');
     setPassword('');
     setDepartmentId('');
+    setBatch('');
     setErrorMessage(null);
     setSuccessResult(null);
     setCopied(false);
@@ -116,6 +119,7 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
       `Role: ${successResult.role === 'TEACHER' ? 'Faculty / Teacher' : 'Student'}`,
       `Full Name: ${successResult.full_name}`,
       `Institutional ID: ${successResult.institutional_id}`,
+      ...(successResult.batch ? [`Batch: ${successResult.batch}`] : []),
       `Login Email: ${successResult.email}`,
       `Password: ${successResult.password || '(configured)'}`,
       `Portal Login: ${portalUrl}`,
@@ -165,6 +169,9 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
       formData.append('password', password);
       if (departmentId) {
         formData.append('department_id', departmentId);
+      }
+      if (role === 'student' && batch.trim()) {
+        formData.append('batch', batch.trim());
       }
 
       const res = await createUniversityAccount(formData);
@@ -259,7 +266,7 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
           </div>
 
           {/* Credentials Display Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-4 text-xs">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${successResult.batch ? 'md:grid-cols-3 lg:grid-cols-5' : 'md:grid-cols-4'} gap-3 pt-4 text-xs`}>
             <div className="p-3 bg-white rounded-2xl border border-emerald-200 shadow-2xs">
               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Role</div>
               <div className="font-extrabold text-slate-900 mt-0.5">{successResult.role}</div>
@@ -268,6 +275,12 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Institutional ID</div>
               <div className="font-extrabold text-campus-900 font-mono mt-0.5">{successResult.institutional_id}</div>
             </div>
+            {successResult.batch && (
+              <div className="p-3 bg-white rounded-2xl border border-emerald-200 shadow-2xs">
+                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Batch / Cohort</div>
+                <div className="font-extrabold text-indigo-700 mt-0.5">{successResult.batch}</div>
+              </div>
+            )}
             <div className="p-3 bg-white rounded-2xl border border-emerald-200 shadow-2xs">
               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Login Email</div>
               <div className="font-extrabold text-slate-900 truncate mt-0.5" title={successResult.email}>{successResult.email}</div>
@@ -418,6 +431,28 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
                 Associates materials, notices, and academic structure with this user.
               </p>
             </div>
+
+            {/* Batch / Cohort (For Students) */}
+            {role === 'student' && (
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-campus-700" />
+                  <span>Student Batch / Cohort</span>
+                  <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={batch}
+                  onChange={(e) => setBatch(e.target.value)}
+                  placeholder="e.g. 10th Batch, Batch 12, or 2024"
+                  className="w-full text-xs px-3.5 py-2.5 bg-campus-50/50 focus:bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-campus-700 transition-colors"
+                  disabled={isSubmitting}
+                />
+                <p className="text-[11px] text-slate-400">
+                  Academic cohort or intake group for this student.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Temporary Password & Generator */}

@@ -20,11 +20,20 @@ export default async function PublicLayout({ children }: { children: React.React
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
-      const { data: profile } = await supabase
+      let { data: profile } = await supabase
         .from('profiles')
-        .select('id, full_name, first_name, last_name, role, institutional_id')
+        .select('id, full_name, first_name, last_name, role, institutional_id, batch')
         .eq('id', user.id)
         .maybeSingle();
+
+      if (!profile) {
+        const fallbackRes = await supabase
+          .from('profiles')
+          .select('id, full_name, first_name, last_name, role, institutional_id')
+          .eq('id', user.id)
+          .maybeSingle();
+        profile = fallbackRes.data as any;
+      }
 
       const rawRole = ((profile?.role || user.user_metadata?.role || 'STUDENT') as string).toUpperCase();
       const role = rawRole === 'ADMIN' ? 'ADMIN' : (rawRole === 'TEACHER' ? 'TEACHER' : 'STUDENT');
@@ -40,6 +49,7 @@ export default async function PublicLayout({ children }: { children: React.React
         fullName,
         role,
         institutionalId: profile?.institutional_id || user.user_metadata?.institutional_id || null,
+        batch: (profile as any)?.batch || user.user_metadata?.batch || null,
       };
     }
   } catch (err) {

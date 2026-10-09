@@ -16,6 +16,7 @@ export interface AdminAccountResult {
     role: string;
     password?: string;
     department_id?: string | null;
+    batch?: string | null;
   };
 }
 
@@ -53,6 +54,7 @@ export async function createUniversityAccount(formData: FormData): Promise<Admin
     const email = (formData.get('email') as string || '').trim().toLowerCase();
     const password = (formData.get('password') as string || '').trim();
     const departmentId = (formData.get('department_id') as string || '').trim() || null;
+    const batch = (formData.get('batch') as string || '').trim() || null;
 
     // 3. Validation
     if (!rawRole || (rawRole !== 'teacher' && rawRole !== 'student')) {
@@ -110,6 +112,7 @@ export async function createUniversityAccount(formData: FormData): Promise<Admin
         full_name: fullName,
         institutional_id: institutionalId,
         department_id: departmentId || undefined,
+        batch: batch || undefined,
       },
     });
 
@@ -138,19 +141,28 @@ export async function createUniversityAccount(formData: FormData): Promise<Admin
 
     // 6. Insert / Upsert into profiles table
     // (Upsert handles cases where handle_new_user trigger may have fired automatically)
-    const { error: profileError } = await supabaseAdmin
+    const profilePayload: any = {
+      id: newUserId,
+      institutional_id: institutionalId,
+      full_name: fullName,
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      role: normalizedRole,
+      department_id: departmentId,
+      faculty_id: facultyId,
+      batch: batch || null,
+    };
+
+    let { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .upsert({
-        id: newUserId,
-        institutional_id: institutionalId,
-        full_name: fullName,
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        role: normalizedRole,
-        department_id: departmentId,
-        faculty_id: facultyId,
-      }, { onConflict: 'id' });
+      .upsert(profilePayload, { onConflict: 'id' });
+
+    // Fallback if batch column not yet migrated
+    if (profileError && profileError.message.includes('batch')) {
+      delete profilePayload.batch;
+      profileError = (await supabaseAdmin.from('profiles').upsert(profilePayload, { onConflict: 'id' })).error;
+    }
 
     if (profileError) {
       console.error('Error inserting profile row:', profileError);
@@ -171,15 +183,23 @@ export async function createUniversityAccount(formData: FormData): Promise<Admin
               designation: 'Faculty Member',
             }, { onConflict: 'id' });
         } else if (normalizedRole === 'STUDENT') {
-          await supabaseAdmin
+          const studentPayload: any = {
+            id: newUserId,
+            department_id: departmentId,
+            student_id: institutionalId,
+            enrollment_year: new Date().getFullYear(),
+            status: 'ACTIVE',
+            batch: batch || null,
+          };
+
+          let studentUpsertRes = await supabaseAdmin
             .from('students')
-            .upsert({
-              id: newUserId,
-              department_id: departmentId,
-              student_id: institutionalId,
-              enrollment_year: new Date().getFullYear(),
-              status: 'ACTIVE',
-            }, { onConflict: 'id' });
+            .upsert(studentPayload, { onConflict: 'id' });
+
+          if (studentUpsertRes.error && studentUpsertRes.error.message.includes('batch')) {
+            delete studentPayload.batch;
+            await supabaseAdmin.from('students').upsert(studentPayload, { onConflict: 'id' });
+          }
         }
       } catch (syncErr: any) {
         console.warn('Extension table sync notice:', syncErr?.message);
@@ -202,6 +222,7 @@ export async function createUniversityAccount(formData: FormData): Promise<Admin
         role: normalizedRole,
         password,
         department_id: departmentId,
+        batch: batch || undefined,
       },
     };
   } catch (err: any) {

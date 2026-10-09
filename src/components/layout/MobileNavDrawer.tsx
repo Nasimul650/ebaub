@@ -96,6 +96,11 @@ export default function MobileNavDrawer({
                  user.role === 'TEACHER' ? 'Teacher / Faculty' : 'Student'}
               </span>
             </span>
+            {user.role === 'STUDENT' && user.batch && (
+              <span className="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                {user.batch}
+              </span>
+            )}
             {user.institutionalId && (
               <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
                 ID: {user.institutionalId}
