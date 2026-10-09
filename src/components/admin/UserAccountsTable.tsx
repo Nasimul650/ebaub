@@ -25,7 +25,8 @@ import {
   ChevronsLeft, 
   ChevronsRight, 
   ArrowUpDown,
-  BookOpen
+  BookOpen,
+  Tag
 } from 'lucide-react';
 import type { UserProfileItem, DepartmentWithFaculty } from '@/utils/supabase/queries';
 import { 
@@ -53,8 +54,9 @@ export default function UserAccountsTable({
   // Level 2: Role Selection ('ALL' | 'TEACHER' | 'STUDENT' | 'ADMIN')
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
 
-  // Level 3: Department, Search, Sort, Pagination
+  // Level 3: Department, Batch (Students only), Search, Sort, Pagination
   const [selectedDepartment, setSelectedDepartment] = useState<string>('ALL');
+  const [selectedBatch, setSelectedBatch] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'id-asc'>('newest');
   
@@ -131,10 +133,45 @@ export default function UserAccountsTable({
     return departments.filter((d) => d.faculty_name === selectedFaculty);
   }, [departments, selectedFaculty]);
 
-  // Handle Faculty change (and sync role selection)
+  // Unique batches available for students (contextualized by selected faculty & department)
+  const { batchesList, hasUnassignedBatchStudents } = useMemo(() => {
+    const set = new Set<string>();
+    let hasUnassigned = false;
+
+    initialProfiles.forEach((p) => {
+      const r = (p.role || '').toUpperCase();
+      if (r === 'STUDENT') {
+        const fac = p.faculty_name || p.department?.faculty_name || null;
+        if (selectedFaculty !== 'ALL' && selectedFaculty !== 'ADMINS' && fac !== selectedFaculty) {
+          return;
+        }
+        if (selectedDepartment !== 'ALL' && p.department_id !== selectedDepartment) {
+          return;
+        }
+
+        if (p.batch && p.batch.trim()) {
+          set.add(p.batch.trim());
+        } else {
+          hasUnassigned = true;
+        }
+      }
+    });
+
+    const sortedBatches = Array.from(set).sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+    );
+
+    return {
+      batchesList: sortedBatches,
+      hasUnassignedBatchStudents: hasUnassigned,
+    };
+  }, [initialProfiles, selectedFaculty, selectedDepartment]);
+
+  // Handle Faculty change (and sync role selection & reset batch)
   const handleFacultyChange = (faculty: string) => {
     setSelectedFaculty(faculty);
     setSelectedDepartment('ALL');
+    setSelectedBatch('ALL');
     setCurrentPage(1);
 
     if (faculty === 'ADMINS') {
@@ -142,6 +179,15 @@ export default function UserAccountsTable({
     } else if (selectedRole === 'ADMIN') {
       setSelectedRole('ALL');
     }
+  };
+
+  // Handle Role tab change (resets student-only batch filter when leaving students view)
+  const handleRoleChange = (role: string) => {
+    setSelectedRole(role);
+    if (role !== 'STUDENT') {
+      setSelectedBatch('ALL');
+    }
+    setCurrentPage(1);
   };
 
   // --- FILTERING & SORTING LOGIC ---
@@ -167,7 +213,16 @@ export default function UserAccountsTable({
         if (p.department_id !== selectedDepartment) return false;
       }
 
-      // 4. Search Query (matches Name, ID, Email, Department, Faculty, Batch)
+      // 4. Batch Filter (FOR STUDENTS ONLY: Teachers and Admins have no batch)
+      if (selectedRole === 'STUDENT' && selectedBatch !== 'ALL') {
+        if (selectedBatch === 'UNASSIGNED') {
+          if (p.batch && p.batch.trim()) return false;
+        } else {
+          if ((p.batch || '').trim().toLowerCase() !== selectedBatch.toLowerCase()) return false;
+        }
+      }
+
+      // 5. Search Query (matches Name, ID, Email, Department, Faculty, Batch)
       const q = searchQuery.toLowerCase().trim();
       if (q) {
         const fullName = (p.full_name || `${p.first_name || ''} ${p.last_name || ''}`).toLowerCase();
@@ -190,7 +245,7 @@ export default function UserAccountsTable({
 
       return true;
     });
-  }, [initialProfiles, selectedFaculty, selectedRole, selectedDepartment, searchQuery]);
+  }, [initialProfiles, selectedFaculty, selectedRole, selectedDepartment, selectedBatch, searchQuery]);
 
   // Sorted Profiles
   const sortedProfiles = useMemo(() => {
@@ -225,7 +280,7 @@ export default function UserAccountsTable({
   // Reset to page 1 if filtered list changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedFaculty, selectedRole, selectedDepartment, searchQuery, pageSize]);
+  }, [selectedFaculty, selectedRole, selectedDepartment, selectedBatch, searchQuery, pageSize]);
 
   // --- PAGINATION SLICE ---
   const totalPages = Math.max(1, Math.ceil(sortedProfiles.length / pageSize));
@@ -240,12 +295,14 @@ export default function UserAccountsTable({
     selectedFaculty !== 'ALL' || 
     selectedRole !== 'ALL' || 
     selectedDepartment !== 'ALL' || 
+    selectedBatch !== 'ALL' ||
     searchQuery.trim() !== '';
 
   const resetAllFilters = () => {
     setSelectedFaculty('ALL');
     setSelectedRole('ALL');
     setSelectedDepartment('ALL');
+    setSelectedBatch('ALL');
     setSearchQuery('');
     setSortBy('newest');
     setCurrentPage(1);
@@ -287,7 +344,8 @@ export default function UserAccountsTable({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `ebaub_users_${selectedFaculty.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now()}.csv`);
+    const batchSuffix = selectedRole === 'STUDENT' && selectedBatch !== 'ALL' ? `_${selectedBatch.toLowerCase().replace(/[^a-z0-9]/g, '_')}` : '';
+    link.setAttribute('download', `ebaub_users_${selectedFaculty.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${selectedRole.toLowerCase()}${batchSuffix}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -330,12 +388,18 @@ export default function UserAccountsTable({
           <span>Student</span>
         </span>
         {batch && (
-          <span 
-            className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200"
-            title={`Batch: ${batch}`}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRoleChange('STUDENT');
+              setSelectedBatch(batch);
+            }}
+            className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 border border-indigo-200 transition-colors cursor-pointer"
+            title={`Filter students by Batch: ${batch}`}
           >
             {batch}
-          </span>
+          </button>
         )}
       </div>
     );
@@ -513,7 +577,7 @@ export default function UserAccountsTable({
           <>
             {/* Tab: All in Faculty */}
             <button
-              onClick={() => setSelectedRole('ALL')}
+              onClick={() => handleRoleChange('ALL')}
               className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 font-bold text-xs sm:text-sm transition-all border-b-2 whitespace-nowrap ${
                 selectedRole === 'ALL'
                   ? 'border-campus-800 text-campus-900 bg-campus-50/50 rounded-t-2xl'
@@ -535,7 +599,7 @@ export default function UserAccountsTable({
 
             {/* Tab: Teachers */}
             <button
-              onClick={() => setSelectedRole('TEACHER')}
+              onClick={() => handleRoleChange('TEACHER')}
               className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 font-bold text-xs sm:text-sm transition-all border-b-2 whitespace-nowrap ${
                 selectedRole === 'TEACHER'
                   ? 'border-blue-700 text-blue-900 bg-blue-50/50 rounded-t-2xl'
@@ -557,7 +621,7 @@ export default function UserAccountsTable({
 
             {/* Tab: Students */}
             <button
-              onClick={() => setSelectedRole('STUDENT')}
+              onClick={() => handleRoleChange('STUDENT')}
               className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 font-bold text-xs sm:text-sm transition-all border-b-2 whitespace-nowrap ${
                 selectedRole === 'STUDENT'
                   ? 'border-campus-800 text-campus-900 bg-campus-50/50 rounded-t-2xl'
@@ -620,7 +684,10 @@ export default function UserAccountsTable({
               </span>
               <select
                 value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDepartment(e.target.value);
+                  setSelectedBatch('ALL');
+                }}
                 className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-2.5 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 max-w-[210px] truncate"
               >
                 <option value="ALL">All Departments</option>
@@ -645,6 +712,31 @@ export default function UserAccountsTable({
                     </option>
                   ))
                 )}
+              </select>
+            </div>
+          )}
+
+          {/* Batch Filter (STUDENTS ONLY: Hidden for Teachers & Admin) */}
+          {selectedRole === 'STUDENT' && (
+            <div className="flex items-center gap-1.5 shrink-0 animate-in fade-in duration-150">
+              <span className="text-[11px] font-semibold text-slate-500 whitespace-nowrap flex items-center gap-1">
+                <Tag className="w-3.5 h-3.5 text-campus-700" />
+                <span>Batch:</span>
+              </span>
+              <select
+                value={selectedBatch}
+                onChange={(e) => setSelectedBatch(e.target.value)}
+                className="text-xs bg-indigo-50/50 border border-indigo-200 rounded-xl px-2.5 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 max-w-[180px] truncate"
+              >
+                <option value="ALL">All Batches ({currentFacultyCounts.students})</option>
+                {hasUnassignedBatchStudents && (
+                  <option value="UNASSIGNED">Unassigned Batch</option>
+                )}
+                {batchesList.map((batchName) => (
+                  <option key={batchName} value={batchName}>
+                    {batchName}
+                  </option>
+                ))}
               </select>
             </div>
           )}
@@ -742,6 +834,15 @@ export default function UserAccountsTable({
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-campus-50 text-campus-800 border border-campus-200 text-[11px] font-medium">
               Dept: {departments.find((d) => d.id === selectedDepartment)?.name || selectedDepartment}
               <button onClick={() => setSelectedDepartment('ALL')} className="hover:text-campus-900">
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedRole === 'STUDENT' && selectedBatch !== 'ALL' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-800 border border-indigo-200 text-[11px] font-medium">
+              Batch: {selectedBatch === 'UNASSIGNED' ? 'Unassigned' : selectedBatch}
+              <button onClick={() => setSelectedBatch('ALL')} className="hover:text-indigo-900" title="Clear batch filter">
                 <X className="w-3 h-3" />
               </button>
             </span>
@@ -904,7 +1005,7 @@ export default function UserAccountsTable({
                       </div>
                       <p className="text-xs text-slate-400">
                         {isFiltered
-                          ? 'No university members match your selected faculty, role, or search keyword.'
+                          ? 'No university members match your selected faculty, role, batch, or search keyword.'
                           : 'No university user accounts exist yet in the database.'}
                       </p>
                       {isFiltered ? (
