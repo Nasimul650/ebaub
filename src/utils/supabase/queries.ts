@@ -725,19 +725,39 @@ export interface UserProfileItem {
   role: string;
   department_id: string | null;
   faculty_id: string | null;
+  faculty_name?: string | null;
   created_at: string;
-  department?: { id: string; name: string } | null;
+  department?: { 
+    id: string; 
+    name: string;
+    faculty_id?: string;
+    faculty_name?: string;
+  } | null;
 }
 
 /**
  * Fetches university profiles for the Admin User Management dashboard.
+ * Resolves department and parent faculty hierarchy for institutional organization.
  */
 export async function getUniversityProfiles(roleFilter?: string): Promise<UserProfileItem[]> {
   try {
     const supabase = await createClient();
+
+    // Fetch faculties lookup for reliable fallback mapping
+    const { data: faculties } = await supabase
+      .from('faculties')
+      .select('id, name');
+    
+    const facultyMap: Record<string, string> = {};
+    if (faculties) {
+      faculties.forEach((f: any) => {
+        facultyMap[f.id] = f.name;
+      });
+    }
+
     let query = supabase
       .from('profiles')
-      .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, created_at, departments(id, name)')
+      .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, created_at, departments(id, name, faculty_id, faculties(id, name))')
       .order('created_at', { ascending: false });
 
     if (roleFilter && roleFilter !== 'ALL') {
@@ -750,10 +770,32 @@ export async function getUniversityProfiles(roleFilter?: string): Promise<UserPr
       return [];
     }
 
-    return (data || []).map((row: any) => ({
-      ...row,
-      department: row.departments || null,
-    }));
+    return (data || []).map((row: any) => {
+      const dept = row.departments;
+      let facultyName: string | null = null;
+      if (dept?.faculties) {
+        facultyName = Array.isArray(dept.faculties)
+          ? dept.faculties[0]?.name
+          : (dept.faculties?.name || null);
+      }
+      if (!facultyName && row.faculty_id && facultyMap[row.faculty_id]) {
+        facultyName = facultyMap[row.faculty_id];
+      }
+      if (!facultyName && dept?.faculty_id && facultyMap[dept.faculty_id]) {
+        facultyName = facultyMap[dept.faculty_id];
+      }
+
+      return {
+        ...row,
+        faculty_name: facultyName,
+        department: dept ? {
+          id: dept.id,
+          name: dept.name,
+          faculty_id: dept.faculty_id,
+          faculty_name: facultyName,
+        } : null,
+      };
+    });
   } catch (err) {
     console.error('Unexpected error fetching university profiles:', err);
     return [];
