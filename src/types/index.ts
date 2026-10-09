@@ -5,9 +5,12 @@ export interface UserProfile {
   email: string;
   fullName: string;
   role: UserRole;
-  avatarUrl?: string;
-  departmentId?: string;
+  avatarUrl?: string | null;
+  institutionalId?: string | null;
+  departmentId?: string | null;
   batch?: string | null;
+  bio?: string | null;
+  phone?: string | null;
   createdAt: string;
 }
 
@@ -17,7 +20,10 @@ export interface CurrentUser {
   fullName: string;
   role: 'ADMIN' | 'TEACHER' | 'STUDENT';
   institutionalId?: string | null;
+  avatarUrl?: string | null;
   batch?: string | null;
+  bio?: string | null;
+  phone?: string | null;
 }
 
 export interface Faculty {

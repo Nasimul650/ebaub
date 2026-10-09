@@ -22,7 +22,7 @@ export default async function PublicLayout({ children }: { children: React.React
     if (user) {
       let { data: profile } = await supabase
         .from('profiles')
-        .select('id, full_name, first_name, last_name, role, institutional_id, batch')
+        .select('id, full_name, first_name, last_name, role, institutional_id, batch, avatar_url')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -50,6 +50,7 @@ export default async function PublicLayout({ children }: { children: React.React
         role,
         institutionalId: profile?.institutional_id || user.user_metadata?.institutional_id || null,
         batch: (profile as any)?.batch || user.user_metadata?.batch || null,
+        avatarUrl: (profile as any)?.avatar_url || user.user_metadata?.avatar_url || null,
       };
     }
   } catch (err) {

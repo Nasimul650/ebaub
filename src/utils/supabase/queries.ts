@@ -727,6 +727,9 @@ export interface UserProfileItem {
   faculty_id: string | null;
   faculty_name?: string | null;
   batch?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  phone?: string | null;
   created_at: string;
   department?: { 
     id: string; 
@@ -1090,3 +1093,117 @@ export async function getCourseMaterialsForStudent({
     return [];
   }
 }
+
+export interface FullUserProfileDetails {
+  id: string;
+  email: string;
+  role: string;
+  full_name: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  institutional_id: string | null;
+  department_id: string | null;
+  faculty_id: string | null;
+  batch?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  created_at: string;
+  department_name?: string | null;
+  faculty_name?: string | null;
+}
+
+/**
+ * Fetches complete profile details for settings page.
+ */
+export async function getUserFullProfile(userId: string): Promise<FullUserProfileDetails | null> {
+  try {
+    const supabase = await createClient();
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*, departments(id, name, faculty_id, faculties(id, name))')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error || !profile) {
+      // Fallback query without joins if departments table relationship has issues
+      const { data: fallbackProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!fallbackProfile) return null;
+
+      let departmentName: string | null = null;
+      let facultyName: string | null = null;
+
+      if (fallbackProfile.department_id) {
+        const { data: dept } = await supabase
+          .from('departments')
+          .select('name, faculties(name)')
+          .eq('id', fallbackProfile.department_id)
+          .maybeSingle();
+
+        if (dept) {
+          departmentName = dept.name;
+          facultyName = Array.isArray(dept.faculties) ? dept.faculties[0]?.name : (dept.faculties as any)?.name || null;
+        }
+      }
+
+      return {
+        id: fallbackProfile.id,
+        email: fallbackProfile.email,
+        role: (fallbackProfile.role || 'STUDENT').toUpperCase(),
+        full_name: fallbackProfile.full_name || `${fallbackProfile.first_name || ''} ${fallbackProfile.last_name || ''}`.trim() || null,
+        first_name: fallbackProfile.first_name,
+        last_name: fallbackProfile.last_name,
+        institutional_id: fallbackProfile.institutional_id || null,
+        department_id: fallbackProfile.department_id || null,
+        faculty_id: fallbackProfile.faculty_id || null,
+        batch: fallbackProfile.batch || null,
+        avatar_url: fallbackProfile.avatar_url || null,
+        bio: fallbackProfile.bio || null,
+        phone: fallbackProfile.phone || null,
+        created_at: fallbackProfile.created_at,
+        department_name: departmentName,
+        faculty_name: facultyName,
+      };
+    }
+
+    const dept = (profile as any).departments;
+    let facultyName: string | null = null;
+    let departmentName: string | null = null;
+
+    if (dept) {
+      departmentName = dept.name;
+      if (dept.faculties) {
+        facultyName = Array.isArray(dept.faculties) ? dept.faculties[0]?.name : dept.faculties.name || null;
+      }
+    }
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      role: (profile.role || 'STUDENT').toUpperCase(),
+      full_name: profile.full_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || null,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      institutional_id: profile.institutional_id || null,
+      department_id: profile.department_id || null,
+      faculty_id: profile.faculty_id || null,
+      batch: profile.batch || null,
+      avatar_url: profile.avatar_url || null,
+      bio: profile.bio || null,
+      phone: profile.phone || null,
+      created_at: profile.created_at,
+      department_name: departmentName,
+      faculty_name: facultyName,
+    };
+  } catch (err) {
+    console.error('Error fetching user full profile:', err);
+    return null;
+  }
+}
+

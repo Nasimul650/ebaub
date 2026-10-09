@@ -171,10 +171,19 @@ export default function MobileNavDrawer({
               </>
             )}
 
+            <Link 
+              href="/settings/profile" 
+              onClick={onClose} 
+              className="flex items-center gap-2 py-1.5 text-slate-700 hover:text-campus-900 border-t border-slate-100 pt-2 font-bold"
+            >
+              <Settings className="w-3.5 h-3.5 text-slate-500" />
+              <span>Profile & Settings</span>
+            </Link>
+
             <button
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="flex items-center gap-2 py-1.5 w-full text-left text-red-600 hover:text-red-700 pt-2 border-t border-slate-100 font-bold"
+              className="flex items-center gap-2 py-1.5 w-full text-left text-red-600 hover:text-red-700 font-bold"
             >
               {isSigningOut ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <LogOut className="w-3.5 h-3.5" />}
               <span>{isSigningOut ? 'Signing out...' : 'Sign Out'}</span>

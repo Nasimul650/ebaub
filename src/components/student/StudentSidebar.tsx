@@ -134,12 +134,12 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
         >
           <div className="p-2 space-y-1">
             <Link 
-              href="/student/settings" 
+              href="/settings/profile" 
               onClick={() => setIsMenuOpen(false)}
               className="flex items-center gap-3 px-3 py-2 text-xs font-medium text-campus-100 hover:bg-campus-800 hover:text-white rounded-lg transition-colors"
             >
               <Settings className="w-4 h-4 shrink-0" />
-              Account Settings
+              Profile & Account Settings
             </Link>
             <form action={logout}>
               <button 

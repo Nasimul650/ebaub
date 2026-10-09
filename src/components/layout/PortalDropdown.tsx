@@ -165,8 +165,12 @@ export default function PortalDropdown({
       {/* User Header Profile Card */}
       <div className="p-4 bg-slate-50/80 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-2xl ${headerInfo.avatarBg} flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0`}>
-            {initial}
+          <div className={`w-10 h-10 rounded-2xl ${headerInfo.avatarBg} flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0 overflow-hidden`}>
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
+            ) : (
+              initial
+            )}
           </div>
           <div className="overflow-hidden flex-1">
             <div className="font-extrabold text-slate-900 text-sm truncate">
@@ -366,8 +370,20 @@ export default function PortalDropdown({
         )}
       </div>
 
+      {/* Account Settings Link */}
+      <div className="pt-1 border-t border-slate-100 px-2">
+        <Link
+          href="/settings/profile"
+          onClick={onClose}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-campus-900 hover:bg-slate-50 text-xs font-bold transition-colors group"
+        >
+          <Settings className="w-4 h-4 text-slate-400 group-hover:text-campus-700 transition-colors" />
+          <span>Profile & Account Settings</span>
+        </Link>
+      </div>
+
       {/* Sign Out Action Button */}
-      <div className="pt-1 border-t border-slate-100 px-2 pb-1">
+      <div className="pt-1 px-2 pb-1">
         <button
           type="button"
           onClick={handleSignOut}

@@ -39,7 +39,8 @@ export async function updateSession(request: NextRequest) {
   const isAdminPath = pathname.startsWith('/admin') || pathname.startsWith('/cms')
   const isTeacherPath = pathname.startsWith('/teacher')
   const isStudentPath = pathname.startsWith('/student')
-  const isProtected = isAdminPath || isTeacherPath || isStudentPath
+  const isSettingsPath = pathname.startsWith('/settings')
+  const isProtected = isAdminPath || isTeacherPath || isStudentPath || isSettingsPath
   const isLoginPath = pathname.startsWith('/login')
 
   // Helper to preserve cookies across redirects
