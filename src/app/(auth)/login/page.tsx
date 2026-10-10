@@ -4,12 +4,14 @@ import React, { useActionState, Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { login } from '@/app/actions/auth';
 import Link from 'next/link';
-import { Sparkles, ShieldCheck, BookOpen, GraduationCap } from 'lucide-react';
+import { Sparkles, ShieldCheck, BookOpen, GraduationCap, CheckCircle2 } from 'lucide-react';
 
 function LoginFormContent() {
   const searchParams = useSearchParams();
   const rawPortal = searchParams.get('portal')?.toLowerCase();
   const rawRedirect = searchParams.get('redirectTo')?.toLowerCase() || '';
+  const isRegistered = searchParams.get('registered') === 'true';
+  const registeredEmail = searchParams.get('email') || '';
 
   const detectedPortal = 
     rawPortal === 'teacher' || rawRedirect.includes('teacher') 
@@ -44,7 +46,6 @@ function LoginFormContent() {
           badge: 'Teacher Portal + AI Tools',
           badgeBg: 'bg-campus-50 text-campus-800 border-campus-200',
           icon: <Sparkles className="w-4 h-4 text-campus-700" />,
-          placeholder: 'teacher@ebaub.edu.bd',
           redirectTo: '/teacher'
         };
       case 'student':
@@ -53,7 +54,6 @@ function LoginFormContent() {
           badge: 'Student Study Workspace',
           badgeBg: 'bg-blue-50 text-blue-800 border-blue-200',
           icon: <BookOpen className="w-4 h-4 text-blue-600" />,
-          placeholder: 'student@ebaub.edu.bd',
           redirectTo: '/student'
         };
       default:
@@ -62,7 +62,6 @@ function LoginFormContent() {
           badge: 'Administrative Portal',
           badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
           icon: <ShieldCheck className="w-4 h-4 text-amber-600" />,
-          placeholder: 'admin@ebaub.edu',
           redirectTo: '/admin'
         };
     }
@@ -143,6 +142,17 @@ function LoginFormContent() {
             <input type="hidden" name="portal" value={activePortal} />
             <input type="hidden" name="redirectTo" value={portalInfo.redirectTo} />
 
+            {/* Registration Success Banner */}
+            {isRegistered && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-3 rounded-2xl text-xs font-semibold flex items-start gap-2.5 animate-in fade-in shadow-2xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold">Account Claimed Successfully! </span>
+                  Please sign in with your email and new password.
+                </div>
+              </div>
+            )}
+
             {state?.error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-xs font-semibold animate-in fade-in">
                 {state.error}
@@ -151,7 +161,7 @@ function LoginFormContent() {
             
             <div>
               <label htmlFor="email" className="block text-xs font-bold text-slate-700">
-                University Email
+                Email or Registration Number
               </label>
               <div className="mt-1">
                 <input
@@ -159,6 +169,7 @@ function LoginFormContent() {
                   name="email"
                   type="email"
                   autoComplete="email"
+                  defaultValue={registeredEmail}
                   required
                   className="appearance-none block w-full px-3.5 py-2.5 border border-slate-200 bg-campus-50/50 rounded-xl shadow-2xs placeholder-slate-400 focus:outline-none focus:border-campus-700 text-xs text-slate-900 transition-colors"
                   placeholder={portalInfo.placeholder}
@@ -213,10 +224,21 @@ function LoginFormContent() {
             </div>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs">
-            <Link href="/contact" className="font-semibold text-slate-500 hover:text-campus-800 transition-colors">
-              Need assistance? Contact IT Support
-            </Link>
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs space-y-2">
+            <div>
+              <span className="text-slate-500">First time here? </span>
+              <Link
+                href="/signup"
+                className="font-bold text-campus-800 hover:text-campus-900 transition-colors underline-offset-4 hover:underline"
+              >
+                Claim your account
+              </Link>
+            </div>
+            <div>
+              <Link href="/contact" className="font-semibold text-slate-400 hover:text-campus-800 transition-colors">
+                Need assistance? Contact IT Support
+              </Link>
+            </div>
           </div>
         </div>
         

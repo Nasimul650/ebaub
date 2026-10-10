@@ -1,11 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, UserPlus, Users } from 'lucide-react';
+import { ArrowLeft, Users, ShieldCheck } from 'lucide-react';
 import { getDepartmentsWithFaculty } from '@/utils/supabase/queries';
-import CreateAccountForm from '@/components/admin/CreateAccountForm';
+import { getWhitelistedCredentials } from '@/app/actions/whitelist';
+import AdminWhitelistManager from '@/components/admin/AdminWhitelistManager';
+
+export const dynamic = 'force-dynamic';
 
 export default async function CreateUserAccountPage() {
-  const departments = await getDepartmentsWithFaculty();
+  const [departments, whitelist] = await Promise.all([
+    getDepartmentsWithFaculty(),
+    getWhitelistedCredentials()
+  ]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
@@ -18,13 +24,14 @@ export default async function CreateUserAccountPage() {
               <span>User Accounts</span>
             </Link>
             <span>/</span>
-            <span className="text-slate-800 font-bold">Provision New Credentials</span>
+            <span className="text-slate-800 font-bold">Credential Whitelist</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 heading-display tracking-tight">
-            Provision Institutional Account
+          <h1 className="text-2xl font-extrabold text-slate-900 heading-display tracking-tight flex items-center gap-2.5">
+            <ShieldCheck className="w-6 h-6 text-campus-700" />
+            <span>Pre-Authorize Credentials (Whitelist)</span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Create verified Teacher and Student credentials using their official university institutional ID numbers.
+            Pre-register official Student Registration Numbers and Teacher IDs. Users will claim their account and set their own passwords via the public Sign-Up portal.
           </p>
         </div>
 
@@ -37,8 +44,11 @@ export default async function CreateUserAccountPage() {
         </Link>
       </div>
 
-      {/* Account Creation Form */}
-      <CreateAccountForm departments={departments} />
+      {/* Admin Whitelist Management Tabs & Forms */}
+      <AdminWhitelistManager
+        departments={departments}
+        initialWhitelist={whitelist as any}
+      />
     </div>
   );
 }
