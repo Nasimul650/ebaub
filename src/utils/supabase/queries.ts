@@ -1105,6 +1105,7 @@ export interface FullUserProfileDetails {
   department_id: string | null;
   faculty_id: string | null;
   batch?: string | null;
+  username?: string | null;
   avatar_url?: string | null;
   bio?: string | null;
   phone?: string | null;
@@ -1163,6 +1164,7 @@ export async function getUserFullProfile(userId: string): Promise<FullUserProfil
         department_id: fallbackProfile.department_id || null,
         faculty_id: fallbackProfile.faculty_id || null,
         batch: fallbackProfile.batch || null,
+        username: (fallbackProfile as any)?.username || null,
         avatar_url: fallbackProfile.avatar_url || null,
         bio: fallbackProfile.bio || null,
         phone: fallbackProfile.phone || null,
@@ -1194,6 +1196,7 @@ export async function getUserFullProfile(userId: string): Promise<FullUserProfil
       department_id: profile.department_id || null,
       faculty_id: profile.faculty_id || null,
       batch: profile.batch || null,
+      username: (profile as any)?.username || null,
       avatar_url: profile.avatar_url || null,
       bio: profile.bio || null,
       phone: profile.phone || null,

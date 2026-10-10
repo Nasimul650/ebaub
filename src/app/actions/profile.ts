@@ -9,13 +9,21 @@ export interface ProfileUpdateResult {
   error?: string;
   message?: string;
   avatarUrl?: string | null;
+  fullName?: string | null;
+  username?: string | null;
   bio?: string | null;
   phone?: string | null;
 }
 
+export interface PasswordChangeResult {
+  success?: boolean;
+  error?: string;
+  message?: string;
+}
+
 /**
  * Server Action: updateUserProfile
- * Updates personal details (phone, bio, avatar) for the authenticated user.
+ * Updates personal details (username, full name, phone, bio, avatar) for the authenticated user.
  */
 export async function updateUserProfile(formData: FormData): Promise<ProfileUpdateResult> {
   try {
@@ -28,19 +36,50 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
     }
 
     // 2. Extract inputs
+    const fullName = (formData.get('fullName') as string || formData.get('full_name') as string || '').trim();
+    const username = (formData.get('username') as string || '').trim();
     const phone = (formData.get('phone') as string || '').trim();
     const bio = (formData.get('bio') as string || '').trim();
     const removeAvatar = formData.get('remove_avatar') === 'true';
     const avatarFile = formData.get('avatar') as File | null;
 
-    // Validate phone length
+    // Optional password change if submitted together
+    const newPassword = (formData.get('new_password') as string || '').trim();
+    const confirmPassword = (formData.get('confirm_password') as string || '').trim();
+
+    // Validations
+    if (fullName && fullName.length > 100) {
+      return { error: 'Full name cannot exceed 100 characters.' };
+    }
+
+    if (username && username.length > 50) {
+      return { error: 'Username cannot exceed 50 characters.' };
+    }
+
     if (phone && phone.length > 30) {
       return { error: 'Phone number cannot exceed 30 characters.' };
     }
 
-    // Validate bio length
     if (bio && bio.length > 1000) {
       return { error: 'Bio cannot exceed 1000 characters.' };
+    }
+
+    // Validate password if provided
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return { error: 'Password must be at least 6 characters long.' };
+      }
+      if (newPassword !== confirmPassword) {
+        return { error: 'New password and confirm password do not match.' };
+      }
+
+      const { error: pwdError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+        password: newPassword,
+      });
+
+      if (pwdError) {
+        return { error: `Failed to update password: ${pwdError.message}` };
+      }
     }
 
     let newAvatarUrl: string | null | undefined = undefined;
@@ -77,7 +116,6 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
 
       // Fallback to supabaseAdmin if bucket not initialized or RLS mismatch
       if (uploadRes.error) {
-        // Ensure bucket exists in storage
         await supabaseAdmin.storage.createBucket('avatars', {
           public: true,
           fileSizeLimit: 5242880,
@@ -112,6 +150,19 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
       updated_at: new Date().toISOString(),
     };
 
+    if (fullName) {
+      const nameParts = fullName.split(' ');
+      const firstName = nameParts[0] || fullName;
+      const lastName = nameParts.slice(1).join(' ') || null;
+      updatePayload.full_name = fullName;
+      updatePayload.first_name = firstName;
+      updatePayload.last_name = lastName;
+    }
+
+    if (username) {
+      updatePayload.username = username;
+    }
+
     if (newAvatarUrl !== undefined) {
       updatePayload.avatar_url = newAvatarUrl;
     }
@@ -126,23 +177,30 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
     if (updateError) {
       console.warn('Profiles update error with user client, attempting fallback:', updateError.message);
       
+      if (updateError.message.includes('username')) {
+        delete updatePayload.username;
+      }
+
       let adminUpdate = await supabaseAdmin
         .from('profiles')
         .update(updatePayload)
         .eq('id', user.id);
 
+      if (adminUpdate.error && adminUpdate.error.message.includes('username')) {
+        delete updatePayload.username;
+        adminUpdate = await supabaseAdmin
+          .from('profiles')
+          .update(updatePayload)
+          .eq('id', user.id);
+      }
+
       if (adminUpdate.error && (adminUpdate.error.message.includes('bio') || adminUpdate.error.message.includes('phone'))) {
-        // Fallback: update only avatar_url if bio/phone columns don't exist yet
-        const minimalPayload: Record<string, any> = {
-          updated_at: new Date().toISOString(),
-        };
-        if (newAvatarUrl !== undefined) {
-          minimalPayload.avatar_url = newAvatarUrl;
-        }
+        delete updatePayload.bio;
+        delete updatePayload.phone;
 
         const fallbackRes = await supabaseAdmin
           .from('profiles')
-          .update(minimalPayload)
+          .update(updatePayload)
           .eq('id', user.id);
 
         if (fallbackRes.error) {
@@ -155,13 +213,26 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
 
     // 5. Keep Supabase Auth User Metadata in sync
     try {
+      const updatedMeta: Record<string, any> = {
+        ...(user.user_metadata || {}),
+        ...(newAvatarUrl !== undefined ? { avatar_url: newAvatarUrl } : {}),
+        bio: bio || null,
+        phone: phone || null,
+      };
+
+      if (fullName) {
+        const nameParts = fullName.split(' ');
+        updatedMeta.full_name = fullName;
+        updatedMeta.first_name = nameParts[0] || fullName;
+        updatedMeta.last_name = nameParts.slice(1).join(' ') || null;
+      }
+
+      if (username) {
+        updatedMeta.username = username;
+      }
+
       await supabaseAdmin.auth.admin.updateUserById(user.id, {
-        user_metadata: {
-          ...(user.user_metadata || {}),
-          ...(newAvatarUrl !== undefined ? { avatar_url: newAvatarUrl } : {}),
-          bio: bio || null,
-          phone: phone || null,
-        },
+        user_metadata: updatedMeta,
       });
     } catch (metaErr) {
       console.warn('Could not sync user_metadata:', metaErr);
@@ -183,11 +254,59 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
       success: true,
       message: 'Profile details updated successfully.',
       avatarUrl: newAvatarUrl !== undefined ? newAvatarUrl : (user.user_metadata?.avatar_url || null),
+      fullName: fullName || user.user_metadata?.full_name || null,
+      username: username || user.user_metadata?.username || null,
       bio: bio || null,
       phone: phone || null,
     };
   } catch (err: any) {
     console.error('Unexpected error updating profile:', err);
     return { error: err.message || 'An unexpected error occurred while saving your profile.' };
+  }
+}
+
+/**
+ * Server Action: changeUserPassword
+ * Specifically updates the authenticated user's account password.
+ */
+export async function changeUserPassword(formData: FormData): Promise<PasswordChangeResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { error: 'Unauthorized: Please log in to update your password.' };
+    }
+
+    const newPassword = (formData.get('new_password') as string || '').trim();
+    const confirmPassword = (formData.get('confirm_password') as string || '').trim();
+
+    if (!newPassword) {
+      return { error: 'Please enter a new password.' };
+    }
+
+    if (newPassword.length < 6) {
+      return { error: 'Password must be at least 6 characters long.' };
+    }
+
+    if (newPassword !== confirmPassword) {
+      return { error: 'New password and confirmation password do not match.' };
+    }
+
+    const { error: pwdError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      password: newPassword,
+    });
+
+    if (pwdError) {
+      return { error: `Failed to update password: ${pwdError.message}` };
+    }
+
+    return {
+      success: true,
+      message: 'Password changed successfully! Please use your new password next time you sign in.',
+    };
+  } catch (err: any) {
+    console.error('Unexpected error changing password:', err);
+    return { error: err.message || 'An unexpected error occurred while changing your password.' };
   }
 }

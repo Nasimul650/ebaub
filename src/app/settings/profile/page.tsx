@@ -32,6 +32,7 @@ export default async function ProfileSettingsPage() {
     department_id: null,
     faculty_id: null,
     batch: user.user_metadata?.batch || null,
+    username: user.user_metadata?.username || null,
     avatar_url: user.user_metadata?.avatar_url || null,
     bio: user.user_metadata?.bio || null,
     phone: user.user_metadata?.phone || null,
