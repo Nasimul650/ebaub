@@ -27,9 +27,13 @@ import {
   ArrowUpDown,
   BookOpen,
   Tag,
-  Clock
+  Clock,
+  Trash2,
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
 import type { UserProfileItem, DepartmentWithFaculty } from '@/utils/supabase/queries';
+import { deleteUniversityUser } from '@/app/actions/admin-users';
 import { 
   Dialog, 
   DialogContent, 
@@ -65,10 +69,59 @@ export default function UserAccountsTable({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(25);
 
+  // Local reactive list of profiles
+  const [profilesList, setProfilesList] = useState<UserProfileItem[]>(initialProfiles);
+
+  useEffect(() => {
+    setProfilesList(initialProfiles);
+  }, [initialProfiles]);
+
   // Inspector Modal State
   const [inspectingUser, setInspectingUser] = useState<UserProfileItem | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+
+  // Deletion Modal & Feedback State
+  const [deletingUser, setDeletingUser] = useState<UserProfileItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [feedbackNotification, setFeedbackNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingUser || isDeleting) return;
+
+    // Strict client-side admin check
+    if ((deletingUser.role || '').toUpperCase() === 'ADMIN') {
+      setDeleteError('Security Violation: Administrator accounts cannot be deleted.');
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    try {
+      const res = await deleteUniversityUser(deletingUser.id);
+      if (res.success) {
+        const removedId = deletingUser.id;
+        setProfilesList((prev) => prev.filter((p) => p.id !== removedId));
+        if (inspectingUser?.id === removedId) {
+          setInspectingUser(null);
+        }
+        setDeletingUser(null);
+        setFeedbackNotification({
+          type: 'success',
+          message: res.message || 'User deleted successfully.'
+        });
+        setTimeout(() => setFeedbackNotification(null), 5000);
+      } else {
+        setDeleteError(res.error || 'Failed to delete user.');
+      }
+    } catch (err: any) {
+      setDeleteError(err?.message || 'Unexpected error occurred while deleting user.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // --- DERIVED METADATA ---
 
@@ -78,12 +131,12 @@ export default function UserAccountsTable({
     departments.forEach((d) => {
       if (d.faculty_name) set.add(d.faculty_name);
     });
-    initialProfiles.forEach((p) => {
+    profilesList.forEach((p) => {
       if (p.faculty_name) set.add(p.faculty_name);
       if (p.department?.faculty_name) set.add(p.department.faculty_name);
     });
     return Array.from(set).sort();
-  }, [departments, initialProfiles]);
+  }, [departments, profilesList]);
 
   // Overall Global Counts
   const overallStats = useMemo(() => {
@@ -91,7 +144,7 @@ export default function UserAccountsTable({
     let students = 0;
     let admins = 0;
 
-    initialProfiles.forEach((p) => {
+    profilesList.forEach((p) => {
       const r = (p.role || '').toUpperCase();
       if (r === 'TEACHER') teachers++;
       else if (r === 'STUDENT') students++;
@@ -99,12 +152,12 @@ export default function UserAccountsTable({
     });
 
     return {
-      total: initialProfiles.length,
+      total: profilesList.length,
       teachers,
       students,
       admins,
     };
-  }, [initialProfiles]);
+  }, [profilesList]);
 
   // Counts per Faculty
   const facultyStats = useMemo(() => {
@@ -113,7 +166,7 @@ export default function UserAccountsTable({
       stats[fac] = { total: 0, teachers: 0, students: 0 };
     });
 
-    initialProfiles.forEach((p) => {
+    profilesList.forEach((p) => {
       const fac = p.faculty_name || p.department?.faculty_name;
       if (fac && stats[fac]) {
         stats[fac].total++;
@@ -124,7 +177,7 @@ export default function UserAccountsTable({
     });
 
     return stats;
-  }, [facultiesList, initialProfiles]);
+  }, [facultiesList, profilesList]);
 
   // Departments available for dropdown (filtered by selected faculty)
   const availableDepartments = useMemo(() => {
@@ -139,7 +192,7 @@ export default function UserAccountsTable({
     const set = new Set<string>();
     let hasUnassigned = false;
 
-    initialProfiles.forEach((p) => {
+    profilesList.forEach((p) => {
       const r = (p.role || '').toUpperCase();
       if (r === 'STUDENT') {
         const fac = p.faculty_name || p.department?.faculty_name || null;
@@ -166,7 +219,7 @@ export default function UserAccountsTable({
       batchesList: sortedBatches,
       hasUnassignedBatchStudents: hasUnassigned,
     };
-  }, [initialProfiles, selectedFaculty, selectedDepartment]);
+  }, [profilesList, selectedFaculty, selectedDepartment]);
 
   // Handle Faculty change (and sync role selection & reset batch)
   const handleFacultyChange = (faculty: string) => {
@@ -193,7 +246,7 @@ export default function UserAccountsTable({
 
   // --- FILTERING & SORTING LOGIC ---
   const filteredProfiles = useMemo(() => {
-    return initialProfiles.filter((p) => {
+    return profilesList.filter((p) => {
       const role = (p.role || '').toUpperCase();
       const fac = p.faculty_name || p.department?.faculty_name || null;
 
@@ -246,7 +299,7 @@ export default function UserAccountsTable({
 
       return true;
     });
-  }, [initialProfiles, selectedFaculty, selectedRole, selectedDepartment, selectedBatch, searchQuery]);
+  }, [profilesList, selectedFaculty, selectedRole, selectedDepartment, selectedBatch, searchQuery]);
 
   // Sorted Profiles
   const sortedProfiles = useMemo(() => {
@@ -435,6 +488,31 @@ export default function UserAccountsTable({
 
   return (
     <div className="space-y-6">
+      {/* Feedback Notification Banner */}
+      {feedbackNotification && (
+        <div className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between gap-3 shadow-2xs animate-in fade-in ${
+          feedbackNotification.type === 'success'
+            ? 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+            : 'bg-red-50 border border-red-200 text-red-900'
+        }`}>
+          <div className="flex items-center gap-2">
+            {feedbackNotification.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{feedbackNotification.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFeedbackNotification(null)}
+            className="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* ======================================================== */}
       {/* 1. TOP OVERALL STATS CARDS                               */}
       {/* ======================================================== */}
@@ -1011,17 +1089,41 @@ export default function UserAccountsTable({
 
                     {/* Action */}
                     <td className="p-4 text-right">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setInspectingUser(p);
-                        }}
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 hover:bg-campus-100 text-slate-600 hover:text-campus-900 transition-colors"
-                        title="View Full Profile Details"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setInspectingUser(p);
+                          }}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 hover:bg-campus-100 text-slate-600 hover:text-campus-900 transition-colors"
+                          title="View Full Profile Details"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+
+                        {(p.role || '').toUpperCase() === 'ADMIN' ? (
+                          <div
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-purple-50 text-purple-400 border border-purple-100/80 cursor-not-allowed"
+                            title="Administrator Account (Protected from deletion)"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingUser(p);
+                              setDeleteError(null);
+                            }}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200/60 hover:border-red-200 transition-colors"
+                            title={`Delete ${(p.role || '').toLowerCase() || 'user'} account`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -1298,13 +1400,135 @@ export default function UserAccountsTable({
             </div>
           )}
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-3 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-100 mt-2">
+            {(inspectingUser?.role || '').toUpperCase() === 'ADMIN' ? (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold">
+                <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
+                <span>Protected Administrator Account</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  const target = inspectingUser;
+                  setInspectingUser(null);
+                  setDeletingUser(target);
+                  setDeleteError(null);
+                }}
+                className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs inline-flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete User Account</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setInspectingUser(null)}
-              className="w-full px-4 py-2 rounded-xl bg-campus-900 text-white font-bold text-xs hover:bg-campus-800 transition-colors"
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-campus-900 text-white font-bold text-xs hover:bg-campus-800 transition-colors"
             >
               Close Details
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ======================================================== */}
+      {/* 9. DELETE USER CONFIRMATION MODAL                        */}
+      {/* ======================================================== */}
+      <Dialog
+        open={!!deletingUser}
+        onOpenChange={(open) => !open && !isDeleting && setDeletingUser(null)}
+      >
+        <DialogContent className="w-[95vw] sm:max-w-md p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl">
+          <DialogHeader className="space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shadow-2xs mx-auto sm:mx-0">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-extrabold text-slate-900">
+                Delete University User Account
+              </DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 mt-1">
+                This action will permanently remove this member from university records and revoke portal access.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          {deletingUser && (
+            <div className="space-y-4 py-2">
+              {/* User Snapshot Card */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/90 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-900 text-sm">
+                    {deletingUser.full_name || 'University Member'}
+                  </span>
+                  {getRoleBadge(deletingUser.role, deletingUser.batch)}
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/60 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 font-semibold block">Institutional ID:</span>
+                    <span className="font-mono font-bold text-slate-800">
+                      {deletingUser.institutional_id || 'Not Assigned'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-semibold block">Email Address:</span>
+                    <span className="text-slate-800 font-medium truncate block" title={deletingUser.email}>
+                      {deletingUser.email}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Warning Callout */}
+              <div className="p-3.5 bg-red-50/80 border border-red-200 rounded-2xl text-red-900 text-xs flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-bold text-red-950">Permanent Irreversible Action</div>
+                  <p className="text-[11px] text-red-800 leading-relaxed">
+                    {deletingUser.is_pending_signup
+                      ? 'This will cancel their whitelist pre-authorization. They will no longer be able to claim this ID at sign up.'
+                      : 'This will delete their authentication login, institutional profile, and course enrollments. You cannot undo this action.'}
+                  </p>
+                </div>
+              </div>
+
+              {deleteError && (
+                <div className="p-3 bg-red-100 border border-red-300 text-red-800 rounded-xl text-xs font-semibold animate-in fade-in">
+                  {deleteError}
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex flex-col sm:flex-row items-center gap-2 pt-2">
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={() => setDeletingUser(null)}
+              className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={handleDeleteConfirm}
+              className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-sm inline-flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Deleting...</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Confirm Delete</span>
+                </>
+              )}
             </button>
           </DialogFooter>
         </DialogContent>

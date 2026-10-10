@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 export async function login(prevState: any, formData: FormData) {
   const email = (formData.get('email') as string || '').trim();
@@ -17,13 +18,34 @@ export async function login(prevState: any, formData: FormData) {
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  let { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
-    return { error: error.message };
+    if (error.message.toLowerCase().includes('not confirmed')) {
+      try {
+        const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+        const target = usersData?.users?.find(
+          (u) => u.email?.toLowerCase().trim() === email.toLowerCase().trim()
+        );
+        if (target) {
+          await supabaseAdmin.auth.admin.updateUserById(target.id, { email_confirm: true });
+          const retry = await supabase.auth.signInWithPassword({ email, password });
+          if (!retry.error && retry.data) {
+            data = retry.data;
+            error = null;
+          }
+        }
+      } catch (adminErr) {
+        console.warn('Auto-confirm fallback error:', adminErr);
+      }
+    }
+  }
+
+  if (error || !data?.user) {
+    return { error: error?.message || 'Login failed' };
   }
 
   // Fetch user profile to determine role
@@ -157,47 +179,76 @@ export async function registerAccount(prevStateOrFormData: any, formDataArg?: Fo
     return { error: 'This ID has already been claimed.' };
   }
 
-  // Check if email is already taken
-  const { data: existingEmailUser } = await supabaseAdmin
-    .from('profiles')
-    .select('id, email')
-    .eq('email', email)
-    .maybeSingle();
-
-  if (existingEmailUser) {
-    return { error: 'An account with this email address already exists. Please sign in or use a different email.' };
-  }
-
-  // 3. Create Auth User: Call supabase.auth.signUp({ email, password })
-  const supabase = await createClient();
+  // 3. Create or Link Auth User
   const normalizedRole = whitelist.role.toLowerCase() === 'teacher' ? 'TEACHER' : 'STUDENT';
+  let newUserId: string;
 
-  const { data: authData, error: signUpError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
+  // Check if an auth user with this email already exists
+  const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
+  const existingAuthUser = usersData?.users?.find(
+    (u) => u.email?.toLowerCase().trim() === email.toLowerCase().trim()
+  );
+
+  if (existingAuthUser) {
+    // Check if this existing auth account has already claimed a DIFFERENT institutional ID
+    const { data: alreadyClaimed } = await supabaseAdmin
+      .from('credential_whitelist')
+      .select('id, institutional_id')
+      .eq('claimed_by', existingAuthUser.id)
+      .maybeSingle();
+
+    if (alreadyClaimed && alreadyClaimed.institutional_id.toLowerCase().trim() !== institutionalId.toLowerCase().trim()) {
+      return {
+        error: `This email address is already bound to Institutional ID (${alreadyClaimed.institutional_id}). Please use your official university email.`
+      };
+    }
+
+    // Update the existing auth user's password, confirmation, and metadata
+    const { data: updatedUser, error: updateAuthErr } = await supabaseAdmin.auth.admin.updateUserById(
+      existingAuthUser.id,
+      {
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          institutional_id: whitelist.institutional_id,
+          role: normalizedRole,
+          department_id: whitelist.department_id,
+          batch: whitelist.batch,
+        }
+      }
+    );
+
+    if (updateAuthErr || !updatedUser?.user) {
+      console.error('Error updating existing auth user:', updateAuthErr);
+      return { error: 'Failed to update user credentials: ' + (updateAuthErr?.message || 'Unknown error') };
+    }
+
+    newUserId = updatedUser.user.id;
+  } else {
+    // Create new auth user via admin API with email_confirm: true
+    const { data: newAuthData, error: createAuthErr } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
         full_name: fullName,
         institutional_id: whitelist.institutional_id,
         role: normalizedRole,
         department_id: whitelist.department_id,
         batch: whitelist.batch,
       }
+    });
+
+    if (createAuthErr || !newAuthData?.user) {
+      console.error('Supabase admin createUser error:', createAuthErr);
+      return { error: createAuthErr?.message || 'Unable to create user account. Please check your credentials and try again.' };
     }
-  });
 
-  if (signUpError) {
-    console.error('Supabase signUp error:', signUpError);
-    return { error: signUpError.message };
+    newUserId = newAuthData.user.id;
   }
 
-  if (!authData?.user) {
-    return { error: 'Unable to create user account. Please check your credentials and try again.' };
-  }
-
-  const newUserId = authData.user.id;
-
-  // 4. Create Profile: Insert a record into profiles mapping auth.user.id to institutional_id, full_name, email, and inheriting role and department_id from whitelist
+  // 4. Create Profile: Insert or update record in profiles mapping auth.user.id to institutional_id
   let facultyId: string | null = null;
   if (whitelist.department_id) {
     const { data: dept } = await supabaseAdmin
@@ -232,6 +283,7 @@ export async function registerAccount(prevStateOrFormData: any, formDataArg?: Fo
 
   if (profileError) {
     console.error('Error inserting profile row:', profileError);
+    return { error: `Failed to create profile: ${profileError.message}` };
   }
 
   // Sync extension tables if applicable
@@ -273,6 +325,7 @@ export async function registerAccount(prevStateOrFormData: any, formDataArg?: Fo
 
   if (claimError) {
     console.error('Error updating whitelist claim status:', claimError);
+    return { error: `Failed to update whitelist claim status: ${claimError.message}` };
   }
 
   // 6. Revalidate routes
@@ -281,9 +334,82 @@ export async function registerAccount(prevStateOrFormData: any, formDataArg?: Fo
   revalidatePath('/admin/users');
   revalidatePath('/admin/users/create');
 
-  // 7. Redirect to /login with success parameters
+  // 7. Redirect to /login with confirmed status
   const portalParam = normalizedRole === 'TEACHER' ? 'teacher' : 'student';
-  redirect(`/login?registered=true&portal=${portalParam}&email=${encodeURIComponent(email)}`);
+  redirect(`/login?registered=true&confirmed=true&portal=${portalParam}&email=${encodeURIComponent(email)}`);
+}
+
+export async function instantVerifyWhitelistedUser(email: string) {
+  if (!email || !email.includes('@')) {
+    return { error: 'Please enter a valid email address.' };
+  }
+
+  try {
+    const { data: usersData, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
+    if (listErr || !usersData?.users) {
+      return { error: 'Unable to access auth user registry.' };
+    }
+
+    const targetUser = usersData.users.find(
+      (u) => u.email?.toLowerCase().trim() === email.toLowerCase().trim()
+    );
+
+    if (!targetUser) {
+      return { error: 'No account found with this email address.' };
+    }
+
+    const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(targetUser.id, {
+      email_confirm: true,
+    });
+
+    if (updateErr) {
+      return { error: updateErr.message };
+    }
+
+    revalidatePath('/login');
+    revalidatePath('/verify-email');
+    return { success: true, message: 'Account verified successfully! You can now log in.' };
+  } catch (err: any) {
+    return { error: err?.message || 'Verification failed.' };
+  }
+}
+
+export async function resendConfirmationEmail(email: string) {
+  if (!email || !email.includes('@')) {
+    return { error: 'Please provide a valid email address.' };
+  }
+
+  try {
+    const supabase = await createClient();
+
+    let siteUrl = '';
+    try {
+      const headerList = await headers();
+      const host = headerList.get('x-forwarded-host') || headerList.get('host');
+      const proto = headerList.get('x-forwarded-proto') || 'http';
+      if (host) {
+        siteUrl = `${proto}://${host}`;
+      }
+    } catch {
+      // fallback
+    }
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.trim(),
+      options: {
+        emailRedirectTo: siteUrl ? `${siteUrl}/auth/callback` : undefined,
+      },
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { success: true, message: `A fresh verification link has been sent to ${email.trim()}.` };
+  } catch (err: any) {
+    return { error: err?.message || 'Failed to resend confirmation email.' };
+  }
 }
 
 export async function logout() {

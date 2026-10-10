@@ -230,3 +230,162 @@ export async function createUniversityAccount(formData: FormData): Promise<Admin
     return { error: err.message || 'An unexpected error occurred while creating the account.' };
   }
 }
+
+export interface DeleteUserResult {
+  success?: boolean;
+  error?: string;
+  message?: string;
+}
+
+/**
+ * Server Action: deleteUniversityUser
+ * Deletes a Student or Teacher account from the university system.
+ * STRICT SECURITY: Administrator accounts CANNOT be deleted.
+ */
+export async function deleteUniversityUser(targetId: string): Promise<DeleteUserResult> {
+  try {
+    if (!targetId || targetId.trim() === '') {
+      return { error: 'Target user ID is required.' };
+    }
+
+    // 1. Authenticate caller and assert Admin role
+    const supabase = await createClient();
+    const { data: { user: caller }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !caller) {
+      return { error: 'Unauthorized: You must be logged in as an administrator to delete accounts.' };
+    }
+
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', caller.id)
+      .maybeSingle();
+
+    const callerRole = (callerProfile?.role || caller.user_metadata?.role || '').toUpperCase();
+    if (callerRole !== 'ADMIN') {
+      return { error: 'Forbidden: Only administrators have permission to delete user accounts.' };
+    }
+
+    // Protect against self-deletion
+    if (targetId === caller.id) {
+      return { error: 'Action not allowed: You cannot delete your own administrator account.' };
+    }
+
+    // 2. Handle Unclaimed Whitelist Entry Deletion (targetId starts with "whitelist-")
+    if (targetId.startsWith('whitelist-')) {
+      const whitelistId = targetId.replace('whitelist-', '');
+      const { data: wlRecord } = await supabaseAdmin
+        .from('credential_whitelist')
+        .select('id, role, institutional_id')
+        .eq('id', whitelistId)
+        .maybeSingle();
+
+      if (!wlRecord) {
+        return { error: 'Whitelist record not found or already deleted.' };
+      }
+
+      if ((wlRecord.role || '').toUpperCase() === 'ADMIN') {
+        return { error: 'Security Violation: Administrator accounts cannot be deleted.' };
+      }
+
+      const { error: wlDeleteErr } = await supabaseAdmin
+        .from('credential_whitelist')
+        .delete()
+        .eq('id', whitelistId);
+
+      if (wlDeleteErr) {
+        return { error: `Failed to remove whitelist entry: ${wlDeleteErr.message}` };
+      }
+
+      revalidatePath('/admin/users');
+      revalidatePath('/admin/users/create');
+      return { success: true, message: `Whitelist record (${wlRecord.institutional_id}) removed successfully.` };
+    }
+
+    // 3. Handle Registered User Deletion (UUID)
+    // Fetch profile to verify target is NOT an admin
+    const { data: targetProfile, error: profileFetchErr } = await supabaseAdmin
+      .from('profiles')
+      .select('id, role, email, institutional_id')
+      .eq('id', targetId)
+      .maybeSingle();
+
+    if (profileFetchErr) {
+      return { error: `Error locating user profile: ${profileFetchErr.message}` };
+    }
+
+    // CRITICAL SECURITY RULE: Block Admin Deletion
+    const targetRole = (targetProfile?.role || '').toUpperCase();
+    if (targetRole === 'ADMIN') {
+      return { error: 'Security Violation: Administrator accounts cannot be deleted under any circumstances.' };
+    }
+
+    // Also check auth.users metadata as a second layer of defense
+    try {
+      const { data: authUserData } = await supabaseAdmin.auth.admin.getUserById(targetId);
+      const authUserRole = (
+        authUserData.user?.user_metadata?.role ||
+        authUserData.user?.app_metadata?.role ||
+        ''
+      ).toUpperCase();
+
+      if (authUserRole === 'ADMIN') {
+        return { error: 'Security Violation: Administrator accounts cannot be deleted under any circumstances.' };
+      }
+    } catch {
+      // Continue if user isn't found in auth directly
+    }
+
+    // 4. Clean up related records
+    // Remove from students / teachers tables
+    await supabaseAdmin.from('students').delete().eq('id', targetId);
+    await supabaseAdmin.from('teachers').delete().eq('id', targetId);
+
+    // Clean up or remove associated whitelist entry if present
+    if (targetProfile?.institutional_id) {
+      await supabaseAdmin
+        .from('credential_whitelist')
+        .delete()
+        .ilike('institutional_id', targetProfile.institutional_id);
+    }
+    await supabaseAdmin
+      .from('credential_whitelist')
+      .delete()
+      .eq('claimed_by', targetId);
+
+    // Delete profile
+    const { error: deleteProfileErr } = await supabaseAdmin
+      .from('profiles')
+      .delete()
+      .eq('id', targetId);
+
+    if (deleteProfileErr) {
+      console.warn('Profile deletion notice:', deleteProfileErr.message);
+    }
+
+    // Delete Auth User from Supabase Auth
+    try {
+      const { error: deleteAuthErr } = await supabaseAdmin.auth.admin.deleteUser(targetId);
+      if (deleteAuthErr && !deleteAuthErr.message.includes('User not found')) {
+        console.warn('Auth user deletion notice:', deleteAuthErr.message);
+      }
+    } catch (authDelErr: any) {
+      console.warn('Auth delete exception:', authDelErr?.message);
+    }
+
+    // 5. Revalidate paths
+    revalidatePath('/admin/users');
+    revalidatePath('/admin/users/create');
+    revalidatePath('/admin');
+
+    const userLabel = targetProfile?.institutional_id || targetProfile?.email || targetId;
+    return {
+      success: true,
+      message: `User account (${userLabel}) has been permanently deleted.`
+    };
+  } catch (err: any) {
+    console.error('Unexpected error deleting user:', err);
+    return { error: err.message || 'An unexpected error occurred while deleting the user.' };
+  }
+}
