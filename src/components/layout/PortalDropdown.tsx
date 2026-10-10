@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   BookOpen, 
@@ -36,6 +36,11 @@ export default function PortalDropdown({
   user = null,
 }: PortalDropdownProps) {
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.avatarUrl]);
 
   if (!isOpen) return null;
 
@@ -166,8 +171,13 @@ export default function PortalDropdown({
       <div className="p-4 bg-slate-50/80 border-b border-slate-100">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-2xl ${headerInfo.avatarBg} flex items-center justify-center font-extrabold text-sm shadow-xs shrink-0 overflow-hidden`}>
-            {user.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
+            {user.avatarUrl && !imgError ? (
+              <img 
+                src={user.avatarUrl} 
+                alt={user.fullName} 
+                className="w-full h-full object-cover" 
+                onError={() => setImgError(true)}
+              />
             ) : (
               initial
             )}

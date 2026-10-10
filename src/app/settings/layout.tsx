@@ -72,8 +72,8 @@ export default async function SettingsLayout({
           {/* User Quick Pill */}
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-campus-900 text-white flex items-center justify-center font-extrabold text-xs overflow-hidden shadow-2xs">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+              {(profile?.avatar_url || user.user_metadata?.avatar_url) ? (
+                <img src={profile?.avatar_url || user.user_metadata?.avatar_url} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                 displayName.charAt(0).toUpperCase()
               )}

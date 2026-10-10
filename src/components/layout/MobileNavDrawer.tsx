@@ -65,11 +65,15 @@ export default function MobileNavDrawer({
         <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-3 mb-2">
           {/* User Header */}
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 ${
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 overflow-hidden ${
               user.role === 'ADMIN' ? 'bg-purple-600 text-white' : 
               user.role === 'TEACHER' ? 'bg-blue-600 text-white' : 'bg-campus-900 text-white'
             }`}>
-              {initial}
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.fullName} className="w-full h-full object-cover" />
+              ) : (
+                initial
+              )}
             </div>
             <div className="overflow-hidden flex-1">
               <div className="font-extrabold text-slate-900 text-xs truncate">

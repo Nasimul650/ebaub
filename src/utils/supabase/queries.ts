@@ -761,7 +761,7 @@ export async function getUniversityProfiles(roleFilter?: string): Promise<UserPr
 
     let query = supabase
       .from('profiles')
-      .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, batch, created_at, departments(id, name, faculty_id, faculties(id, name))')
+      .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, batch, avatar_url, created_at, departments(id, name, faculty_id, faculties(id, name))')
       .order('created_at', { ascending: false });
 
     if (roleFilter && roleFilter !== 'ALL') {
@@ -769,7 +769,7 @@ export async function getUniversityProfiles(roleFilter?: string): Promise<UserPr
     }
 
     let { data, error } = await query;
-    if (error && error.message.includes('batch')) {
+    if (error && (error.message.includes('batch') || error.message.includes('avatar_url'))) {
       // Graceful fallback if migration not yet applied
       let fallbackQuery = supabase
         .from('profiles')

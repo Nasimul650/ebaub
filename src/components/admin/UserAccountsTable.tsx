@@ -894,8 +894,12 @@ export default function UserAccountsTable({
                     {/* Member & Contact */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-extrabold text-slate-700 text-xs shrink-0 group-hover:bg-white group-hover:border-campus-300 transition-colors">
-                          {initial}
+                        <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-extrabold text-slate-700 text-xs shrink-0 group-hover:bg-white group-hover:border-campus-300 transition-colors overflow-hidden">
+                          {p.avatar_url ? (
+                            <img src={p.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                          ) : (
+                            initial
+                          )}
                         </div>
                         <div className="overflow-hidden">
                           <div className="font-extrabold text-slate-900 group-hover:text-campus-900 transition-colors truncate max-w-[220px]">
@@ -1132,8 +1136,12 @@ export default function UserAccountsTable({
           <DialogHeader className="space-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-campus-50 border border-campus-200 flex items-center justify-center text-campus-700 font-extrabold">
-                  {inspectingUser ? inspectingUser.full_name?.charAt(0) || 'U' : 'U'}
+                <div className="w-9 h-9 rounded-xl bg-campus-50 border border-campus-200 flex items-center justify-center text-campus-700 font-extrabold overflow-hidden">
+                  {inspectingUser?.avatar_url ? (
+                    <img src={inspectingUser.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    inspectingUser ? inspectingUser.full_name?.charAt(0) || 'U' : 'U'
+                  )}
                 </div>
                 <div>
                   <DialogTitle className="text-base font-bold text-slate-900">

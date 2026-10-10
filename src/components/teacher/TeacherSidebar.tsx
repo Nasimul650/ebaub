@@ -27,7 +27,12 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [profile?.avatar_url]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -159,8 +164,13 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
                 isCollapsed ? 'cursor-pointer hover:ring-2 ring-campus-600 transition-all' : ''
               }`}
             >
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+              {profile?.avatar_url && !imgError ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt={displayName} 
+                  className="w-full h-full object-cover" 
+                  onError={() => setImgError(true)}
+                />
               ) : (
                 firstLetter
               )}

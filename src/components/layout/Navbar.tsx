@@ -46,7 +46,7 @@ export default function Navbar({
         try {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('id, full_name, first_name, last_name, role, institutional_id')
+            .select('id, full_name, first_name, last_name, role, institutional_id, batch, avatar_url, bio, phone')
             .eq('id', session.user.id)
             .maybeSingle();
 
@@ -64,9 +64,26 @@ export default function Navbar({
             fullName,
             role,
             institutionalId: profile?.institutional_id || session.user.user_metadata?.institutional_id || null,
+            batch: profile?.batch || session.user.user_metadata?.batch || null,
+            avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || null,
+            bio: profile?.bio || session.user.user_metadata?.bio || null,
+            phone: profile?.phone || session.user.user_metadata?.phone || null,
           });
-        } catch {
-          // fallback
+        } catch (err) {
+          console.warn('Navbar client auth error:', err);
+          const rawRole = ((session.user.user_metadata?.role || 'STUDENT') as string).toUpperCase();
+          const role = rawRole === 'ADMIN' ? 'ADMIN' : (rawRole === 'TEACHER' ? 'TEACHER' : 'STUDENT');
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            role,
+            institutionalId: session.user.user_metadata?.institutional_id || null,
+            batch: session.user.user_metadata?.batch || null,
+            avatarUrl: session.user.user_metadata?.avatar_url || null,
+            bio: session.user.user_metadata?.bio || null,
+            phone: session.user.user_metadata?.phone || null,
+          });
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
@@ -270,7 +287,13 @@ export default function Navbar({
                   className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl bg-purple-900 hover:bg-purple-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300 ring-1 ring-purple-400/40"
                   title={`Logged in as Administrator (${user.fullName})`}
                 >
-                  <ShieldCheck className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-purple-300" />
+                  {user.avatarUrl ? (
+                    <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-purple-300/60 shadow-2xs">
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <ShieldCheck className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-purple-300" />
+                  )}
                   <span className="hidden sm:inline">Admin Portal</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse hidden sm:block" />
                   <ChevronDown className={`hidden sm:block w-3 h-3 text-purple-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
@@ -282,7 +305,13 @@ export default function Navbar({
                   className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300 ring-1 ring-campus-400/40"
                   title={`Logged in as Faculty Instructor (${user.fullName})`}
                 >
-                  <Briefcase className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-300" />
+                  {user.avatarUrl ? (
+                    <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-campus-300/60 shadow-2xs">
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <Briefcase className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-300" />
+                  )}
                   <span className="hidden sm:inline">Teacher Portal</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse hidden sm:block" />
                   <ChevronDown className={`hidden sm:block w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
@@ -294,7 +323,13 @@ export default function Navbar({
                   className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300 ring-1 ring-campus-400/40"
                   title={`Logged in as Student (${user.fullName})`}
                 >
-                  <GraduationCap className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-300" />
+                  {user.avatarUrl ? (
+                    <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-campus-300/60 shadow-2xs">
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <GraduationCap className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-300" />
+                  )}
                   <span className="hidden sm:inline">Student Portal</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse hidden sm:block" />
                   <ChevronDown className={`hidden sm:block w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />

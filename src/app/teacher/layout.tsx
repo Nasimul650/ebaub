@@ -28,9 +28,14 @@ export default async function TeacherLayout({ children }: { children: React.Reac
     }
   }
 
+  const resolvedProfile = profile ? {
+    ...profile,
+    avatar_url: profile.avatar_url || user.user_metadata?.avatar_url || null,
+  } : profile;
+
   return (
     <div className="h-screen bg-campus-50 text-slate-900 flex flex-col md:flex-row overflow-hidden">
-      <TeacherSidebar profile={profile} />
+      <TeacherSidebar profile={resolvedProfile} />
       <main className="flex-1 overflow-y-auto p-6 md:p-10">
         {children}
       </main>

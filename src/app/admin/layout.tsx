@@ -28,10 +28,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     }
   }
 
+  const resolvedProfile = profile ? {
+    ...profile,
+    avatar_url: profile.avatar_url || user.user_metadata?.avatar_url || null,
+  } : profile;
+
   return (
     <div className="h-screen bg-campus-50 text-slate-900 flex flex-col md:flex-row overflow-hidden">
       {/* CMS Sidebar */}
-      <AdminSidebar profile={profile} />
+      <AdminSidebar profile={resolvedProfile} />
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-6 md:p-10">

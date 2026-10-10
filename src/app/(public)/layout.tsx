@@ -29,7 +29,7 @@ export default async function PublicLayout({ children }: { children: React.React
       if (!profile) {
         const fallbackRes = await supabase
           .from('profiles')
-          .select('id, full_name, first_name, last_name, role, institutional_id')
+          .select('id, full_name, first_name, last_name, role, institutional_id, batch, avatar_url')
           .eq('id', user.id)
           .maybeSingle();
         profile = fallbackRes.data as any;

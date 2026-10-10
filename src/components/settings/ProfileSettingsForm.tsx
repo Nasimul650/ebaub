@@ -21,6 +21,8 @@ import {
   Lock
 } from 'lucide-react';
 import { updateUserProfile } from '@/app/actions/profile';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 import type { FullUserProfileDetails } from '@/utils/supabase/queries';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +35,8 @@ interface ProfileSettingsFormProps {
 }
 
 export default function ProfileSettingsForm({ initialProfile }: ProfileSettingsFormProps) {
+  const router = useRouter();
+
   // Form Editable States
   const [phone, setPhone] = useState(initialProfile.phone || '');
   const [bio, setBio] = useState(initialProfile.bio || '');
@@ -140,6 +144,17 @@ export default function ProfileSettingsForm({ initialProfile }: ProfileSettingsF
         }
         setSelectedFile(null);
         setRemoveAvatar(false);
+
+        // Refresh client Supabase session so user_metadata is updated locally
+        try {
+          const supabase = createClient();
+          await supabase.auth.refreshSession();
+        } catch (authErr) {
+          console.warn('Session refresh error:', authErr);
+        }
+
+        // Revalidate layouts and client state across the app
+        router.refresh();
 
         // Auto dismiss success notice after 5 seconds
         setTimeout(() => {
