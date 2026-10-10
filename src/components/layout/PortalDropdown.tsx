@@ -315,7 +315,7 @@ export default function PortalDropdown({
                 </div>
                 <div>
                   <div className="font-bold text-slate-800 group-hover:text-campus-900">Student Portal</div>
-                  <div className="text-[10px] text-slate-400">Materials, AI Tutor & Notices</div>
+                  <div className="text-[10px] text-slate-400">Materials & AI Tutor</div>
                 </div>
               </Link>
             </div>
@@ -392,19 +392,6 @@ export default function PortalDropdown({
               <div>
                 <div className="font-bold text-slate-800 group-hover:text-purple-900">AI Study Companion</div>
                 <div className="text-[10px] text-slate-400">Interactive 24/7 AI Tutor</div>
-              </div>
-            </Link>
-
-            <Link
-              href="/student/notices"
-              className="flex items-center gap-3 px-4 py-2 hover:bg-campus-50 text-slate-700 hover:text-campus-900 transition-colors group"
-            >
-              <div className="w-7 h-7 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center shrink-0">
-                <Bell className="w-3.5 h-3.5" />
-              </div>
-              <div>
-                <div className="font-bold text-slate-800 group-hover:text-amber-900">Notice Board</div>
-                <div className="text-[10px] text-slate-400">Exams & Academic Circulars</div>
               </div>
             </Link>
           </div>
