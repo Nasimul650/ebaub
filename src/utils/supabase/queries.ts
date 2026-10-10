@@ -731,17 +731,19 @@ export interface UserProfileItem {
   bio?: string | null;
   phone?: string | null;
   created_at: string;
+  is_pending_signup?: boolean;
   department?: { 
     id: string; 
     name: string;
     faculty_id?: string;
-    faculty_name?: string;
+    faculty_name?: string | null;
   } | null;
 }
 
 /**
  * Fetches university profiles for the Admin User Management dashboard.
  * Resolves department and parent faculty hierarchy for institutional organization.
+ * Also includes unclaimed credential whitelist entries marked with is_pending_signup: true.
  */
 export async function getUniversityProfiles(roleFilter?: string): Promise<UserProfileItem[]> {
   try {
@@ -788,7 +790,7 @@ export async function getUniversityProfiles(roleFilter?: string): Promise<UserPr
       return [];
     }
 
-    return (data || []).map((row: any) => {
+    const registeredProfiles: UserProfileItem[] = (data || []).map((row: any) => {
       const dept = row.departments;
       let facultyName: string | null = null;
       if (dept?.faculties) {
@@ -807,6 +809,7 @@ export async function getUniversityProfiles(roleFilter?: string): Promise<UserPr
         ...row,
         batch: row.batch || null,
         faculty_name: facultyName,
+        is_pending_signup: false,
         department: dept ? {
           id: dept.id,
           name: dept.name,
@@ -815,6 +818,77 @@ export async function getUniversityProfiles(roleFilter?: string): Promise<UserPr
         } : null,
       };
     });
+
+    // Also fetch unclaimed credential whitelist records (pre-authorized but not signed up yet)
+    let whitelistProfiles: UserProfileItem[] = [];
+    try {
+      let wlQuery = supabase
+        .from('credential_whitelist')
+        .select('id, institutional_id, role, department_id, batch, is_claimed, created_at, departments(id, name, faculty_id, faculties(id, name))')
+        .eq('is_claimed', false)
+        .order('created_at', { ascending: false });
+
+      if (roleFilter && roleFilter !== 'ALL') {
+        wlQuery = wlQuery.eq('role', roleFilter.toLowerCase());
+      }
+
+      const { data: wlData, error: wlError } = await wlQuery;
+
+      if (!wlError && wlData) {
+        const registeredIds = new Set(
+          registeredProfiles
+            .map(p => (p.institutional_id || '').toLowerCase().trim())
+            .filter(Boolean)
+        );
+
+        whitelistProfiles = wlData
+          .filter((wl: any) => !registeredIds.has((wl.institutional_id || '').toLowerCase().trim()))
+          .map((wl: any) => {
+            const dept = wl.departments;
+            let facultyName: string | null = null;
+            if (dept?.faculties) {
+              facultyName = Array.isArray(dept.faculties)
+                ? dept.faculties[0]?.name
+                : (dept.faculties?.name || null);
+            }
+            if (!facultyName && dept?.faculty_id && facultyMap[dept.faculty_id]) {
+              facultyName = facultyMap[dept.faculty_id];
+            }
+
+            const isTeacher = (wl.role || '').toLowerCase() === 'teacher';
+
+            return {
+              id: `whitelist-${wl.id}`,
+              institutional_id: wl.institutional_id,
+              full_name: isTeacher ? 'Whitelisted Teacher' : 'Whitelisted Student',
+              first_name: null,
+              last_name: null,
+              email: 'Not signed up yet',
+              role: isTeacher ? 'TEACHER' : 'STUDENT',
+              department_id: wl.department_id || null,
+              faculty_id: dept?.faculty_id || null,
+              faculty_name: facultyName,
+              batch: wl.batch || null,
+              avatar_url: null,
+              created_at: wl.created_at,
+              is_pending_signup: true,
+              department: dept ? {
+                id: dept.id,
+                name: dept.name,
+                faculty_id: dept.faculty_id,
+                faculty_name: facultyName,
+              } : null,
+            };
+          });
+      }
+    } catch (wlCatchErr) {
+      console.warn('Could not query unclaimed whitelist entries:', wlCatchErr);
+    }
+
+    const merged = [...registeredProfiles, ...whitelistProfiles];
+    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return merged;
   } catch (err) {
     console.error('Unexpected error fetching university profiles:', err);
     return [];

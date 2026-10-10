@@ -26,7 +26,8 @@ import {
   ChevronsRight, 
   ArrowUpDown,
   BookOpen,
-  Tag
+  Tag,
+  Clock
 } from 'lucide-react';
 import type { UserProfileItem, DepartmentWithFaculty } from '@/utils/supabase/queries';
 import { 
@@ -894,33 +895,55 @@ export default function UserAccountsTable({
                     {/* Member & Contact */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-extrabold text-slate-700 text-xs shrink-0 group-hover:bg-white group-hover:border-campus-300 transition-colors overflow-hidden">
+                        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center font-extrabold text-xs shrink-0 transition-colors overflow-hidden ${
+                          p.is_pending_signup
+                            ? 'bg-amber-50 border-amber-200 text-amber-700'
+                            : 'bg-slate-100 border-slate-200 text-slate-700 group-hover:bg-white group-hover:border-campus-300'
+                        }`}>
                           {p.avatar_url ? (
                             <img src={p.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                          ) : p.is_pending_signup ? (
+                            <Clock className="w-4 h-4 text-amber-600" />
                           ) : (
                             initial
                           )}
                         </div>
                         <div className="overflow-hidden">
-                          <div className="font-extrabold text-slate-900 group-hover:text-campus-900 transition-colors truncate max-w-[220px]">
-                            {displayName}
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-slate-900 group-hover:text-campus-900 transition-colors truncate max-w-[200px]">
+                              {displayName}
+                            </span>
+                            {p.is_pending_signup && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 shrink-0 shadow-2xs">
+                                <Clock className="w-2.5 h-2.5 text-amber-600" />
+                                Not signed up
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                            <span className="truncate max-w-[180px]" title={p.email}>
-                              {p.email}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={(e) => handleCopyEmail(p.email, e)}
-                              className="text-slate-400 hover:text-slate-600 p-0.5"
-                              title="Copy email"
-                            >
-                              {copiedEmail === p.email ? (
-                                <Check className="w-3 h-3 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3 h-3" />
-                              )}
-                            </button>
+                            {p.is_pending_signup ? (
+                              <span className="text-slate-400 italic font-medium">
+                                Awaiting user sign up
+                              </span>
+                            ) : (
+                              <>
+                                <span className="truncate max-w-[180px]" title={p.email}>
+                                  {p.email}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleCopyEmail(p.email, e)}
+                                  className="text-slate-400 hover:text-slate-600 p-0.5"
+                                  title="Copy email"
+                                >
+                                  {copiedEmail === p.email ? (
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -951,7 +974,15 @@ export default function UserAccountsTable({
 
                     {/* Role */}
                     <td className="p-4">
-                      {getRoleBadge(p.role, p.batch)}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {getRoleBadge(p.role, p.batch)}
+                        {p.is_pending_signup && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 shrink-0 shadow-2xs">
+                            <Clock className="w-2.5 h-2.5 text-amber-600" />
+                            <span>Not signed up</span>
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Faculty & Department */}
@@ -1152,12 +1183,32 @@ export default function UserAccountsTable({
                   </DialogDescription>
                 </div>
               </div>
-              {inspectingUser && getRoleBadge(inspectingUser.role, inspectingUser.batch)}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {inspectingUser && getRoleBadge(inspectingUser.role, inspectingUser.batch)}
+                {inspectingUser?.is_pending_signup && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                    <Clock className="w-3 h-3 text-amber-600" />
+                    <span>Not signed up</span>
+                  </span>
+                )}
+              </div>
             </div>
           </DialogHeader>
 
           {inspectingUser && (
             <div className="space-y-4 pt-2 text-xs">
+              {/* Whitelist Pre-Authorized Banner */}
+              {inspectingUser.is_pending_signup && (
+                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs flex items-start gap-2.5 shadow-2xs">
+                  <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <div className="font-extrabold text-amber-950">Pre-Authorized (Not signed up yet)</div>
+                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                      This ID has been whitelisted by an administrator. The student or teacher can claim this account anytime by setting their personal password at the Sign-Up portal (<code className="bg-amber-100/80 px-1 py-0.5 rounded font-mono text-amber-950">/signup</code>). Once registered, this tag will disappear automatically.
+                    </p>
+                  </div>
+                </div>
+              )}
               {/* Key Credentials Card */}
               <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50/80 rounded-2xl border border-slate-200">
                 <div>

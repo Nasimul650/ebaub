@@ -46,6 +46,7 @@ function LoginFormContent() {
           badge: 'Teacher Portal + AI Tools',
           badgeBg: 'bg-campus-50 text-campus-800 border-campus-200',
           icon: <Sparkles className="w-4 h-4 text-campus-700" />,
+          placeholder: 'teacher@ebaub.edu.bd',
           redirectTo: '/teacher'
         };
       case 'student':
@@ -54,6 +55,7 @@ function LoginFormContent() {
           badge: 'Student Study Workspace',
           badgeBg: 'bg-blue-50 text-blue-800 border-blue-200',
           icon: <BookOpen className="w-4 h-4 text-blue-600" />,
+          placeholder: 'student@ebaub.edu.bd',
           redirectTo: '/student'
         };
       default:
@@ -62,6 +64,7 @@ function LoginFormContent() {
           badge: 'Administrative Portal',
           badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
           icon: <ShieldCheck className="w-4 h-4 text-amber-600" />,
+          placeholder: 'admin@ebaub.edu',
           redirectTo: '/admin'
         };
     }
