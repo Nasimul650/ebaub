@@ -14,8 +14,8 @@ export default function RecentQuizzesList({ quizzes }: Props) {
         <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-campus-500" /> Recent AI-Generated Quizzes
         </h2>
-        <Link href="/teacher/ai" className="text-xs text-amber-700 font-bold hover:underline">
-          Launch Generator
+        <Link href="/teacher/quizzes/new" className="text-xs text-amber-700 font-bold hover:underline">
+          Launch AI Generator
         </Link>
       </div>
 

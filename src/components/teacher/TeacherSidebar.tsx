@@ -53,7 +53,7 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
 
   const navItems = [
     { label: 'Dashboard', href: '/teacher', icon: LayoutDashboard },
-    { label: 'AI Quiz Generator', href: '/teacher/ai', icon: Sparkles },
+    { label: 'AI Quiz Generator', href: '/teacher/quizzes/new', icon: Sparkles },
     { label: 'Course Materials', href: '/teacher/materials', icon: BookOpenCheck },
     { label: 'Teaching Overview', href: '/teacher/teaching', icon: GraduationCap },
   ];
@@ -170,7 +170,7 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
         <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden text-xs font-semibold custom-scrollbar">
           {navItems.map(item => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || (item.href === '/teacher/quizzes/new' && (pathname.startsWith('/teacher/quizzes') || pathname === '/teacher/ai'));
             return (
               <Link
                 key={item.href}

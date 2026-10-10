@@ -16,10 +16,10 @@ export default function TeacherWelcomeBanner() {
       </p>
       <div className="pt-2">
         <Link
-          href="/teacher/ai"
+          href="/teacher/quizzes/new"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-xs transition-all"
         >
-          <Sparkles className="w-4 h-4 text-campus-400" /> Open AI Question Generator &rarr;
+          <Sparkles className="w-4 h-4 text-campus-400" /> Open AI Quiz Generator &rarr;
         </Link>
       </div>
     </div>
