@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useChat } from 'ai/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { 
   Bot, 
   Send, 
@@ -16,22 +20,126 @@ import {
   StopCircle, 
   GraduationCap,
   Building2,
-  FileText
+  FileText,
+  Paperclip,
+  X,
+  File,
+  Check,
+  Copy,
+  Upload,
+  BookOpen,
+  FolderOpen,
+  FileCode,
+  FileSpreadsheet,
+  Presentation,
+  Archive,
+  Image as ImageIcon,
+  History,
+  MessageSquare,
+  Trash2,
+  Save,
+  Plus,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import type { CourseMaterial } from '@/types';
+import { formatFileSize } from '@/lib/utils';
 
 interface StudentAiTutorClientProps {
   studentName: string;
   departmentName: string;
+  availableMaterials?: CourseMaterial[];
+}
+
+interface FilePreview {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  category: 'image' | 'pdf' | 'word' | 'ppt' | 'sheet' | 'code' | 'archive' | 'file';
+  url?: string;
+  isCourseMaterial?: boolean;
+}
+
+interface ChatSession {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+}
+
+// Copy to clipboard helper for code blocks
+function CodeCopyButton({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-white transition-colors p-1 rounded"
+      title="Copy code"
+    >
+      {copied ? (
+        <>
+          <Check className="w-3 h-3 text-emerald-400" />
+          <span className="text-emerald-400">Copied</span>
+        </>
+      ) : (
+        <>
+          <Copy className="w-3 h-3" />
+          <span>Copy</span>
+        </>
+      )}
+    </button>
+  );
 }
 
 export default function StudentAiTutorClient({
   studentName,
-  departmentName
+  departmentName,
+  availableMaterials = []
 }: StudentAiTutorClientProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef<number>(0);
+
+  // Drag and drop state
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Course Materials Modal state
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [librarySearch, setLibrarySearch] = useState('');
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState('all');
+
+  // Attachment states
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [attachedMaterials, setAttachedMaterials] = useState<CourseMaterial[]>([]);
+  const [previews, setPreviews] = useState<FilePreview[]>([]);
+
+  // Chat History states
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const lastSavedCountRef = useRef<number>(0);
 
   const {
     messages,
@@ -42,7 +150,9 @@ export default function StudentAiTutorClient({
     stop,
     reload,
     setMessages,
-    setInput
+    setInput,
+    error,
+    append
   } = useChat({
     api: '/api/study-assistant',
     body: {
@@ -53,44 +163,652 @@ export default function StudentAiTutorClient({
       {
         id: 'welcome-tutor',
         role: 'assistant',
-        content: `Hello **${studentName}**! 👋\n\nI am your **EBAUB AI Study Assistant** for the **${departmentName}** department. I'm here to help you:\n\n* **Master tough concepts** through Socratic, guided problem solving\n* **Prepare for upcoming exams & quizzes**\n* **Search your department's course files, lecture notes, and syllabi**\n\nWhat would you like to explore today?`
+        content: `Hello **${studentName}**! 👋\n\nI am your **EBAUB AI Study Assistant** for the **${departmentName}** department. I'm here to help you:\n\n* **Master academic concepts** through Socratic, step-by-step problem solving\n* **Analyze any documents or images** (upload PDFs, Word files, lecture slides, code, or homework photos)\n* **Attach course files uploaded by your professors** directly with the Course Library button\n* **Solve complex math & scientific formulas** with full KaTeX LaTeX typesetting\n\nDrop a file, attach a lecture slide, or ask any question to get started!`
       }
     ]
   });
 
-  // Auto-scroll on new messages
+  // Prevent browser from opening dropped files in new tab globally
+  useEffect(() => {
+    const handleWindowDragOver = (e: DragEvent) => {
+      e.preventDefault();
+    };
+    const handleWindowDrop = (e: DragEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('dragover', handleWindowDragOver);
+    window.addEventListener('drop', handleWindowDrop);
+    return () => {
+      window.removeEventListener('dragover', handleWindowDragOver);
+      window.removeEventListener('drop', handleWindowDrop);
+    };
+  }, []);
+
+  // Auto-scroll on new messages or loading
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // Suggested starter prompts
-  const starterPrompts = [
-    'Explain the difference between a while loop and a do-while loop.',
-    'Search course materials for lecture slides or notes.',
-    'Act as a Socratic tutor: test my knowledge on database normalization.',
-    'Help me prepare a revision plan for my upcoming exam.'
-  ];
+  // 1. Initial Load: Fetch saved chat sessions, and restore last active session if student reloaded
+  useEffect(() => {
+    let isMounted = true;
+    const initHistory = async () => {
+      setIsLoadingSessions(true);
+      try {
+        const res = await fetch('/api/study-assistant/chats');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data)) {
+            setChatSessions(data);
 
-  const handlePromptClick = (prompt: string) => {
-    setInput(prompt);
-    textareaRef.current?.focus();
+            // Check if there was an active session right before reload
+            const lastSessionId = typeof window !== 'undefined' ? localStorage.getItem('eb_last_ai_session_id') : null;
+            if (lastSessionId && data.some((s: ChatSession) => s.id === lastSessionId)) {
+              try {
+                const detailRes = await fetch(`/api/study-assistant/chats/${lastSessionId}`);
+                if (detailRes.ok) {
+                  const detail = await detailRes.json();
+                  if (isMounted && detail?.messages && Array.isArray(detail.messages) && detail.messages.length > 0) {
+                    setMessages(detail.messages);
+                    setCurrentSessionId(detail.id);
+                    lastSavedCountRef.current = detail.messages.length;
+                  }
+                }
+              } catch (e) {
+                console.warn('Could not restore last session detail:', e);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load chat history:', err);
+      } finally {
+        if (isMounted) setIsLoadingSessions(false);
+      }
+    };
+
+    initHistory();
+    return () => {
+      isMounted = false;
+    };
+  }, [setMessages]);
+
+  // 2. Save current chat session (updates existing or inserts new)
+  const saveCurrentChat = useCallback(async (msgsToSave = messages, sessId = currentSessionId) => {
+    if (!msgsToSave || msgsToSave.length <= 1) return null;
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/study-assistant/chats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: sessId || undefined,
+          messages: msgsToSave,
+        }),
+      });
+
+      if (res.ok) {
+        const savedData = await res.json();
+        if (savedData?.id) {
+          setCurrentSessionId(savedData.id);
+          lastSavedCountRef.current = msgsToSave.length;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('eb_last_ai_session_id', savedData.id);
+          }
+
+          // Refresh the sessions list
+          const refreshRes = await fetch('/api/study-assistant/chats');
+          if (refreshRes.ok) {
+            const list = await refreshRes.json();
+            if (Array.isArray(list)) setChatSessions(list);
+          }
+          return savedData.id;
+        }
+      }
+    } catch (err) {
+      console.error('Error saving chat session:', err);
+    } finally {
+      setIsSaving(false);
+    }
+    return null;
+  }, [messages, currentSessionId]);
+
+  // 3. Auto-save trigger: when assistant stops streaming and messages count increased
+  const prevLoadingRef = useRef(false);
+  useEffect(() => {
+    // Transition from loading (AI responding) to not loading (AI finished)
+    if (prevLoadingRef.current && !isLoading && messages.length > 1) {
+      if (messages.length !== lastSavedCountRef.current) {
+        saveCurrentChat(messages, currentSessionId);
+      }
+    }
+    prevLoadingRef.current = isLoading;
+  }, [isLoading, messages, currentSessionId, saveCurrentChat]);
+
+  // 4. Start New Chat
+  const startNewChat = useCallback(() => {
+    // If current chat has unsaved work, save it first
+    if (messages.length > 1 && messages.length !== lastSavedCountRef.current) {
+      saveCurrentChat(messages, currentSessionId);
+    }
+
+    setCurrentSessionId(null);
+    lastSavedCountRef.current = 0;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('eb_last_ai_session_id');
+    }
+
+    setMessages([
+      {
+        id: `welcome-tutor-${Date.now()}`,
+        role: 'assistant',
+        content: `Hello **${studentName}**! 👋\n\nI am your **EBAUB AI Study Assistant** for the **${departmentName}** department. I'm here to help you:\n\n* **Master academic concepts** through step-by-step problem solving\n* **Analyze any documents or images** (upload PDFs, Word files, lecture slides, code, or homework photos)\n* **Attach course files uploaded by your professors** directly with the Course Library button\n* **Solve complex math & scientific formulas** with full KaTeX LaTeX typesetting\n\nDrop a file, attach a lecture slide, or ask any question to get started!`
+      }
+    ]);
+    setIsHistoryOpen(false);
+  }, [messages, currentSessionId, saveCurrentChat, setMessages, studentName, departmentName]);
+
+  // 5. Load a specific saved chat session
+  const loadChatSession = async (sessionId: string) => {
+    if (sessionId === currentSessionId) {
+      setIsHistoryOpen(false);
+      return;
+    }
+
+    // Save current active session if unsaved
+    if (messages.length > 1 && messages.length !== lastSavedCountRef.current) {
+      await saveCurrentChat(messages, currentSessionId);
+    }
+
+    try {
+      const res = await fetch(`/api/study-assistant/chats/${sessionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages);
+          setCurrentSessionId(data.id);
+          lastSavedCountRef.current = data.messages.length;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('eb_last_ai_session_id', data.id);
+          }
+          setIsHistoryOpen(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load chat session:', err);
+    }
   };
 
+  // 6. Delete a chat session
+  const deleteChatSession = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this saved chat?')) return;
+
+    setDeletingId(sessionId);
+    try {
+      const res = await fetch(`/api/study-assistant/chats/${sessionId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setChatSessions((prev) => prev.filter((s) => s.id !== sessionId));
+        if (currentSessionId === sessionId) {
+          startNewChat();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to delete chat session:', err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Helper to format session date
+  const formatChatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diffHours = (now.getTime() - d.getTime()) / (1000 * 60 * 60);
+      if (diffHours < 24 && d.getDate() === now.getDate()) {
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+      return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    } catch {
+      return '';
+    }
+  };
+
+  // Determine file category for icons
+  const getFileCategory = (fileName: string, mime: string): FilePreview['category'] => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'bmp'].includes(ext) || mime.startsWith('image/')) return 'image';
+    if (ext === 'pdf' || mime.includes('pdf')) return 'pdf';
+    if (['doc', 'docx'].includes(ext) || mime.includes('word')) return 'word';
+    if (['ppt', 'pptx'].includes(ext) || mime.includes('presentation')) return 'ppt';
+    if (['xls', 'xlsx', 'csv'].includes(ext) || mime.includes('spreadsheet') || mime.includes('csv')) return 'sheet';
+    if (['c', 'cpp', 'java', 'py', 'js', 'ts', 'jsx', 'tsx', 'json', 'sql', 'html', 'css', 'txt', 'md'].includes(ext) || mime.includes('text')) return 'code';
+    if (['zip', 'rar', 'tar', 'gz', '7z'].includes(ext) || mime.includes('zip')) return 'archive';
+    return 'file';
+  };
+
+  // Helper to add files from input or drop
+  const addFiles = (newFiles: File[]) => {
+    setAttachedFiles((prev) => [...prev, ...newFiles]);
+
+    newFiles.forEach((file) => {
+      const category = getFileCategory(file.name, file.type);
+      const previewId = `${file.name}-${file.size}-${Date.now()}`;
+
+      if (category === 'image') {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setPreviews((prev) => [
+            ...prev,
+            {
+              id: previewId,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              category: 'image',
+              url: event.target?.result as string
+            }
+          ]);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviews((prev) => [
+          ...prev,
+          {
+            id: previewId,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            category
+          }
+        ]);
+      }
+    });
+  };
+
+  // File input change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    addFiles(Array.from(e.target.files));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Drag and Drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current += 1;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current -= 1;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current = 0;
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      addFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  // Attach a teacher-uploaded course material directly
+  const attachCourseMaterial = (mat: CourseMaterial) => {
+    if (attachedMaterials.some((m) => m.id === mat.id)) return;
+    setAttachedMaterials((prev) => [...prev, mat]);
+    setIsLibraryOpen(false);
+  };
+
+  // Remove uploaded file
+  const removeFile = (index: number) => {
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Remove attached course material
+  const removeMaterial = (materialId: string) => {
+    setAttachedMaterials((prev) => prev.filter((m) => m.id !== materialId));
+  };
+
+  // Form submission with attachments and teacher materials
+  const handleFormSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const hasPrompt = Boolean(input.trim());
+    const hasFiles = attachedFiles.length > 0;
+    const hasMaterials = attachedMaterials.length > 0;
+
+    if ((!hasPrompt && !hasFiles && !hasMaterials) || isLoading) return;
+
+    try {
+      const attachmentsPayload: any[] = [];
+      let extraTextContext = '';
+
+      // 1. Process client uploaded files
+      for (const file of attachedFiles) {
+        const isImage = file.type.startsWith('image/');
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        const isTextOrCode = file.type.startsWith('text/') || 
+          ['c', 'cpp', 'java', 'py', 'js', 'ts', 'jsx', 'tsx', 'json', 'sql', 'html', 'css', 'txt', 'md', 'csv'].some((ext) =>
+            file.name.toLowerCase().endsWith(`.${ext}`)
+          );
+
+        if (isImage || isPdf) {
+          try {
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            attachmentsPayload.push({
+              name: file.name,
+              contentType: isImage ? (file.type || 'image/jpeg') : 'application/pdf',
+              url: dataUrl
+            });
+          } catch (readErr) {
+            console.warn('Failed reading file data URL:', readErr);
+          }
+        } else if (isTextOrCode) {
+          try {
+            const textContent = await file.text();
+            extraTextContext += `\n\n--- [Uploaded File: ${file.name}] ---\n\`\`\`\n${textContent.slice(0, 50000)}\n\`\`\``;
+          } catch {
+            extraTextContext += `\n\n[Uploaded Document: "${file.name}" (${file.type || 'text'})]`;
+          }
+        } else {
+          // Office documents (Word, PPT, Excel, etc.) or archives
+          extraTextContext += `\n\n[Uploaded Document: "${file.name}" (${file.type || 'Document'}, ${formatFileSize(file.size)})]`;
+        }
+      }
+
+      // 2. Process attached university course materials
+      if (attachedMaterials.length > 0) {
+        for (const mat of attachedMaterials) {
+          const isPdf = (mat.file_name || '').toLowerCase().endsWith('.pdf') || (mat.file_type || '').includes('pdf');
+          if (isPdf && mat.file_url) {
+            try {
+              const res = await fetch(mat.file_url);
+              if (res.ok) {
+                const blob = await res.blob();
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.onerror = reject;
+                  reader.readAsDataURL(blob);
+                });
+                attachmentsPayload.push({
+                  name: `${mat.course_code}_${mat.title}.pdf`,
+                  contentType: 'application/pdf',
+                  url: dataUrl
+                });
+              }
+            } catch (fetchErr) {
+              console.warn('Could not fetch course material blob:', fetchErr);
+            }
+          }
+          extraTextContext += `\n\n[Attached University Course Material: "${mat.title}" (${mat.course_code}) uploaded by ${mat.teacher_name || 'Faculty'} - Direct Link: ${mat.file_url}]`;
+        }
+      }
+
+      const promptText = input.trim() || (hasFiles || hasMaterials
+        ? 'Please analyze and explain this attached academic material step-by-step.'
+        : 'Hello! I need help with my studies.');
+
+      const finalMessageContent = extraTextContext ? `${promptText}${extraTextContext}` : promptText;
+
+      // Clear pending state immediately to prevent duplicate sends
+      setInput('');
+      setAttachedFiles([]);
+      setAttachedMaterials([]);
+      setPreviews([]);
+
+      // Submit via append directly to bypass input state lag
+      await append(
+        {
+          role: 'user',
+          content: finalMessageContent,
+        },
+        attachmentsPayload.length > 0
+          ? { experimental_attachments: attachmentsPayload }
+          : undefined
+      );
+    } catch (submitErr) {
+      console.error('Error submitting chat prompt with attachments:', submitErr);
+    }
+  };
+
+  // Handle Enter key (without Shift)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (input.trim() && !isLoading) {
-        handleSubmit(e as any);
+      if ((input.trim() || attachedFiles.length > 0 || attachedMaterials.length > 0) && !isLoading) {
+        handleFormSubmit();
       }
     }
   };
 
+  // Filter available course materials for the library modal
+  const filteredLibraryMaterials = useMemo(() => {
+    return availableMaterials.filter((mat) => {
+      const q = librarySearch.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        mat.title.toLowerCase().includes(q) ||
+        mat.course_code.toLowerCase().includes(q) ||
+        mat.file_name.toLowerCase().includes(q) ||
+        (mat.teacher_name || '').toLowerCase().includes(q);
+
+      const matchCourse =
+        selectedCourseFilter === 'all' ||
+        mat.course_code.trim().toUpperCase() === selectedCourseFilter.toUpperCase();
+
+      return matchSearch && matchCourse;
+    });
+  }, [availableMaterials, librarySearch, selectedCourseFilter]);
+
+  // Distinct courses for course filter pills in modal
+  const distinctCourseCodes = useMemo(() => {
+    const set = new Set<string>();
+    availableMaterials.forEach((m) => {
+      if (m.course_code?.trim()) set.add(m.course_code.trim().toUpperCase());
+    });
+    return Array.from(set).sort();
+  }, [availableMaterials]);
+
+  // Icon renderer for file types
+  const renderFileIcon = (category: FilePreview['category']) => {
+    switch (category) {
+      case 'image':
+        return <ImageIcon className="w-4 h-4 text-emerald-600" />;
+      case 'pdf':
+        return <FileText className="w-4 h-4 text-rose-600" />;
+      case 'word':
+        return <FileText className="w-4 h-4 text-blue-600" />;
+      case 'ppt':
+        return <Presentation className="w-4 h-4 text-amber-600" />;
+      case 'sheet':
+        return <FileSpreadsheet className="w-4 h-4 text-emerald-600" />;
+      case 'code':
+        return <FileCode className="w-4 h-4 text-purple-600" />;
+      case 'archive':
+        return <Archive className="w-4 h-4 text-orange-600" />;
+      default:
+        return <File className="w-4 h-4 text-slate-500" />;
+    }
+  };
+
   return (
-    <div className="flex flex-col h-[calc(100vh-6.5rem)] max-w-5xl mx-auto bg-white border border-slate-200/90 rounded-3xl shadow-xs overflow-hidden">
+    <div 
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      className="relative flex flex-col h-[calc(100vh-6.5rem)] max-w-5xl mx-auto bg-white border border-slate-200/90 rounded-3xl shadow-xs overflow-hidden"
+    >
+      {/* Drag & Drop Visual Overlay */}
+      {isDragging && (
+        <div 
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className="absolute inset-0 z-50 bg-campus-950/85 backdrop-blur-xs flex flex-col items-center justify-center border-4 border-dashed border-campus-400 rounded-3xl animate-in fade-in duration-150 p-6 text-center text-white pointer-events-auto"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-campus-800 flex items-center justify-center mb-3 shadow-xl">
+            <Upload className="w-8 h-8 text-campus-300 animate-bounce" />
+          </div>
+          <h3 className="text-xl font-extrabold heading-display">Drop files to attach to AI Tutor</h3>
+          <p className="text-xs text-campus-200 mt-1 max-w-sm">
+            Supports PDFs, images, code files, lecture slides, notes, and university documents.
+          </p>
+        </div>
+      )}
+
+      {/* Backdrop when History Drawer is open */}
+      {isHistoryOpen && (
+        <div 
+          onClick={() => setIsHistoryOpen(false)}
+          className="absolute inset-0 z-40 bg-campus-950/40 backdrop-blur-xs transition-opacity"
+        />
+      )}
+
+      {/* Chat History Slide-Over Drawer */}
+      <div
+        className={`absolute inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white border-r border-slate-200/90 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+          isHistoryOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
+        }`}
+      >
+        {/* History Header */}
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-campus-700" />
+            <h3 className="font-bold text-sm text-slate-900">Saved Chats</h3>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-200/80 font-bold text-slate-700">
+              {chatSessions.length}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsHistoryOpen(false)}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60"
+            title="Close drawer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* New Chat Button inside drawer */}
+        <div className="p-3 border-b border-slate-100">
+          <Button
+            type="button"
+            onClick={startNewChat}
+            className="w-full bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs rounded-xl h-9 flex items-center justify-center gap-2 shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Chat</span>
+          </Button>
+        </div>
+
+        {/* Chat List */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar">
+          {isLoadingSessions ? (
+            <div className="p-6 text-center text-xs text-slate-400">Loading saved chats...</div>
+          ) : chatSessions.length === 0 ? (
+            <div className="p-6 text-center text-xs text-slate-400">
+              <MessageSquare className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+              <div className="font-medium text-slate-600">No saved chats yet</div>
+              <div className="text-[11px] text-slate-400 mt-1">
+                Your conversations are saved automatically so you can resume anytime.
+              </div>
+            </div>
+          ) : (
+            chatSessions.map((session) => {
+              const isActive = session.id === currentSessionId;
+              return (
+                <div
+                  key={session.id}
+                  onClick={() => loadChatSession(session.id)}
+                  className={`group relative p-2.5 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-2 text-left ${
+                    isActive
+                      ? 'bg-campus-50/90 border-campus-300 text-campus-950 font-semibold shadow-2xs'
+                      : 'bg-white hover:bg-slate-50 border-slate-200/70 text-slate-800'
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-campus-700' : 'text-slate-400'}`} />
+                      <span className="text-xs truncate block font-medium">
+                        {session.title || 'Untitled Chat'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1 pl-5">
+                      <Clock className="w-3 h-3" />
+                      <span>{formatChatDate(session.updated_at)}</span>
+                      <span>•</span>
+                      <span>{session.message_count} msgs</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={deletingId === session.id}
+                    onClick={(e) => deleteChatSession(e, session.id)}
+                    className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                    title="Delete chat"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
       {/* Header bar */}
       <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-3 bg-white shrink-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-campus-900 text-white flex items-center justify-center shadow-xs shrink-0">
+        <div className="flex items-center gap-2.5">
+          {/* Saved Chats toggle button */}
+          <button
+            type="button"
+            onClick={() => setIsHistoryOpen((prev) => !prev)}
+            className="p-2 sm:px-2.5 sm:py-2 rounded-xl border border-slate-200 text-slate-700 hover:text-campus-900 hover:bg-campus-50/50 hover:border-campus-200 transition-all flex items-center gap-1.5 shadow-2xs text-xs font-semibold shrink-0"
+            title="Saved Chats History"
+          >
+            <History className="w-4 h-4 text-campus-700" />
+            <span className="hidden md:inline">Saved Chats</span>
+            {chatSessions.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-campus-100 text-campus-900 text-[10px] font-bold">
+                {chatSessions.length}
+              </span>
+            )}
+          </button>
+
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-campus-900 text-white flex items-center justify-center shadow-xs shrink-0">
             <Bot className="w-5 h-5 text-campus-300" />
           </div>
           <div>
@@ -99,7 +817,7 @@ export default function StudentAiTutorClient({
                 AI Study Tutor
               </h1>
               <span className="px-2 py-0.5 rounded-full bg-campus-50 border border-campus-200 text-campus-900 text-[10px] font-bold uppercase tracking-wider">
-                Gemini 2.5
+                Multimodal • Gemini 3.8
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
@@ -117,26 +835,45 @@ export default function StudentAiTutorClient({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Saving / Auto-saved status indicator */}
+          {isSaving ? (
+            <span className="text-[11px] text-campus-700 font-medium flex items-center gap-1 animate-pulse px-2 py-1 rounded-lg bg-campus-50 border border-campus-200">
+              <Clock className="w-3 h-3" />
+              <span>Saving...</span>
+            </span>
+          ) : currentSessionId ? (
+            <span className="text-[10px] text-emerald-700 font-semibold hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200">
+              <Check className="w-3 h-3" />
+              <span>Saved</span>
+            </span>
+          ) : null}
+
+          {/* Manual Save Button */}
           {messages.length > 1 && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                setMessages([
-                  {
-                    id: 'welcome-tutor-reset',
-                    role: 'assistant',
-                    content: `Welcome back, **${studentName}**! How can I assist you with your studies in **${departmentName}** today?`
-                  }
-                ]);
-              }}
-              className="text-xs text-slate-600 hover:text-slate-900 rounded-xl border-slate-200 h-9"
-              title="Reset conversation"
+              disabled={isSaving}
+              onClick={() => saveCurrentChat(messages, currentSessionId)}
+              className="text-xs text-slate-700 hover:text-campus-900 rounded-xl border-slate-200 h-9 hidden sm:flex items-center gap-1.5"
+              title="Save current chat"
             >
-              <RotateCcw className="w-3.5 h-3.5 mr-1" />
-              <span className="hidden sm:inline">New Chat</span>
+              <Save className="w-3.5 h-3.5 text-campus-700" />
+              <span>Save</span>
             </Button>
           )}
+
+          {/* New Chat Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={startNewChat}
+            className="text-xs text-slate-600 hover:text-slate-900 rounded-xl border-slate-200 h-9"
+            title="Start a new chat conversation"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            <span className="hidden sm:inline">New Chat</span>
+          </Button>
         </div>
       </div>
 
@@ -163,7 +900,7 @@ export default function StudentAiTutorClient({
 
               {/* Message Bubble Container */}
               <div
-                className={`flex flex-col space-y-2 max-w-[88%] sm:max-w-[80%] ${
+                className={`flex flex-col space-y-2 max-w-[92%] sm:max-w-[85%] ${
                   isUser ? 'items-end' : 'items-start'
                 }`}
               >
@@ -174,6 +911,40 @@ export default function StudentAiTutorClient({
                       : 'bg-white border border-slate-200/90 text-slate-900 rounded-tl-xs'
                   }`}
                 >
+                  {/* Attached Files in User Message */}
+                  {message.experimental_attachments && message.experimental_attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {message.experimental_attachments.map((att, attIdx) => {
+                        const isImage = att.contentType?.startsWith('image/') || att.url?.startsWith('data:image/');
+                        return (
+                          <div
+                            key={attIdx}
+                            className={`rounded-xl overflow-hidden border p-1 ${
+                              isUser
+                                ? 'bg-campus-950/40 border-campus-700/60'
+                                : 'bg-slate-100 border-slate-200'
+                            }`}
+                          >
+                            {isImage ? (
+                              <img
+                                src={att.url}
+                                alt={att.name || 'Attachment'}
+                                className="max-h-48 max-w-xs object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="flex items-center gap-2 px-3 py-2 text-xs">
+                                <FileText className={`w-4 h-4 ${isUser ? 'text-campus-300' : 'text-slate-600'}`} />
+                                <span className={`font-medium truncate max-w-[200px] ${isUser ? 'text-white' : 'text-slate-800'}`}>
+                                  {att.name || 'Document'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   {/* Tool Invocations Display */}
                   {message.toolInvocations && message.toolInvocations.length > 0 && (
                     <div className="space-y-2 mb-3">
@@ -225,7 +996,7 @@ export default function StudentAiTutorClient({
                                   </div>
                                 ) : (
                                   <p className="text-[11px] text-slate-500">
-                                    No direct files matched &quot;{queryArg}&quot;. The AI will explain conceptually.
+                                    No direct files matched &quot;{queryArg}&quot;.
                                   </p>
                                 )}
                               </div>
@@ -236,40 +1007,71 @@ export default function StudentAiTutorClient({
                     </div>
                   )}
 
-                  {/* Message Markdown Content */}
+                  {/* Message Content: Rich Markdown with Math & Syntax Highlighting */}
                   {isUser ? (
                     <div className="text-sm font-medium whitespace-pre-wrap leading-relaxed">
                       {message.content}
                     </div>
                   ) : (
-                    <div className="text-sm text-slate-800 leading-relaxed space-y-3 prose-study">
+                    <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-slate-800 leading-relaxed">
                       <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
                         components={{
-                          h1: ({ node, ...props }) => <h1 className="text-lg font-bold text-slate-900 mt-3 mb-1" {...props} />,
-                          h2: ({ node, ...props }) => <h2 className="text-base font-bold text-slate-900 mt-2 mb-1" {...props} />,
-                          h3: ({ node, ...props }) => <h3 className="text-sm font-bold text-slate-900 mt-2 mb-1" {...props} />,
-                          p: ({ node, ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
-                          ul: ({ node, ...props }) => <ul className="list-disc pl-5 space-y-1 mb-2" {...props} />,
-                          ol: ({ node, ...props }) => <ol className="list-decimal pl-5 space-y-1 mb-2" {...props} />,
+                          h1: ({ node, ...props }) => <h1 className="text-lg font-extrabold text-slate-900 mt-4 mb-2" {...props} />,
+                          h2: ({ node, ...props }) => <h2 className="text-base font-bold text-slate-900 mt-3 mb-1.5" {...props} />,
+                          h3: ({ node, ...props }) => <h3 className="text-sm font-bold text-slate-900 mt-2.5 mb-1" {...props} />,
+                          p: ({ node, ...props }) => <p className="mb-2.5 last:mb-0 leading-relaxed" {...props} />,
+                          ul: ({ node, ...props }) => <ul className="list-disc pl-5 space-y-1 mb-2.5" {...props} />,
+                          ol: ({ node, ...props }) => <ol className="list-decimal pl-5 space-y-1 mb-2.5" {...props} />,
                           li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
-                          strong: ({ node, ...props }) => <strong className="font-extrabold text-slate-900" {...props} />,
-                          code: ({ node, inline, ...props }: any) => 
-                            inline ? (
-                              <code className="px-1.5 py-0.5 rounded bg-slate-100 text-campus-900 font-mono text-xs font-semibold" {...props} />
-                            ) : (
-                              <code className="block p-3 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto my-2" {...props} />
-                            ),
+                          strong: ({ node, ...props }) => <strong className="font-extrabold text-slate-950" {...props} />,
                           blockquote: ({ node, ...props }) => (
-                            <blockquote className="border-l-4 border-campus-600 pl-3 italic text-slate-600 my-2" {...props} />
+                            <blockquote className="border-l-4 border-campus-700 pl-3.5 py-1 italic bg-campus-50/50 rounded-r-xl text-slate-700 my-3" {...props} />
                           ),
                           table: ({ node, ...props }) => (
-                            <div className="overflow-x-auto my-2 border border-slate-200 rounded-xl">
+                            <div className="overflow-x-auto my-3 border border-slate-200 rounded-2xl shadow-2xs">
                               <table className="min-w-full text-xs divide-y divide-slate-200" {...props} />
                             </div>
                           ),
-                          th: ({ node, ...props }) => <th className="bg-slate-100 p-2 font-bold text-left text-slate-700" {...props} />,
-                          td: ({ node, ...props }) => <td className="p-2 border-t border-slate-100" {...props} />,
+                          th: ({ node, ...props }) => <th className="bg-slate-100/80 p-2.5 font-extrabold text-left text-slate-800 uppercase tracking-wider text-[11px]" {...props} />,
+                          td: ({ node, ...props }) => <td className="p-2.5 border-t border-slate-100 text-slate-700" {...props} />,
+                          code: ({ node, inline, className, children, ...props }: any) => {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const lang = match ? match[1] : '';
+                            const codeString = String(children).replace(/\n$/, '');
+
+                            if (!inline && (match || codeString.includes('\n'))) {
+                              return (
+                                <div className="rounded-2xl overflow-hidden border border-slate-800 my-3 shadow-md not-prose">
+                                  <div className="bg-slate-900 px-3.5 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                                    <span>{lang || 'code'}</span>
+                                    <CodeCopyButton code={codeString} />
+                                  </div>
+                                  <SyntaxHighlighter
+                                    language={lang || 'text'}
+                                    style={oneDark}
+                                    customStyle={{
+                                      margin: 0,
+                                      padding: '1rem',
+                                      fontSize: '0.78rem',
+                                      lineHeight: '1.45',
+                                      backgroundColor: '#111827',
+                                    }}
+                                    wrapLongLines={true}
+                                  >
+                                    {codeString}
+                                  </SyntaxHighlighter>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <code className="px-1.5 py-0.5 rounded bg-slate-100 text-campus-900 font-mono text-xs font-semibold" {...props}>
+                                {children}
+                              </code>
+                            );
+                          }
                         }}
                       >
                         {message.content}
@@ -290,7 +1092,7 @@ export default function StudentAiTutorClient({
             </div>
             <div className="p-3.5 rounded-2xl rounded-tl-xs bg-white border border-slate-200/90 text-xs text-slate-500 flex items-center gap-2 shadow-2xs">
               <Sparkles className="w-3.5 h-3.5 text-campus-600 animate-spin" />
-              <span>AI Tutor is thinking & crafting your response...</span>
+              <span>AI Tutor is formulating a step-by-step academic response...</span>
               <button
                 type="button"
                 onClick={stop}
@@ -302,43 +1104,136 @@ export default function StudentAiTutorClient({
           </div>
         )}
 
+        {/* Error Notification */}
+        {error && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center justify-between">
+            <span>An error occurred while connecting to the AI Tutor. Please try again.</span>
+            <button
+              type="button"
+              onClick={() => reload()}
+              className="text-red-900 font-bold underline hover:text-red-950 ml-2"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggested Starter Chips */}
-      {messages.length <= 1 && (
-        <div className="px-4 py-2 border-t border-slate-100 bg-white flex items-center gap-2 overflow-x-auto custom-scrollbar shrink-0">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-campus-700" /> Suggested:
-          </span>
-          {starterPrompts.map((p, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => handlePromptClick(p)}
-              className="px-3 py-1 rounded-full bg-slate-50 hover:bg-campus-50 border border-slate-200/80 hover:border-campus-300 text-slate-700 hover:text-campus-900 text-xs font-medium whitespace-nowrap transition-colors shrink-0"
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Chat Input Pinned Area */}
       <div className="p-3 sm:p-4 bg-white border-t border-slate-100 shrink-0">
-        <form onSubmit={handleSubmit} className="flex items-end gap-2">
+        {/* Hidden File Input for All Document, Code & Image Types */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*,application/pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.json,.sql,.py,.js,.ts,.cpp,.c,.java,.zip,.md,*/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+
+        {/* Attachment Previews Area above Input (Both Local Files & Teacher Materials) */}
+        {(previews.length > 0 || attachedMaterials.length > 0) && (
+          <div className="flex flex-wrap items-center gap-2 p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/90 mb-2.5">
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+              Attached ({previews.length + attachedMaterials.length}):
+            </div>
+
+            {/* Local Files Preview */}
+            {previews.map((file, idx) => (
+              <div
+                key={file.id}
+                className="flex items-center gap-2 pl-2 pr-1.5 py-1 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs"
+              >
+                {file.url ? (
+                  <img src={file.url} alt={file.name} className="w-6 h-6 object-cover rounded-md" />
+                ) : (
+                  renderFileIcon(file.category)
+                )}
+                <span className="font-medium text-slate-800 max-w-[130px] truncate text-[11px]">
+                  {file.name}
+                </span>
+                <span className="text-[10px] text-slate-400">
+                  {formatFileSize(file.size)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(idx)}
+                  className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  title="Remove attachment"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+
+            {/* Teacher Course Materials Preview */}
+            {attachedMaterials.map((mat) => (
+              <div
+                key={mat.id}
+                className="flex items-center gap-2 pl-2.5 pr-1.5 py-1 rounded-xl bg-campus-50 border border-campus-200 text-campus-900 shadow-2xs text-xs"
+              >
+                <BookOpenCheck className="w-4 h-4 text-campus-700 shrink-0" />
+                <span className="font-bold text-[11px] max-w-[140px] truncate">
+                  {mat.title}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-campus-100 text-campus-900 font-mono font-bold">
+                  {mat.course_code}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeMaterial(mat.id)}
+                  className="p-1 rounded-md text-campus-700 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  title="Remove course material"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Input Form with Paperclip & Course Library Buttons */}
+        <form onSubmit={handleFormSubmit} className="flex items-end gap-2">
+          {/* File Attachment Button */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-3 rounded-2xl text-slate-600 hover:text-campus-900 hover:bg-slate-100 border border-slate-200/80 transition-colors shrink-0 flex items-center justify-center h-[52px]"
+            title="Attach documents, lecture notes, or images (PDF, DOCX, PPT, code, images)"
+          >
+            <Paperclip className="w-5 h-5" />
+          </button>
+
+          {/* Attach Directly from University Course Library Button */}
+          <button
+            type="button"
+            onClick={() => setIsLibraryOpen(true)}
+            className="p-3 rounded-2xl text-campus-800 hover:text-campus-950 bg-campus-50/70 hover:bg-campus-100 border border-campus-200 transition-colors shrink-0 flex items-center justify-center h-[52px]"
+            title="Attach uploaded faculty course notes & lecture materials directly"
+          >
+            <BookOpen className="w-5 h-5 text-campus-800" />
+          </button>
+
+          {/* Textarea */}
           <div className="flex-1 relative">
             <Textarea
               ref={textareaRef}
               value={input}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder={`Ask your AI Tutor about any academic topic, or search course materials (e.g. "Find CSE-1201 notes")...`}
+              placeholder={
+                attachedFiles.length > 0 || attachedMaterials.length > 0
+                  ? `Ask tutor to break down attached file(s) line-by-line...`
+                  : `Ask about any concept, drag & drop files, or attach from Course Library...`
+              }
               rows={2}
               className="resize-none min-h-[52px] max-h-[140px] text-xs py-3 pr-4 rounded-2xl bg-slate-50/70 hover:bg-slate-50 focus:bg-white border-slate-200 focus:border-campus-700"
             />
           </div>
 
+          {/* Submit / Stop Button */}
           {isLoading ? (
             <Button
               type="button"
@@ -352,7 +1247,7 @@ export default function StudentAiTutorClient({
           ) : (
             <Button
               type="submit"
-              disabled={!input.trim()}
+              disabled={!input.trim() && attachedFiles.length === 0 && attachedMaterials.length === 0}
               className="h-[52px] px-5 rounded-2xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 shrink-0"
             >
               <Send className="w-4 h-4" />
@@ -361,9 +1256,126 @@ export default function StudentAiTutorClient({
           )}
         </form>
         <div className="text-[10px] text-slate-400 text-center mt-1.5 flex items-center justify-center gap-1">
-          <span>Press Enter to send, Shift + Enter for a new line. Official EBAUB Academic Tutor.</span>
+          <span>Drag & drop files anytime • KaTeX LaTeX Math ($$...$$) • Official EBAUB Study Assistant.</span>
         </div>
       </div>
+
+      {/* Course Materials Library Attachment Modal */}
+      <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-6 rounded-3xl">
+          <DialogHeader className="shrink-0">
+            <DialogTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <BookOpenCheck className="w-5 h-5 text-campus-700" />
+              Attach Course Material from Faculty
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              Select any lecture note, syllabus sheet, or slide deck uploaded by your professors to analyze directly with the AI Tutor.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Modal Search & Course Filters */}
+          <div className="space-y-3 shrink-0 pt-2">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={librarySearch}
+                onChange={(e) => setLibrarySearch(e.target.value)}
+                placeholder="Search by topic, document title, or course code..."
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-campus-700"
+              />
+            </div>
+
+            {distinctCourseCodes.length > 0 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCourseFilter('all')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors whitespace-nowrap ${
+                    selectedCourseFilter === 'all'
+                      ? 'bg-campus-900 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  All ({availableMaterials.length})
+                </button>
+                {distinctCourseCodes.map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setSelectedCourseFilter(code)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors whitespace-nowrap ${
+                      selectedCourseFilter === code
+                        ? 'bg-campus-900 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {code}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Materials List */}
+          <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 my-3 custom-scrollbar">
+            {filteredLibraryMaterials.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 text-xs">
+                No course materials match your search.
+              </div>
+            ) : (
+              filteredLibraryMaterials.map((mat) => {
+                const isAlreadyAttached = attachedMaterials.some((m) => m.id === mat.id);
+
+                return (
+                  <div
+                    key={mat.id}
+                    className="p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 transition-colors"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+                        <FileText className="w-4 h-4 text-campus-700" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-campus-100 text-campus-900">
+                            {mat.course_code}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {formatFileSize(mat.file_size)}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-slate-900 text-xs truncate max-w-sm mt-0.5">
+                          {mat.title}
+                        </h4>
+                        <div className="text-[11px] text-slate-500">
+                          {mat.teacher_name ? `By ${mat.teacher_name}` : mat.file_name}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0">
+                      {isAlreadyAttached ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-bold">
+                          <Check className="w-3.5 h-3.5" /> Attached
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          onClick={() => attachCourseMaterial(mat)}
+                          className="bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs rounded-xl h-8 px-3"
+                        >
+                          Attach to Chat
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

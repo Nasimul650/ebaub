@@ -1,6 +1,7 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
+import { getCourseMaterialsForStudent } from '@/utils/supabase/queries';
 import StudentAiTutorClient from '@/components/student/StudentAiTutorClient';
 
 export const dynamic = 'force-dynamic';
@@ -45,11 +46,17 @@ export default async function StudentAiTutorPage() {
 
   const departmentName = deptData?.name || 'Computer Science';
 
+  // Fetch student's accessible course materials uploaded by university teachers
+  const materials = await getCourseMaterialsForStudent({
+    studentDeptId: profile?.department_id || undefined
+  });
+
   return (
     <div className="pb-6">
       <StudentAiTutorClient 
         studentName={studentName} 
-        departmentName={departmentName} 
+        departmentName={departmentName}
+        availableMaterials={materials}
       />
     </div>
   );

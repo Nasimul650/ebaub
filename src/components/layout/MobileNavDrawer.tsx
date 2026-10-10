@@ -181,10 +181,6 @@ export default function MobileNavDrawer({
                   <Bot className="w-3.5 h-3.5 text-purple-600" />
                   <span>AI Study Companion</span>
                 </Link>
-                <Link href="/student/notices" onClick={onClose} className="flex items-center gap-2 py-1.5 text-slate-700 hover:text-campus-900">
-                  <Bell className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Notice Board</span>
-                </Link>
               </>
             )}
 

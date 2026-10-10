@@ -9,7 +9,6 @@ import {
   BookOpen, 
   FolderDown, 
   Bot, 
-  Bell, 
   LogOut, 
   UserCheck,
   Settings,
@@ -60,7 +59,6 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
     { label: 'Study Hub', href: '/student/study', icon: BookOpen },
     { label: 'Course Files', href: '/student/files', icon: FolderDown },
     { label: 'AI Tutor', href: '/student/ai-tutor', icon: Bot },
-    { label: 'Student Notices', href: '/student/notices', icon: Bell },
   ];
 
   // Resolve Profile Data

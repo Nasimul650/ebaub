@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Roboto_Condensed, Noto_Sans_Bengali } from 'next/font/google';
 import './globals.css';
+import 'katex/dist/katex.min.css';
 
 const robotoCondensed = Roboto_Condensed({
   subsets: ['latin'],
