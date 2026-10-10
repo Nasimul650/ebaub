@@ -20,6 +20,7 @@ import { logout } from '@/app/actions/auth';
 type Profile = {
   first_name?: string | null;
   last_name?: string | null;
+  full_name?: string | null;
   avatar_url?: string | null;
   role?: string | null;
   email?: string | null;
@@ -59,16 +60,21 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
   ];
 
   // Resolve Profile Data
-  const firstName = profile?.first_name;
-  const lastName = profile?.last_name;
+  const fullName = profile?.full_name?.trim();
+  const firstName = profile?.first_name?.trim();
+  const lastName = profile?.last_name?.trim();
   
   let displayName = 'EBAUB Faculty';
-  if (firstName && lastName) {
+  if (fullName) {
+    displayName = fullName;
+  } else if (firstName && lastName) {
     displayName = `${firstName} ${lastName}`;
   } else if (firstName) {
     displayName = firstName;
   } else if (lastName) {
     displayName = lastName;
+  } else if (profile?.email) {
+    displayName = profile.email.split('@')[0];
   }
   
   const firstLetter = displayName.charAt(0).toUpperCase();
@@ -170,7 +176,7 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
         <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden text-xs font-semibold custom-scrollbar">
           {navItems.map(item => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href === '/teacher/quizzes/new' && (pathname.startsWith('/teacher/quizzes') || pathname === '/teacher/ai'));
+            const isActive = pathname === item.href || (item.href === '/teacher/quizzes' && (pathname.startsWith('/teacher/quizzes') || pathname === '/teacher/ai'));
             return (
               <Link
                 key={item.href}
