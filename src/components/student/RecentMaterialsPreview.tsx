@@ -14,7 +14,7 @@ export default function RecentMaterialsPreview({ materials }: Props) {
         <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-blue-600" /> Recent Course Handouts
         </h2>
-        <Link href="/student/study" className="text-xs text-blue-700 font-bold hover:underline">
+        <Link href="/student/study-hub" className="text-xs text-blue-700 font-bold hover:underline">
           View All Materials
         </Link>
       </div>

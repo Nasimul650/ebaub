@@ -12,8 +12,8 @@ export default function StudentStatsGrid({ materialCount }: Props) {
       <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-2 shadow-xs">
         <div className="text-xs font-semibold text-slate-500">Available Materials</div>
         <div className="text-3xl font-extrabold text-slate-900 heading-display">{materialCount} Documents</div>
-        <Link href="/student/study" className="text-xs text-blue-700 font-bold hover:underline flex items-center gap-1 pt-2">
-          Open Study Hub &rarr;
+        <Link href="/student/study-hub" className="text-xs text-blue-700 font-bold hover:underline flex items-center gap-1 pt-2">
+          Open Interactive Study Hub &rarr;
         </Link>
       </div>
 
