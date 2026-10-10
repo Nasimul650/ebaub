@@ -383,15 +383,15 @@ export default function PortalDropdown({
             </Link>
 
             <Link
-              href="/student/study"
+              href="/student/study-hub"
               className="flex items-center gap-3 px-4 py-2 hover:bg-campus-50 text-slate-700 hover:text-campus-900 transition-colors group"
             >
-              <div className="w-7 h-7 rounded-xl bg-purple-100/70 text-purple-700 flex items-center justify-center shrink-0">
-                <Bot className="w-3.5 h-3.5" />
+              <div className="w-7 h-7 rounded-xl bg-campus-100/70 text-campus-700 flex items-center justify-center shrink-0">
+                <BookOpen className="w-3.5 h-3.5" />
               </div>
               <div>
-                <div className="font-bold text-slate-800 group-hover:text-purple-900">AI Study Companion</div>
-                <div className="text-[10px] text-slate-400">Interactive 24/7 AI Tutor</div>
+                <div className="font-bold text-slate-800 group-hover:text-campus-900">Interactive Study Hub</div>
+                <div className="text-[10px] text-slate-400">Split-screen PDF & Smart Notepad</div>
               </div>
             </Link>
           </div>

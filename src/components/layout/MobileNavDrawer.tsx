@@ -177,9 +177,9 @@ export default function MobileNavDrawer({
                   <BookOpen className="w-3.5 h-3.5 text-blue-600" />
                   <span>Course Materials</span>
                 </Link>
-                <Link href="/student/study" onClick={onClose} className="flex items-center gap-2 py-1.5 text-slate-700 hover:text-campus-900">
-                  <Bot className="w-3.5 h-3.5 text-purple-600" />
-                  <span>AI Study Companion</span>
+                <Link href="/student/study-hub" onClick={onClose} className="flex items-center gap-2 py-1.5 text-slate-700 hover:text-campus-900">
+                  <BookOpen className="w-3.5 h-3.5 text-campus-700" />
+                  <span>Interactive Study Hub</span>
                 </Link>
               </>
             )}

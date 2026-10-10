@@ -56,7 +56,7 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
 
   const navItems = [
     { label: 'Dashboard', href: '/student', icon: LayoutDashboard },
-    { label: 'Study Hub', href: '/student/study', icon: BookOpen },
+    { label: 'Study Hub', href: '/student/study-hub', icon: BookOpen },
     { label: 'Course Files', href: '/student/files', icon: FolderDown },
     { label: 'AI Tutor', href: '/student/ai-tutor', icon: Bot },
   ];
