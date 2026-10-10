@@ -248,7 +248,7 @@ export default function ProfileSettingsForm({ initialProfile }: ProfileSettingsF
       {/* 1. MAIN PROFILE SETTINGS CARD                           */}
       {/* ======================================================== */}
       <Card className="rounded-3xl border border-slate-200/90 bg-white/95 backdrop-blur-md shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-slate-100 p-6 sm:p-8 bg-gradient-to-r from-campus-50/50 via-white to-campus-50/30">
+        <CardHeader className="border-b border-slate-100 p-5 sm:p-8 bg-gradient-to-r from-campus-50/50 via-white to-campus-50/30">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-campus-100 text-campus-900 mb-2">
@@ -280,7 +280,7 @@ export default function ProfileSettingsForm({ initialProfile }: ProfileSettingsF
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
-          <CardContent className="p-6 sm:p-8 space-y-8">
+          <CardContent className="p-5 sm:p-8 space-y-8">
             {/* Feedback Alerts */}
             {errorMessage && (
               <div className="p-4 bg-red-50/90 border border-red-200 rounded-2xl text-red-700 text-xs font-semibold flex items-center gap-3 shadow-xs animate-in fade-in slide-in-from-top-1">
@@ -625,7 +625,7 @@ export default function ProfileSettingsForm({ initialProfile }: ProfileSettingsF
       {/* 2. SECURITY & PASSWORD SETTINGS CARD                     */}
       {/* ======================================================== */}
       <Card className="rounded-3xl border border-slate-200/90 bg-white/95 backdrop-blur-md shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-slate-100 p-6 sm:p-8 bg-gradient-to-r from-slate-50 via-white to-slate-50/50">
+        <CardHeader className="border-b border-slate-100 p-5 sm:p-8 bg-gradient-to-r from-slate-50 via-white to-slate-50/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 shrink-0">
               <KeyRound className="w-5 h-5" />
@@ -642,7 +642,7 @@ export default function ProfileSettingsForm({ initialProfile }: ProfileSettingsF
         </CardHeader>
 
         <form onSubmit={handlePasswordSubmit}>
-          <CardContent className="p-6 sm:p-8 space-y-6">
+          <CardContent className="p-5 sm:p-8 space-y-6">
             {/* Feedback Alerts for Password Form */}
             {passwordError && (
               <div className="p-4 bg-red-50/90 border border-red-200 rounded-2xl text-red-700 text-xs font-semibold flex items-center gap-3 shadow-xs animate-in fade-in slide-in-from-top-1">

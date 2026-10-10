@@ -31,7 +31,7 @@ export default async function AdminNewsPage() {
         <div className="p-4 border-b border-slate-100 font-bold text-slate-900">
           Published Articles ({newsList.length})
         </div>
-        <div className="overflow-x-auto">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left min-w-[600px]">
             <thead className="bg-campus-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
               <tr>

@@ -222,9 +222,9 @@ export default function StudentMaterialsClient({
         </div>
 
         {/* Filter Dropdowns Container */}
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
           {/* Department Filter Dropdown */}
-          <div className="flex items-center gap-1.5 text-xs">
+          <div className="flex items-center gap-1.5 text-xs w-full sm:w-auto">
             <span className="text-slate-500 font-semibold hidden sm:inline flex items-center gap-1">
               <Filter className="w-3 h-3 text-campus-700" />
               <span>Dept:</span>
@@ -236,7 +236,7 @@ export default function StudentMaterialsClient({
                 // Reset course if selected course is no longer available under the newly selected department
                 setSelectedCourse('all');
               }}
-              className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer min-w-[150px] sm:min-w-[170px]"
+              className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer w-full sm:w-auto min-w-0 sm:min-w-[170px]"
             >
               <option value="all">
                 All Departments ({initialMaterials.length})
@@ -256,7 +256,7 @@ export default function StudentMaterialsClient({
           </div>
 
           {/* Course Filter Dropdown (NEW) */}
-          <div className="flex items-center gap-1.5 text-xs">
+          <div className="flex items-center gap-1.5 text-xs w-full sm:w-auto">
             <span className="text-slate-500 font-semibold hidden sm:inline flex items-center gap-1">
               <BookOpen className="w-3 h-3 text-campus-700" />
               <span>Course:</span>
@@ -264,7 +264,7 @@ export default function StudentMaterialsClient({
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer min-w-[140px] sm:min-w-[160px]"
+              className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer w-full sm:w-auto min-w-0 sm:min-w-[160px]"
             >
               <option value="all">
                 All Courses ({departmentFilteredTotal})

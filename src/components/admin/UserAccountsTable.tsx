@@ -654,7 +654,7 @@ export default function UserAccountsTable({
       {/* ======================================================== */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Search Input */}
-        <div className="relative flex-1 min-w-[260px]">
+        <div className="relative flex-1 w-full min-w-0 sm:min-w-[260px]">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -1132,7 +1132,7 @@ export default function UserAccountsTable({
         open={!!inspectingUser} 
         onOpenChange={(open) => !open && setInspectingUser(null)}
       >
-        <DialogContent className="max-w-lg p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl">
+        <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl">
           <DialogHeader className="space-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

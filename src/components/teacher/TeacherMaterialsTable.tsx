@@ -647,60 +647,63 @@ export default function TeacherMaterialsTable({
               )}
             </div>
 
-            {/* Department Filter Dropdown */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-[11px] font-semibold text-slate-500 whitespace-nowrap">
-                Department:
-              </span>
-              <select
-                value={allSelectedDepartment}
-                onChange={(e) => setAllSelectedDepartment(e.target.value)}
-                className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-2.5 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 max-w-[200px] truncate"
-              >
-                <option value="ALL">All Departments</option>
-                {allSelectedFaculty === 'ALL' ? (
-                  // Group by faculty when All Faculties is selected
-                  facultiesList.map((faculty) => {
-                    const deptsInFac = departments.filter((d) => d.faculty_name === faculty);
-                    if (deptsInFac.length === 0) return null;
-                    return (
-                      <optgroup key={faculty} label={faculty}>
-                        {deptsInFac.map((dept) => (
-                          <option key={dept.id} value={dept.id}>
-                            {dept.name}
-                          </option>
-                        ))}
-                      </optgroup>
-                    );
-                  })
-                ) : (
-                  // Show only departments under the selected faculty
-                  availableDepartments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
+            {/* Filter Dropdowns */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Department Filter Dropdown */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[11px] font-semibold text-slate-500 whitespace-nowrap">
+                  Department:
+                </span>
+                <select
+                  value={allSelectedDepartment}
+                  onChange={(e) => setAllSelectedDepartment(e.target.value)}
+                  className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-2.5 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 max-w-[200px] truncate"
+                >
+                  <option value="ALL">All Departments</option>
+                  {allSelectedFaculty === 'ALL' ? (
+                    // Group by faculty when All Faculties is selected
+                    facultiesList.map((faculty) => {
+                      const deptsInFac = departments.filter((d) => d.faculty_name === faculty);
+                      if (deptsInFac.length === 0) return null;
+                      return (
+                        <optgroup key={faculty} label={faculty}>
+                          {deptsInFac.map((dept) => (
+                            <option key={dept.id} value={dept.id}>
+                              {dept.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      );
+                    })
+                  ) : (
+                    // Show only departments under the selected faculty
+                    availableDepartments.map((dept) => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
 
-            {/* Course Filter Dropdown */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-[11px] font-semibold text-slate-500 whitespace-nowrap">
-                Course:
-              </span>
-              <select
-                value={allSelectedCourse}
-                onChange={(e) => setAllSelectedCourse(e.target.value)}
-                className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-2.5 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 max-w-[150px]"
-              >
-                <option value="ALL">All Courses</option>
-                {allUniqueCourses.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              {/* Course Filter Dropdown */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[11px] font-semibold text-slate-500 whitespace-nowrap">
+                  Course:
+                </span>
+                <select
+                  value={allSelectedCourse}
+                  onChange={(e) => setAllSelectedCourse(e.target.value)}
+                  className="text-xs bg-slate-50/70 border border-slate-200 rounded-xl px-2.5 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 max-w-[150px]"
+                >
+                  <option value="ALL">All Courses</option>
+                  {allUniqueCourses.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Clear All Filters Button */}
@@ -956,7 +959,7 @@ export default function TeacherMaterialsTable({
         open={!!deletingMaterial} 
         onOpenChange={(open) => !open && !isDeleting && setDeletingMaterial(null)}
       >
-        <DialogContent className="max-w-md p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl">
+        <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl">
           <DialogHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600">

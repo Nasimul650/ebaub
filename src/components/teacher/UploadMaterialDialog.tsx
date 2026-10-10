@@ -220,7 +220,7 @@ export default function UploadMaterialDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-lg p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl">
+      <DialogContent className="w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl">
         <DialogHeader className="space-y-1">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-campus-50 border border-campus-200 flex items-center justify-center text-campus-700">

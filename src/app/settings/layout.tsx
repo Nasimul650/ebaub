@@ -57,8 +57,9 @@ export default async function SettingsLayout({
               href={dashboardHref}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors border border-slate-200/70"
             >
-              <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
-              <span>Back to {dashboardLabel}</span>
+              <ArrowLeft className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span className="hidden sm:inline">Back to {dashboardLabel}</span>
+              <span className="sm:hidden">Dashboard</span>
             </Link>
 
             <span className="text-slate-300 hidden sm:inline">|</span>
