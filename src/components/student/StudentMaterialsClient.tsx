@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   FileText, 
   Download, 
@@ -15,22 +15,30 @@ import {
   X,
   BookOpen,
   CheckCircle2,
-  Layers
+  GraduationCap
 } from 'lucide-react';
 import type { CourseMaterial, DepartmentOption } from '@/types';
 import { formatFileSize } from '@/lib/utils';
 import ViewMaterialDialog from '@/components/teacher/ViewMaterialDialog';
 
+export interface TeacherOption {
+  id: string;
+  name: string;
+  department_id?: string | null;
+}
+
 interface StudentMaterialsClientProps {
   initialMaterials: CourseMaterial[];
   departments: DepartmentOption[];
   studentDepartmentId: string | null;
+  allTeachers?: TeacherOption[];
 }
 
 export default function StudentMaterialsClient({
   initialMaterials,
   departments,
-  studentDepartmentId
+  studentDepartmentId,
+  allTeachers = []
 }: StudentMaterialsClientProps) {
   // Department filter defaults to student's assigned department if available, else 'all'
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>(() => {
@@ -39,6 +47,9 @@ export default function StudentMaterialsClient({
     }
     return 'all';
   });
+
+  // Teacher filter state ('all' or specific teacher ID)
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('all');
 
   // Course filter state ('all' or specific course code)
   const [selectedCourse, setSelectedCourse] = useState<string>('all');
@@ -51,24 +62,88 @@ export default function StudentMaterialsClient({
     return departments.find((d) => d.id === studentDepartmentId) || null;
   }, [departments, studentDepartmentId]);
 
-  // Dynamically compute available unique courses based on department selection or all materials
+  // Dynamically compute available teachers based strictly on the selected department
+  const availableTeachers = useMemo(() => {
+    const teacherMap = new Map<string, { id: string; name: string; count: number }>();
+
+    // 1. Collect teachers who uploaded materials matching the selected department
+    initialMaterials.forEach((m) => {
+      const matchesDept =
+        selectedDepartmentId === 'all' ||
+        (m.departments && m.departments.some((d) => d.id === selectedDepartmentId));
+
+      if (matchesDept && m.teacher_id) {
+        const teacherName = m.teacher_name || 'Faculty Member';
+        const existing = teacherMap.get(m.teacher_id);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          teacherMap.set(m.teacher_id, {
+            id: m.teacher_id,
+            name: teacherName,
+            count: 1
+          });
+        }
+      }
+    });
+
+    // 2. Also include registered teachers assigned to the selected department
+    if (allTeachers && allTeachers.length > 0) {
+      allTeachers.forEach((t) => {
+        const matchesDept =
+          selectedDepartmentId === 'all' ||
+          (t.department_id && t.department_id === selectedDepartmentId);
+
+        if (matchesDept && !teacherMap.has(t.id)) {
+          // Calculate material count for this teacher under the selected department
+          const count = initialMaterials.filter((m) => {
+            const mDeptMatch =
+              selectedDepartmentId === 'all' ||
+              (m.departments && m.departments.some((d) => d.id === selectedDepartmentId));
+            return mDeptMatch && m.teacher_id === t.id;
+          }).length;
+
+          teacherMap.set(t.id, {
+            id: t.id,
+            name: t.name,
+            count
+          });
+        }
+      });
+    }
+
+    return Array.from(teacherMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [initialMaterials, selectedDepartmentId, allTeachers]);
+
+  // Auto-reset selected teacher if they aren't part of the newly selected department
+  useEffect(() => {
+    if (selectedTeacherId !== 'all') {
+      const exists = availableTeachers.some((t) => t.id === selectedTeacherId);
+      if (!exists) {
+        setSelectedTeacherId('all');
+      }
+    }
+  }, [selectedDepartmentId, availableTeachers, selectedTeacherId]);
+
+  // Dynamically compute available unique courses based on department and teacher selection
   const availableCourses = useMemo(() => {
     const set = new Set<string>();
     initialMaterials.forEach((m) => {
       if (m.course_code && m.course_code.trim()) {
         const code = m.course_code.trim();
-        if (selectedDepartmentId === 'all') {
+        const matchesDept =
+          selectedDepartmentId === 'all' ||
+          (m.departments && m.departments.some((d) => d.id === selectedDepartmentId));
+        const matchesTeacher =
+          selectedTeacherId === 'all' || m.teacher_id === selectedTeacherId;
+
+        if (matchesDept && matchesTeacher) {
           set.add(code);
-        } else {
-          const matchesDept = m.departments && m.departments.some((d) => d.id === selectedDepartmentId);
-          if (matchesDept) {
-            set.add(code);
-          }
         }
       }
     });
     return Array.from(set).sort();
-  }, [initialMaterials, selectedDepartmentId]);
+  }, [initialMaterials, selectedDepartmentId, selectedTeacherId]);
 
   // Compute course material counts for badge labels
   const courseCounts = useMemo(() => {
@@ -76,15 +151,19 @@ export default function StudentMaterialsClient({
     initialMaterials.forEach((m) => {
       if (m.course_code && m.course_code.trim()) {
         const code = m.course_code.trim();
-        const matchesDept = selectedDepartmentId === 'all' || 
+        const matchesDept =
+          selectedDepartmentId === 'all' ||
           (m.departments && m.departments.some((d) => d.id === selectedDepartmentId));
-        if (matchesDept) {
+        const matchesTeacher =
+          selectedTeacherId === 'all' || m.teacher_id === selectedTeacherId;
+
+        if (matchesDept && matchesTeacher) {
           counts[code] = (counts[code] || 0) + 1;
         }
       }
     });
     return counts;
-  }, [initialMaterials, selectedDepartmentId]);
+  }, [initialMaterials, selectedDepartmentId, selectedTeacherId]);
 
   // Filtered and smartly ordered materials
   const filteredMaterials = useMemo(() => {
@@ -108,27 +187,40 @@ export default function StudentMaterialsClient({
       });
     }
 
-    // 2. Course Filter
+    // 2. Teacher Filter
+    if (selectedTeacherId !== 'all') {
+      result = result.filter((m) => m.teacher_id === selectedTeacherId);
+    }
+
+    // 3. Course Filter
     if (selectedCourse !== 'all') {
       result = result.filter(
         (m) => (m.course_code || '').trim().toLowerCase() === selectedCourse.toLowerCase()
       );
     }
 
-    // 3. Real-time Text Search (title, course_code, file_name, or department name)
+    // 4. Real-time Text Search (title, course_code, file_name, teacher_name, or department name)
     const q = searchQuery.toLowerCase().trim();
     if (q) {
       result = result.filter((m) => {
         const matchesTitle = m.title.toLowerCase().includes(q);
         const matchesCode = m.course_code.toLowerCase().includes(q);
         const matchesFileName = m.file_name.toLowerCase().includes(q);
+        const matchesTeacher = (m.teacher_name || '').toLowerCase().includes(q);
         const matchesDept = m.departments && m.departments.some((d) => d.name.toLowerCase().includes(q));
-        return matchesTitle || matchesCode || matchesFileName || matchesDept;
+        return matchesTitle || matchesCode || matchesFileName || matchesTeacher || matchesDept;
       });
     }
 
     return result;
-  }, [initialMaterials, selectedDepartmentId, selectedCourse, studentDepartmentId, searchQuery]);
+  }, [
+    initialMaterials, 
+    selectedDepartmentId, 
+    selectedTeacherId, 
+    selectedCourse, 
+    studentDepartmentId, 
+    searchQuery
+  ]);
 
   const getFileIcon = (fileName: string, mime: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
@@ -157,13 +249,35 @@ export default function StudentMaterialsClient({
     }
   };
 
-  // Determine total materials matching current department for the "All Courses" count
+  // Determine total materials matching current department & teacher for the "All Courses" count
   const departmentFilteredTotal = useMemo(() => {
-    if (selectedDepartmentId === 'all') return initialMaterials.length;
-    return initialMaterials.filter((m) =>
-      m.departments && m.departments.some((d) => d.id === selectedDepartmentId)
-    ).length;
-  }, [initialMaterials, selectedDepartmentId]);
+    return initialMaterials.filter((m) => {
+      const matchDept =
+        selectedDepartmentId === 'all' ||
+        (m.departments && m.departments.some((d) => d.id === selectedDepartmentId));
+      const matchTeacher =
+        selectedTeacherId === 'all' || m.teacher_id === selectedTeacherId;
+      return matchDept && matchTeacher;
+    }).length;
+  }, [initialMaterials, selectedDepartmentId, selectedTeacherId]);
+
+  const isAnyFilterActive = 
+    selectedDepartmentId !== (studentDepartmentId || 'all') ||
+    selectedTeacherId !== 'all' ||
+    selectedCourse !== 'all' ||
+    Boolean(searchQuery);
+
+  const resetAllFilters = () => {
+    setSelectedDepartmentId(studentDepartmentId || 'all');
+    setSelectedTeacherId('all');
+    setSelectedCourse('all');
+    setSearchQuery('');
+  };
+
+  const selectedTeacherName = useMemo(() => {
+    if (selectedTeacherId === 'all') return '';
+    return availableTeachers.find((t) => t.id === selectedTeacherId)?.name || 'Teacher';
+  }, [availableTeachers, selectedTeacherId]);
 
   return (
     <div className="space-y-6">
@@ -233,7 +347,6 @@ export default function StudentMaterialsClient({
               value={selectedDepartmentId}
               onChange={(e) => {
                 setSelectedDepartmentId(e.target.value);
-                // Reset course if selected course is no longer available under the newly selected department
                 setSelectedCourse('all');
               }}
               className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer w-full sm:w-auto min-w-0 sm:min-w-[170px]"
@@ -255,7 +368,32 @@ export default function StudentMaterialsClient({
             </select>
           </div>
 
-          {/* Course Filter Dropdown (NEW) */}
+          {/* Teacher Filter Dropdown (Filtered strictly by selected department) */}
+          <div className="flex items-center gap-1.5 text-xs w-full sm:w-auto">
+            <span className="text-slate-500 font-semibold hidden sm:inline flex items-center gap-1">
+              <GraduationCap className="w-3 h-3 text-campus-700" />
+              <span>Teacher:</span>
+            </span>
+            <select
+              value={selectedTeacherId}
+              onChange={(e) => {
+                setSelectedTeacherId(e.target.value);
+                setSelectedCourse('all');
+              }}
+              className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer w-full sm:w-auto min-w-0 sm:min-w-[160px]"
+            >
+              <option value="all">
+                All Teachers ({availableTeachers.length})
+              </option>
+              {availableTeachers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name} ({t.count})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Course Filter Dropdown */}
           <div className="flex items-center gap-1.5 text-xs w-full sm:w-auto">
             <span className="text-slate-500 font-semibold hidden sm:inline flex items-center gap-1">
               <BookOpen className="w-3 h-3 text-campus-700" />
@@ -278,13 +416,9 @@ export default function StudentMaterialsClient({
           </div>
 
           {/* Quick reset button if any filter is active */}
-          {(selectedDepartmentId !== (studentDepartmentId || 'all') || selectedCourse !== 'all' || searchQuery) && (
+          {isAnyFilterActive && (
             <button
-              onClick={() => {
-                setSelectedDepartmentId(studentDepartmentId || 'all');
-                setSelectedCourse('all');
-                setSearchQuery('');
-              }}
+              onClick={resetAllFilters}
               className="text-[11px] text-campus-700 hover:text-campus-900 font-semibold px-2 py-1 rounded-lg hover:bg-campus-50 transition-colors shrink-0"
               title="Reset all filters"
             >
@@ -301,10 +435,11 @@ export default function StudentMaterialsClient({
             Showing {filteredMaterials.length} of {initialMaterials.length} files
           </span>
 
+          {/* Department Chip */}
           {selectedDepartmentId !== 'all' && (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-campus-50 text-campus-800 border border-campus-200 text-[11px] font-semibold">
               <Building2 className="w-3 h-3 text-campus-700" />
-              <span>Dept: {departments.find(d => d.id === selectedDepartmentId)?.name || 'Department'}</span>
+              <span>Dept: {departments.find((d) => d.id === selectedDepartmentId)?.name || 'Department'}</span>
               <button 
                 onClick={() => {
                   setSelectedDepartmentId('all');
@@ -318,6 +453,25 @@ export default function StudentMaterialsClient({
             </span>
           )}
 
+          {/* Teacher Chip */}
+          {selectedTeacherId !== 'all' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-semibold">
+              <GraduationCap className="w-3 h-3 text-amber-700" />
+              <span>Teacher: {selectedTeacherName}</span>
+              <button 
+                onClick={() => {
+                  setSelectedTeacherId('all');
+                  setSelectedCourse('all');
+                }} 
+                className="hover:text-amber-950 p-0.5 ml-0.5"
+                title="Clear teacher filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {/* Course Chip */}
           {selectedCourse !== 'all' && (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200 text-[11px] font-semibold">
               <BookOpen className="w-3 h-3 text-indigo-700" />
@@ -332,6 +486,7 @@ export default function StudentMaterialsClient({
             </span>
           )}
 
+          {/* Search Query Chip */}
           {searchQuery && (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold">
               <span>Keyword: &quot;{searchQuery}&quot;</span>
@@ -347,13 +502,9 @@ export default function StudentMaterialsClient({
         </div>
 
         {/* Clear All Filters Action */}
-        {(selectedDepartmentId !== (studentDepartmentId || 'all') || selectedCourse !== 'all' || searchQuery) && (
+        {isAnyFilterActive && (
           <button
-            onClick={() => {
-              setSelectedDepartmentId(studentDepartmentId || 'all');
-              setSelectedCourse('all');
-              setSearchQuery('');
-            }}
+            onClick={resetAllFilters}
             className="text-[11px] font-bold text-red-600 hover:text-red-700 hover:underline"
           >
             Clear all filters
@@ -382,7 +533,7 @@ export default function StudentMaterialsClient({
 
                 return (
                   <tr key={mat.id} className="hover:bg-campus-50/50 transition-colors group">
-                    {/* Material Title & File Name */}
+                    {/* Material Title, File Name & Teacher Attribution */}
                     <td className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-white group-hover:border-campus-300 transition-colors">
@@ -401,6 +552,21 @@ export default function StudentMaterialsClient({
                           <div className="text-[11px] text-slate-500 font-mono truncate max-w-[280px]">
                             {mat.file_name}
                           </div>
+
+                          {/* Teacher Attribution Link */}
+                          {mat.teacher_name && (
+                            <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                              <span className="text-slate-400">By:</span>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedTeacherId(mat.teacher_id)}
+                                className="text-campus-900 font-semibold hover:underline truncate max-w-[200px]"
+                                title={`Filter by teacher: ${mat.teacher_name}`}
+                              >
+                                {mat.teacher_name}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -495,17 +661,13 @@ export default function StudentMaterialsClient({
                         No materials found
                       </div>
                       <p className="text-xs text-slate-400">
-                        {searchQuery || selectedDepartmentId !== 'all' || selectedCourse !== 'all'
-                          ? 'No files match your department, course, or search keywords.'
+                        {searchQuery || selectedDepartmentId !== 'all' || selectedTeacherId !== 'all' || selectedCourse !== 'all'
+                          ? 'No files match your department, teacher, course, or search keywords.'
                           : 'There are currently no course materials published.'}
                       </p>
-                      {(searchQuery || selectedDepartmentId !== 'all' || selectedCourse !== 'all') && (
+                      {isAnyFilterActive && (
                         <button
-                          onClick={() => {
-                            setSelectedDepartmentId('all');
-                            setSelectedCourse('all');
-                            setSearchQuery('');
-                          }}
+                          onClick={resetAllFilters}
                           className="mt-2 text-xs font-bold text-campus-800 hover:underline"
                         >
                           Show all course materials

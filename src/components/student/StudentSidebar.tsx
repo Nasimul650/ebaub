@@ -23,6 +23,7 @@ import { logout } from '@/app/actions/auth';
 type Profile = {
   first_name?: string | null;
   last_name?: string | null;
+  full_name?: string | null;
   avatar_url?: string | null;
   role?: string | null;
   email?: string | null;
@@ -58,21 +59,26 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
     { label: 'Dashboard', href: '/student', icon: LayoutDashboard },
     { label: 'Study Hub', href: '/student/study', icon: BookOpen },
     { label: 'Course Files', href: '/student/files', icon: FolderDown },
-    { label: 'AI Study Assistant', href: '/student/ai', icon: Bot },
+    { label: 'AI Tutor', href: '/student/ai-tutor', icon: Bot },
     { label: 'Student Notices', href: '/student/notices', icon: Bell },
   ];
 
   // Resolve Profile Data
-  const firstName = profile?.first_name;
-  const lastName = profile?.last_name;
+  const fullName = profile?.full_name?.trim();
+  const firstName = profile?.first_name?.trim();
+  const lastName = profile?.last_name?.trim();
   
   let displayName = 'EBAUB Student';
-  if (firstName && lastName) {
+  if (fullName) {
+    displayName = fullName;
+  } else if (firstName && lastName) {
     displayName = `${firstName} ${lastName}`;
   } else if (firstName) {
     displayName = firstName;
   } else if (lastName) {
     displayName = lastName;
+  } else if (profile?.email) {
+    displayName = profile.email.split('@')[0];
   }
   
   const firstLetter = displayName.charAt(0).toUpperCase();
@@ -174,7 +180,9 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
         <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden text-xs font-semibold custom-scrollbar">
           {navItems.map(item => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || (item.href === '/student/files' && pathname.startsWith('/student/materials'));
+            const isActive = pathname === item.href || 
+              (item.href === '/student/files' && pathname.startsWith('/student/materials')) ||
+              (item.href === '/student/ai-tutor' && pathname.startsWith('/student/ai'));
             return (
               <Link
                 key={item.href}
