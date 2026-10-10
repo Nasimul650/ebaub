@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS public.quizzes (
     teacher_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     course_code TEXT NOT NULL,
     title TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+    exam_type TEXT NOT NULL DEFAULT 'mcq',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -14,15 +16,21 @@ CREATE TABLE IF NOT EXISTS public.quizzes (
 CREATE TABLE IF NOT EXISTS public.quiz_questions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     quiz_id UUID NOT NULL REFERENCES public.quizzes(id) ON DELETE CASCADE,
+    question_type TEXT NOT NULL DEFAULT 'mcq',
     question_text TEXT NOT NULL,
-    options JSONB NOT NULL DEFAULT '[]'::jsonb,
-    correct_answer TEXT NOT NULL
+    options JSONB DEFAULT '[]'::jsonb,
+    correct_answer TEXT,
+    suggested_answer TEXT,
+    grading_rubric TEXT
 );
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_quizzes_teacher_id ON public.quizzes(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_quizzes_course_code ON public.quizzes(course_code);
+CREATE INDEX IF NOT EXISTS idx_quizzes_status ON public.quizzes(status);
+CREATE INDEX IF NOT EXISTS idx_quizzes_exam_type ON public.quizzes(exam_type);
 CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz_id ON public.quiz_questions(quiz_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_questions_question_type ON public.quiz_questions(question_type);
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.quizzes ENABLE ROW LEVEL SECURITY;

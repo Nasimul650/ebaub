@@ -82,7 +82,7 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
   return (
     <>
       {/* Mobile Top Navbar (Visible on screens < md) */}
-      <header className="md:hidden h-[76px] bg-campus-950 border-b border-campus-900 px-4 flex items-center justify-between shrink-0 z-30">
+      <header className="md:hidden print:hidden h-[76px] bg-campus-950 border-b border-campus-900 px-4 flex items-center justify-between shrink-0 z-30">
         <Link href="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-campus-800 flex items-center justify-center text-white shadow-xs shrink-0">
             <Sparkles className="w-5 h-5 text-campus-300" />
@@ -104,7 +104,7 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
       {/* Mobile Backdrop Overlay */}
       {isMobileOpen && (
         <div 
-          className="md:hidden fixed inset-0 z-40 bg-campus-950/80 backdrop-blur-sm animate-in fade-in duration-200" 
+          className="md:hidden print:hidden fixed inset-0 z-40 bg-campus-950/80 backdrop-blur-sm animate-in fade-in duration-200" 
           onClick={() => setIsMobileOpen(false)} 
           aria-hidden="true"
         />
@@ -112,7 +112,7 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
 
       {/* Main Sidebar: Desktop Sidebar + Mobile Slide-out Drawer */}
       <aside 
-        className={`bg-campus-950 flex flex-col shrink-0 transition-transform md:transition-all duration-300 ease-in-out z-50 fixed inset-y-0 left-0 w-72 max-w-[85vw] h-full shadow-2xl md:shadow-none md:static md:h-auto ${
+        className={`bg-campus-950 print:hidden flex flex-col shrink-0 transition-transform md:transition-all duration-300 ease-in-out z-50 fixed inset-y-0 left-0 w-72 max-w-[85vw] h-full shadow-2xl md:shadow-none md:static md:h-auto ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 md:relative ${isCollapsed ? 'md:w-20' : 'md:w-64'}`}
       >

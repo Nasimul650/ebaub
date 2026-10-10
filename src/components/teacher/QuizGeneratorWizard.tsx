@@ -16,28 +16,34 @@ import {
   BookOpen, 
   Layers, 
   Clock, 
-  CheckCheck,
-  FileText,
-  Upload,
-  FileCheck,
-  X,
-  Search,
-  Building2,
-  FolderDown,
-  GraduationCap
+  CheckCheck, 
+  FileText, 
+  Upload, 
+  FileCheck, 
+  X, 
+  Search, 
+  Building2, 
+  FolderDown, 
+  HelpCircle,
+  Lightbulb,
+  FileSpreadsheet,
+  Globe,
+  Share2
 } from 'lucide-react';
-import { saveGeneratedQuiz } from '@/app/actions/quiz';
+import { saveGeneratedQuiz, updateQuiz, QuestionType, QuizStatus } from '@/app/actions/quiz';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import type { CourseMaterial } from '@/types';
 
-type EditableQuestion = {
+export type EditableQuestion = {
   id: string;
   question: string;
+  question_type: QuestionType;
   options: string[];
   correctAnswer: string;
+  suggestedAnswer: string;
 };
 
 // Faculty definitions with specific university course codes
@@ -99,30 +105,40 @@ const FACULTY_PRESETS = [
 interface QuizGeneratorWizardProps {
   materials?: CourseMaterial[];
   defaultFacultyId?: string;
+  initialQuiz?: any; // For editing an existing exam
 }
 
 export default function QuizGeneratorWizard({
   materials = [],
-  defaultFacultyId = 'cse'
+  defaultFacultyId = 'cse',
+  initialQuiz = null
 }: QuizGeneratorWizardProps) {
   const router = useRouter();
 
   // Wizard Step: 1 = Configure & Generate, 2 = Review & Edit, 3 = Successfully Saved
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(initialQuiz ? 2 : 1);
 
   // Faculty selection
   const [selectedFacultyId, setSelectedFacultyId] = useState<string>(() => {
     return FACULTY_PRESETS.some(f => f.id === defaultFacultyId) ? defaultFacultyId : 'cse';
   });
 
+  // Question Type selection
+  const [questionType, setQuestionType] = useState<QuestionType>(() => {
+    return (initialQuiz?.exam_type as QuestionType) || 'mcq';
+  });
+
   // Source Material Input Mode: 'saved' | 'upload' | 'manual'
   const [sourceMode, setSourceMode] = useState<'saved' | 'upload' | 'manual'>('manual');
 
   // Form Fields
-  const [courseCode, setCourseCode] = useState('');
-  const [title, setQuizTitle] = useState('');
+  const [courseCode, setCourseCode] = useState(() => initialQuiz?.course_code || '');
+  const [title, setQuizTitle] = useState(() => initialQuiz?.title || '');
   const [sourceText, setSourceText] = useState('');
-  const [questionCount, setQuestionCount] = useState<number>(5);
+  const [questionCount, setQuestionCount] = useState<number>(() => {
+    if (initialQuiz?.quiz_questions?.length) return initialQuiz.quiz_questions.length;
+    return questionType === 'creative' ? 3 : 5;
+  });
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
 
   // Attached Material / Document state
@@ -140,11 +156,27 @@ export default function QuizGeneratorWizard({
   // Loading & Feedback
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [savingStatus, setSavingStatus] = useState<QuizStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [savedQuizId, setSavedQuizId] = useState<string | null>(() => initialQuiz?.id || null);
 
   // Questions State
-  const [questions, setQuestions] = useState<EditableQuestion[]>([]);
+  const [questions, setQuestions] = useState<EditableQuestion[]>(() => {
+    if (initialQuiz?.quiz_questions) {
+      return initialQuiz.quiz_questions.map((q: any, idx: number) => ({
+        id: q.id || `q-${idx}`,
+        question: q.question_text || '',
+        question_type: (q.question_type || initialQuiz.exam_type || 'mcq') as QuestionType,
+        options: Array.isArray(q.options) && q.options.length === 4 
+          ? q.options 
+          : ['Option A', 'Option B', 'Option C', 'Option D'],
+        correctAnswer: q.correct_answer || q.options?.[0] || 'Option A',
+        suggestedAnswer: q.suggested_answer || q.grading_rubric || ''
+      }));
+    }
+    return [];
+  });
 
   // Get active faculty preset
   const activeFaculty = useMemo(() => {
@@ -167,18 +199,16 @@ export default function QuizGeneratorWizard({
     setAttachedMaterial(mat);
     setUploadedFile(null);
 
-    // Auto-fill course code if empty or different
     if (mat.course_code) {
       const cleanCode = mat.course_code.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase();
       setCourseCode(cleanCode || mat.course_code.trim().toUpperCase());
     }
 
-    // Auto-fill title
-    if (!title.trim() || title.includes('Quiz')) {
-      setQuizTitle(`Quiz: ${mat.title}`);
+    if (!title.trim() || title.includes('Exam') || title.includes('Quiz')) {
+      const typeLabel = questionType === 'mcq' ? 'MCQ Exam' : questionType === 'short_answer' ? 'Short Questions' : 'Creative Assessment';
+      setQuizTitle(`${typeLabel}: ${mat.title}`);
     }
 
-    // Helpful focus text
     if (!sourceText.trim()) {
       setSourceText(`Assessment based on course material: ${mat.title} (${mat.file_name})`);
     }
@@ -186,7 +216,6 @@ export default function QuizGeneratorWizard({
     setErrorMessage(null);
   };
 
-  // Remove attached saved material
   const handleRemoveAttachedMaterial = () => {
     setAttachedMaterial(null);
   };
@@ -198,7 +227,6 @@ export default function QuizGeneratorWizard({
 
     setAttachedMaterial(null);
 
-    // If it's a text/markdown file, read content directly
     if (file.type.includes('text') || file.name.endsWith('.txt') || file.name.endsWith('.md') || file.name.endsWith('.csv')) {
       const text = await file.text();
       setSourceText(text.slice(0, 8000));
@@ -210,10 +238,9 @@ export default function QuizGeneratorWizard({
 
       if (!title.trim()) {
         const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
-        setQuizTitle(`Quiz: ${cleanName}`);
+        setQuizTitle(`Exam: ${cleanName}`);
       }
     } 
-    // If it's a PDF, convert to base64 for Gemini multimodal processing
     else if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
       const reader = new FileReader();
       reader.onload = () => {
@@ -227,11 +254,11 @@ export default function QuizGeneratorWizard({
 
         if (!title.trim()) {
           const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
-          setQuizTitle(`Quiz: ${cleanName}`);
+          setQuizTitle(`Exam: ${cleanName}`);
         }
 
         if (!sourceText.trim()) {
-          setSourceText(`Academic quiz testing key concepts from ${file.name}`);
+          setSourceText(`Academic examination testing key concepts from ${file.name}`);
         }
       };
       reader.readAsDataURL(file);
@@ -264,13 +291,15 @@ export default function QuizGeneratorWizard({
 
     setIsGenerating(true);
 
-    const resolvedTitle = title.trim() || `${courseCode.trim().toUpperCase()} Quiz`;
+    const typeName = questionType === 'mcq' ? 'MCQ Exam' : questionType === 'short_answer' ? 'Short Questions Exam' : 'Creative Problem Assessment';
+    const resolvedTitle = title.trim() || `${courseCode.trim().toUpperCase()} - ${typeName}`;
     if (!title.trim()) {
       setQuizTitle(resolvedTitle);
     }
 
     try {
       const payload: any = {
+        questionType: questionType,
         topic: trimmedText || (attachedMaterial ? attachedMaterial.title : uploadedFile?.name),
         sourceText: trimmedText,
         courseCode: courseCode.trim().toUpperCase(),
@@ -279,14 +308,12 @@ export default function QuizGeneratorWizard({
         faculty: activeFaculty.name
       };
 
-      // Pass attached saved material URL
       if (attachedMaterial) {
         payload.fileUrl = attachedMaterial.file_url;
         payload.fileName = attachedMaterial.file_name;
         payload.fileType = attachedMaterial.file_type;
       }
 
-      // Pass uploaded local file base64
       if (uploadedFile?.base64) {
         payload.fileBase64 = uploadedFile.base64;
         payload.fileName = uploadedFile.name;
@@ -302,16 +329,18 @@ export default function QuizGeneratorWizard({
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to generate quiz. Please try again.');
+        throw new Error(data.error || 'Failed to generate examination. Please try again.');
       }
 
       const formatted: EditableQuestion[] = (data.questions || []).map((q: any, idx: number) => ({
         id: `q-${Date.now()}-${idx}`,
         question: q.question || '',
+        question_type: questionType,
         options: Array.isArray(q.options) && q.options.length === 4 
           ? q.options 
           : ['Option A', 'Option B', 'Option C', 'Option D'],
-        correctAnswer: q.correctAnswer || q.options?.[0] || 'Option A'
+        correctAnswer: q.correctAnswer || q.options?.[0] || 'Option A',
+        suggestedAnswer: q.suggestedAnswer || q.suggested_answer || ''
       }));
 
       if (formatted.length === 0) {
@@ -319,10 +348,10 @@ export default function QuizGeneratorWizard({
       }
 
       setQuestions(formatted);
-      setStep(2); // Advance to Review & Edit
+      setStep(2);
 
     } catch (err: any) {
-      setErrorMessage(err.message || 'An error occurred during quiz generation.');
+      setErrorMessage(err.message || 'An error occurred during exam generation.');
     } finally {
       setIsGenerating(false);
     }
@@ -331,6 +360,10 @@ export default function QuizGeneratorWizard({
   // Step 2: Question Editing Helpers
   const updateQuestionText = (id: string, text: string) => {
     setQuestions(prev => prev.map(q => q.id === id ? { ...q, question: text } : q));
+  };
+
+  const updateSuggestedAnswer = (id: string, answerText: string) => {
+    setQuestions(prev => prev.map(q => q.id === id ? { ...q, suggestedAnswer: answerText } : q));
   };
 
   const updateOptionText = (questionId: string, optionIndex: number, newOptionText: string) => {
@@ -363,17 +396,20 @@ export default function QuizGeneratorWizard({
   };
 
   const addQuestion = () => {
+    const isMcq = questionType === 'mcq';
     const newQ: EditableQuestion = {
       id: `q-${Date.now()}-${questions.length}`,
-      question: 'Enter your new academic question prompt here...',
-      options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      correctAnswer: 'Option A'
+      question: isMcq ? 'Enter question prompt...' : 'Enter examination prompt / scenario...',
+      question_type: questionType,
+      options: isMcq ? ['Option A', 'Option B', 'Option C', 'Option D'] : [],
+      correctAnswer: isMcq ? 'Option A' : '',
+      suggestedAnswer: isMcq ? '' : 'Model Answer & Grading Rubric...'
     };
     setQuestions(prev => [...prev, newQ]);
   };
 
-  // Step 3: Save to Database
-  const handleSaveQuiz = async () => {
+  // Step 3: Save to Database as Draft or Published
+  const handleSaveExam = async (statusToSave: QuizStatus) => {
     setErrorMessage(null);
 
     if (!courseCode.trim() || !title.trim() || questions.length === 0) {
@@ -382,31 +418,43 @@ export default function QuizGeneratorWizard({
     }
 
     setIsSaving(true);
+    setSavingStatus(statusToSave);
 
     try {
       const payload = {
         course_code: courseCode.trim().toUpperCase(),
         title: title.trim(),
+        status: statusToSave,
+        exam_type: questionType,
         questions: questions.map(q => ({
           question: q.question.trim(),
-          options: q.options.map(opt => opt.trim()),
-          correctAnswer: q.correctAnswer.trim()
+          question_type: q.question_type || questionType,
+          options: q.question_type === 'mcq' ? q.options.map(opt => opt.trim()) : null,
+          correctAnswer: q.question_type === 'mcq' ? q.correctAnswer.trim() : null,
+          suggestedAnswer: q.suggestedAnswer ? q.suggestedAnswer.trim() : null
         }))
       };
 
-      const result = await saveGeneratedQuiz(payload);
-
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to save quiz to database.');
+      let result;
+      if (initialQuiz?.id) {
+        result = await updateQuiz(initialQuiz.id, payload);
+      } else {
+        result = await saveGeneratedQuiz(payload);
       }
 
-      setSuccessMessage(result.message || 'Quiz successfully saved to your question bank!');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save exam to database.');
+      }
+
+      setSavedQuizId(result.quizId || initialQuiz?.id);
+      setSuccessMessage(result.message || `Exam successfully ${statusToSave === 'published' ? 'published' : 'saved as draft'}!`);
       setStep(3);
 
     } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to save quiz to database.');
+      setErrorMessage(err.message || 'Failed to save exam to database.');
     } finally {
       setIsSaving(false);
+      setSavingStatus(null);
     }
   };
 
@@ -419,39 +467,48 @@ export default function QuizGeneratorWizard({
           <Link
             href="/teacher/quizzes"
             className="p-2.5 rounded-2xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors border border-slate-200/60"
-            title="Back to Quizzes List"
+            title="Back to Exam Dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-campus-700 bg-campus-50 border border-campus-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-campus-600" /> Vercel AI SDK
+                <Sparkles className="w-3 h-3 text-campus-600" /> Academic AI Generator
               </span>
               <span className="text-slate-300">|</span>
               <span className="text-xs font-medium text-slate-500">Teacher Workspace</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">
-              AI-Powered Quiz Generator
+              {initialQuiz ? 'Edit Course Exam' : 'AI Exam & Question Paper Generator'}
             </h1>
           </div>
         </div>
 
         {/* Stepper Status */}
         <div className="flex items-center gap-2 text-xs font-bold self-start sm:self-auto bg-slate-50 border border-slate-200/80 p-1.5 rounded-2xl">
-          <div className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-            step === 1 ? 'bg-campus-900 text-white shadow-xs' : 'text-slate-500'
-          }`}>
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              step === 1 ? 'bg-campus-900 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
             <span>1</span>
             <span>Configure</span>
-          </div>
+          </button>
           <span className="text-slate-300">&rarr;</span>
-          <div className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
-            step === 2 ? 'bg-campus-900 text-white shadow-xs' : 'text-slate-500'
-          }`}>
+          <button
+            type="button"
+            disabled={questions.length === 0}
+            onClick={() => setStep(2)}
+            className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              step === 2 ? 'bg-campus-900 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
             <span>2</span>
             <span>Review & Edit</span>
-          </div>
+          </button>
           <span className="text-slate-300">&rarr;</span>
           <div className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
             step === 3 ? 'bg-emerald-700 text-white shadow-xs' : 'text-slate-500'
@@ -483,7 +540,6 @@ export default function QuizGeneratorWizard({
       {step === 1 && (
         <div className="space-y-6 animate-in fade-in">
           
-          {/* Main Card */}
           <Card className="border-slate-200/80 shadow-2xs overflow-hidden rounded-3xl">
             
             {/* Faculty Selection Header */}
@@ -495,9 +551,9 @@ export default function QuizGeneratorWizard({
                       <Building2 className="w-4 h-4 text-campus-300" />
                     </div>
                     <div>
-                      <CardTitle className="text-base sm:text-lg">Select Faculty Division</CardTitle>
+                      <CardTitle className="text-base sm:text-lg">Faculty Curriculum Alignment</CardTitle>
                       <CardDescription className="text-xs">
-                        Tailor the quiz generator to your faculty curriculum and academic standards.
+                        Select your university faculty to align question formats and course codes.
                       </CardDescription>
                     </div>
                   </div>
@@ -546,10 +602,104 @@ export default function QuizGeneratorWizard({
             <CardContent className="p-6 sm:p-8 space-y-7">
               <form onSubmit={handleGenerate} className="space-y-7">
                 
+                {/* QUESTION TYPE SELECTOR */}
+                <div className="space-y-2.5 bg-slate-50/90 border border-slate-200/80 p-5 rounded-3xl">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <HelpCircle className="w-4 h-4 text-campus-700" />
+                      <span>Select Question Paper Type <span className="text-red-500">*</span></span>
+                    </label>
+                    <span className="text-[11px] font-bold text-campus-800">
+                      {questionType === 'mcq' ? 'Objective Test' : questionType === 'short_answer' ? '3-5 Mark Questions' : 'Scenario Analysis'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                    {/* Option 1: MCQ */}
+                    <div
+                      onClick={() => setQuestionType('mcq')}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                        questionType === 'mcq'
+                          ? 'border-campus-800 bg-white shadow-xs ring-2 ring-campus-800/10'
+                          : 'border-slate-200/80 bg-white/70 hover:bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl">🔘</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          questionType === 'mcq' ? 'bg-campus-100 text-campus-900' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          Standard MCQ
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-bold text-xs sm:text-sm text-slate-900">
+                          Multiple Choice (MCQ)
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                          4 options (A, B, C, D) with single verified answer key. Perfect for rapid quizzes.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Option 2: Short Answer */}
+                    <div
+                      onClick={() => setQuestionType('short_answer')}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                        questionType === 'short_answer'
+                          ? 'border-campus-800 bg-white shadow-xs ring-2 ring-campus-800/10'
+                          : 'border-slate-200/80 bg-white/70 hover:bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl">📝</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          questionType === 'short_answer' ? 'bg-campus-100 text-campus-900' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          3 &ndash; 5 Marks
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-bold text-xs sm:text-sm text-slate-900">
+                          Short Questions
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                          Conceptual definitions, mechanisms, and differences with teacher grading rubric.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Option 3: Creative Questions */}
+                    <div
+                      onClick={() => setQuestionType('creative')}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                        questionType === 'creative'
+                          ? 'border-campus-800 bg-white shadow-xs ring-2 ring-campus-800/10'
+                          : 'border-slate-200/80 bg-white/70 hover:bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xl">💡</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          questionType === 'creative' ? 'bg-campus-100 text-campus-900' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          Higher-Order
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-bold text-xs sm:text-sm text-slate-900">
+                          Creative / Scenario
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                          Case study scenario stems followed by structured sub-questions (a, b, c) and solution keys.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Course Code & Title Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  
-                  {/* Course Code with Faculty-Specific Quick Pills */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
                       <span>Course Code <span className="text-red-500">*</span></span>
@@ -588,15 +738,14 @@ export default function QuizGeneratorWizard({
                     </div>
                   </div>
 
-                  {/* Quiz Title */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                      <span>Quiz Title <span className="text-slate-400 font-normal">(Optional)</span></span>
+                      <span>Exam Title <span className="text-slate-400 font-normal">(Optional)</span></span>
                       <span className="text-[11px] text-slate-400 font-normal">Auto-generated if empty</span>
                     </label>
                     <Input
                       type="text"
-                      placeholder="e.g. Midterm Assessment: Chapter 3"
+                      placeholder="e.g. Final Examination: Spring Semester"
                       value={title}
                       onChange={(e) => setQuizTitle(e.target.value)}
                       className="h-11 rounded-xl"
@@ -614,7 +763,7 @@ export default function QuizGeneratorWizard({
                             type="button"
                             onClick={() => {
                               setSourceText(topic);
-                              if (!title) setQuizTitle(`${courseCode || activeFaculty.sampleCourses[0]} Quiz`);
+                              if (!title) setQuizTitle(`${courseCode || activeFaculty.sampleCourses[0]} Exam`);
                             }}
                             className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/60 truncate max-w-[200px]"
                             title={topic}
@@ -625,7 +774,6 @@ export default function QuizGeneratorWizard({
                       </div>
                     </div>
                   </div>
-
                 </div>
 
                 {/* Question Count & Difficulty Selector */}
@@ -684,14 +832,13 @@ export default function QuizGeneratorWizard({
                     <div>
                       <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                         <FileText className="w-4 h-4 text-campus-700" />
-                        <span>Course Material & Source Knowledge</span>
+                        <span>Source Material or Lecture Notes</span>
                       </div>
                       <p className="text-[11px] text-slate-500">
                         Choose how to supply lecture content so AI generates questions directly from the syllabus.
                       </p>
                     </div>
 
-                    {/* Mode selector pills */}
                     <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
                       <button
                         type="button"
@@ -738,7 +885,7 @@ export default function QuizGeneratorWizard({
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded-md">
-                              Attached to Quiz Generator
+                              Attached to Exam Generator
                             </span>
                             {attachedMaterial?.course_code && (
                               <span className="text-[10px] font-mono font-bold text-emerald-800">
@@ -750,7 +897,7 @@ export default function QuizGeneratorWizard({
                             {attachedMaterial?.title || uploadedFile?.name}
                           </div>
                           <div className="text-[11px] text-emerald-700 truncate">
-                            {attachedMaterial?.file_name || `${(uploadedFile?.size ? uploadedFile.size / 1024 : 0).toFixed(1)} KB`} &bull; AI will read this document directly
+                            {attachedMaterial?.file_name || `${(uploadedFile?.size ? uploadedFile.size / 1024 : 0).toFixed(1)} KB`} &bull; AI will synthesize {questionType.toUpperCase()} questions directly from this document
                           </div>
                         </div>
                       </div>
@@ -766,7 +913,7 @@ export default function QuizGeneratorWizard({
                     </div>
                   )}
 
-                  {/* MODE A: SAVED COURSE MATERIALS PICKER */}
+                  {/* SAVED COURSE MATERIALS PICKER */}
                   {sourceMode === 'saved' && (
                     <div className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3 animate-in fade-in">
                       <div className="flex items-center justify-between gap-2">
@@ -854,7 +1001,7 @@ export default function QuizGeneratorWizard({
                     </div>
                   )}
 
-                  {/* MODE B: LOCAL FILE UPLOADER */}
+                  {/* LOCAL FILE UPLOADER */}
                   {sourceMode === 'upload' && (
                     <div className="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3 animate-in fade-in">
                       <label 
@@ -881,15 +1028,15 @@ export default function QuizGeneratorWizard({
                     </div>
                   )}
 
-                  {/* SOURCE NOTES / TOPIC / ADDITIONAL INSTRUCTIONS TEXTAREA */}
+                  {/* SOURCE NOTES TEXTAREA */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                         <BookOpen className="w-3.5 h-3.5 text-campus-700" />
                         <span>
                           {attachedMaterial || uploadedFile 
-                            ? 'Additional Focus / Specific Instructions (Optional)' 
-                            : 'Source Material, Syllabus Excerpt, or Topic *'}
+                            ? 'Additional Guidance / Specific Questions Focus (Optional)' 
+                            : 'Source Material, Lecture Transcript, or Syllabus Content *'}
                         </span>
                       </label>
                       <span className="text-[11px] text-slate-400">
@@ -901,25 +1048,22 @@ export default function QuizGeneratorWizard({
                       rows={attachedMaterial || uploadedFile ? 4 : 7}
                       placeholder={
                         attachedMaterial || uploadedFile
-                          ? `Provide any specific guidance for the attached document, e.g.:&#10;&bull; 'Focus only on algorithms, ignore introductory definitions'&#10;&bull; 'Create challenging calculation questions based on Table 2'`
+                          ? `Provide optional prompt instructions, e.g.:&#10;&bull; 'Focus questions on Section 2 calculations and avoid introductory history'&#10;&bull; 'Ensure at least one question covers real-world application'`
                           : `Enter a topic, paste lecture notes, or syllabus content, such as:&#10;&#10;&bull; 'Photosynthesis: light reactions, photosystem II, Z-scheme, and Calvin cycle stoichiometry'&#10;&bull; 'Binary search tree balancing, AVL rotations, and time complexity in worst vs average cases'&#10;&bull; Or paste a paragraph directly from your lecture slide notes...`
                       }
                       value={sourceText}
                       onChange={(e) => setSourceText(e.target.value)}
                       className="text-xs sm:text-sm font-sans leading-relaxed resize-y rounded-2xl"
                     />
-
-                    <p className="text-[11px] text-slate-500 leading-normal">
-                      {attachedMaterial || uploadedFile
-                        ? 'The AI will analyze the attached document and apply your specific instructions above.'
-                        : 'Tip: You can also choose "Saved Materials" above to attach your uploaded course PDFs directly!'}
-                    </p>
                   </div>
 
                 </div>
 
                 {/* Submit Action */}
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100">
+                  <div className="text-xs text-slate-500 font-medium">
+                    Synthesizing <span className="font-bold text-slate-800">{questionType.toUpperCase()} Questions</span> via Gemini 1.5 Flash
+                  </div>
 
                   <Button
                     type="submit"
@@ -930,7 +1074,7 @@ export default function QuizGeneratorWizard({
                     {isGenerating ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-                        <span>Analyzing & Synthesizing...</span>
+                        <span>Generating {questionType.toUpperCase()} Exam...</span>
                       </>
                     ) : (
                       <>
@@ -959,12 +1103,7 @@ export default function QuizGeneratorWizard({
               {[1, 2, 3].map(i => (
                 <div key={i} className="p-4 border border-slate-200/60 rounded-2xl space-y-3 bg-slate-50/50">
                   <div className="h-4 bg-slate-200 rounded-md w-3/4" />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-                    <div className="h-9 bg-slate-200 rounded-xl" />
-                    <div className="h-9 bg-slate-200 rounded-xl" />
-                    <div className="h-9 bg-slate-200 rounded-xl" />
-                    <div className="h-9 bg-slate-200 rounded-xl" />
-                  </div>
+                  <div className="h-16 bg-slate-200 rounded-xl mt-2" />
                 </div>
               ))}
             </div>
@@ -973,35 +1112,36 @@ export default function QuizGeneratorWizard({
         </div>
       )}
 
-      {/* STEP 2: REVIEW & EDIT QUESTIONS */}
+      {/* STEP 2: REVIEW & EDIT QUESTIONS DYNAMICALLY */}
       {step === 2 && (
         <div className="space-y-6 animate-in fade-in">
           
           {/* Review Header Banner */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-mono font-bold text-xs bg-campus-100 text-campus-900 border border-campus-200 px-2.5 py-0.5 rounded-lg">
                   {courseCode}
                 </span>
+                <span className="text-xs font-bold text-white bg-slate-900 px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                  {questionType === 'mcq' ? 'MCQ Exam' : questionType === 'short_answer' ? 'Short Questions' : 'Creative Scenario Exam'}
+                </span>
                 <span className="text-xs font-bold text-slate-500">
-                  &bull; {questions.length} Generated Questions
+                  &bull; {questions.length} Questions
                 </span>
                 <span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
                   {difficulty}
-                </span>
-                <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                  {activeFaculty.shortName}
                 </span>
               </div>
               <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">
                 {title}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Review and customize questions before saving to your course bank. Click any option&apos;s checkmark to designate the correct answer.
+                Review and customize questions before saving. Save as Draft to continue editing later, or Publish immediately.
               </p>
             </div>
 
+            {/* Top Action Buttons: Save as Draft & Publish Exam */}
             <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
               <Button
                 variant="outline"
@@ -1010,7 +1150,7 @@ export default function QuizGeneratorWizard({
                 className="text-xs font-semibold rounded-xl"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-                Edit Parameters
+                Parameters
               </Button>
               <Button
                 variant="outline"
@@ -1021,144 +1161,195 @@ export default function QuizGeneratorWizard({
                 <Plus className="w-3.5 h-3.5 text-campus-700" />
                 Add Question
               </Button>
+
+              {/* ACTION 1: SAVE AS DRAFT */}
               <Button
-                onClick={handleSaveQuiz}
+                onClick={() => handleSaveExam('draft')}
                 disabled={isSaving || questions.length === 0}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-xs rounded-xl"
+                variant="secondary"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs shadow-2xs rounded-xl border border-slate-200"
               >
-                {isSaving ? (
+                {isSaving && savingStatus === 'draft' ? (
                   <>
-                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-                    <span>Saving Quiz...</span>
+                    <div className="w-3.5 h-3.5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin shrink-0" />
+                    <span>Saving Draft...</span>
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4" />
-                    <span>Save Quiz to Database</span>
+                    <Save className="w-4 h-4 text-slate-600" />
+                    <span>Save as Draft</span>
+                  </>
+                )}
+              </Button>
+
+              {/* ACTION 2: PUBLISH EXAM */}
+              <Button
+                onClick={() => handleSaveExam('published')}
+                disabled={isSaving || questions.length === 0}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs shadow-xs rounded-xl"
+              >
+                {isSaving && savingStatus === 'published' ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                    <span>Publishing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Globe className="w-4 h-4 text-white" />
+                    <span>Publish Exam</span>
                   </>
                 )}
               </Button>
             </div>
           </div>
 
-          {/* List of Editable Question Cards */}
+          {/* List of Dynamic Question Cards */}
           <div className="space-y-5">
-            {questions.map((q, qIndex) => (
-              <Card key={q.id} className="border-slate-200/80 shadow-xs hover:border-campus-300 transition-colors rounded-3xl overflow-hidden">
-                
-                {/* Question Card Header */}
-                <CardHeader className="p-4 sm:p-5 bg-slate-50/70 border-b border-slate-200/60 flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-xl bg-campus-900 text-white flex items-center justify-center font-extrabold text-xs shadow-2xs">
-                      {qIndex + 1}
-                    </span>
-                    <span className="font-extrabold text-xs text-slate-700 uppercase tracking-wider">
-                      Question #{qIndex + 1}
-                    </span>
-                  </div>
+            {questions.map((q, qIndex) => {
+              const isMcq = q.question_type === 'mcq';
+              const isShort = q.question_type === 'short_answer';
+              const isCreative = q.question_type === 'creative';
 
-                  <button
-                    type="button"
-                    onClick={() => removeQuestion(q.id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    title="Remove Question"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </CardHeader>
-
-                <CardContent className="p-5 sm:p-6 space-y-4">
-                  {/* Question Prompt Editor */}
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700">
-                      Question Prompt
-                    </label>
-                    <Textarea
-                      rows={2}
-                      value={q.question}
-                      onChange={(e) => updateQuestionText(q.id, e.target.value)}
-                      className="text-xs sm:text-sm font-medium leading-relaxed rounded-xl"
-                      placeholder="Type question prompt..."
-                    />
-                  </div>
-
-                  {/* 4 Options Grid */}
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-700">
-                        Answer Options (Select the correct answer)
-                      </label>
-                      <span className="text-[11px] text-slate-400">
-                        Click &ldquo;Set Correct&rdquo; to change the answer key
+              return (
+                <Card key={q.id} className="border-slate-200/80 shadow-xs hover:border-campus-300 transition-colors rounded-3xl overflow-hidden">
+                  
+                  {/* Card Header */}
+                  <CardHeader className="p-4 sm:p-5 bg-slate-50/70 border-b border-slate-200/60 flex flex-row items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-xl bg-campus-900 text-white flex items-center justify-center font-extrabold text-xs shadow-2xs">
+                        {qIndex + 1}
+                      </span>
+                      <span className="font-extrabold text-xs text-slate-700 uppercase tracking-wider">
+                        {isMcq ? `Multiple Choice Question #${qIndex + 1}` : isShort ? `Short Question #${qIndex + 1} (3-5 Marks)` : `Creative Scenario Problem #${qIndex + 1}`}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {q.options.map((opt, optIndex) => {
-                        const isCorrect = q.correctAnswer === opt;
-                        const optionLetter = String.fromCharCode(65 + optIndex);
+                    <button
+                      type="button"
+                      onClick={() => removeQuestion(q.id)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title="Remove Question"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </CardHeader>
 
-                        return (
-                          <div
-                            key={optIndex}
-                            className={`p-3 rounded-2xl border transition-all flex flex-col justify-between gap-2.5 ${
-                              isCorrect 
-                                ? 'border-emerald-500 bg-emerald-50/50 shadow-2xs' 
-                                : 'border-slate-200 bg-white hover:border-slate-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${
-                                isCorrect ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
-                              }`}>
-                                {optionLetter}
-                              </span>
+                  <CardContent className="p-5 sm:p-6 space-y-4">
+                    {/* Question Prompt Editor */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                        <span>{isCreative ? 'Scenario Stem & Sub-Questions' : 'Question Prompt'}</span>
+                        <span className="text-[11px] text-slate-400">
+                          {isShort ? '3-5 Marks Expected' : isCreative ? 'Structured Parts (a, b, c)' : '1 Mark'}
+                        </span>
+                      </label>
+                      <Textarea
+                        rows={isCreative ? 4 : 2}
+                        value={q.question}
+                        onChange={(e) => updateQuestionText(q.id, e.target.value)}
+                        className="text-xs sm:text-sm font-medium leading-relaxed rounded-xl"
+                        placeholder="Type question prompt..."
+                      />
+                    </div>
 
-                              {/* Toggle Correct Answer Radio */}
-                              <button
-                                type="button"
-                                onClick={() => setCorrectAnswer(q.id, opt)}
-                                className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full transition-all inline-flex items-center gap-1 ${
+                    {/* DYNAMIC SECTION BASED ON QUESTION TYPE */}
+                    {isMcq ? (
+                      /* MCQ 4-OPTIONS GRID */
+                      <div className="space-y-2 pt-1">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-700">
+                            Answer Options (Select the correct answer key)
+                          </label>
+                          <span className="text-[11px] text-slate-400">
+                            Click &ldquo;Set Correct&rdquo; to designate the answer
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {q.options.map((opt, optIndex) => {
+                            const isCorrect = q.correctAnswer === opt;
+                            const optionLetter = String.fromCharCode(65 + optIndex);
+
+                            return (
+                              <div
+                                key={optIndex}
+                                className={`p-3 rounded-2xl border transition-all flex flex-col justify-between gap-2.5 ${
                                   isCorrect 
-                                    ? 'bg-emerald-600 text-white shadow-2xs' 
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                                    ? 'border-emerald-500 bg-emerald-50/50 shadow-2xs' 
+                                    : 'border-slate-200 bg-white hover:border-slate-300'
                                 }`}
                               >
-                                {isCorrect ? (
-                                  <>
-                                    <Check className="w-3 h-3" />
-                                    <span>Correct Answer</span>
-                                  </>
-                                ) : (
-                                  <span>Set Correct</span>
-                                )}
-                              </button>
-                            </div>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${
+                                    isCorrect ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
+                                  }`}>
+                                    {optionLetter}
+                                  </span>
 
-                            <Input
-                              type="text"
-                              value={opt}
-                              onChange={(e) => updateOptionText(q.id, optIndex, e.target.value)}
-                              className={`text-xs font-medium h-9 rounded-xl ${
-                                isCorrect ? 'border-emerald-300 bg-white' : ''
-                              }`}
-                              placeholder={`Option ${optionLetter} text...`}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => setCorrectAnswer(q.id, opt)}
+                                    className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full transition-all inline-flex items-center gap-1 ${
+                                      isCorrect 
+                                        ? 'bg-emerald-600 text-white shadow-2xs' 
+                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                                    }`}
+                                  >
+                                    {isCorrect ? (
+                                      <>
+                                        <Check className="w-3 dot3" />
+                                        <span>Correct Answer</span>
+                                      </>
+                                    ) : (
+                                      <span>Set Correct</span>
+                                    )}
+                                  </button>
+                                </div>
 
-                </CardContent>
-              </Card>
-            ))}
+                                <Input
+                                  type="text"
+                                  value={opt}
+                                  onChange={(e) => updateOptionText(q.id, optIndex, e.target.value)}
+                                  className={`text-xs font-medium h-9 rounded-xl ${
+                                    isCorrect ? 'border-emerald-300 bg-white' : ''
+                                  }`}
+                                  placeholder={`Option ${optionLetter} text...`}
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      /* SHORT ANSWER & CREATIVE: SUGGESTED ANSWER & RUBRIC (NO A/B/C/D INPUTS) */
+                      <div className="space-y-1.5 pt-1 bg-amber-50/50 border border-amber-200/60 p-4 rounded-2xl">
+                        <label className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                          <Lightbulb className="w-4 h-4 text-amber-700" />
+                          <span>Suggested Model Answer & Grading Rubric (Teacher Reference)</span>
+                        </label>
+                        <Textarea
+                          rows={3}
+                          value={q.suggestedAnswer}
+                          onChange={(e) => updateSuggestedAnswer(q.id, e.target.value)}
+                          className="text-xs sm:text-sm font-medium leading-relaxed rounded-xl bg-white border-amber-200"
+                          placeholder="Expected model answer points, scoring rubric, and criteria for awarding full marks..."
+                        />
+                        <p className="text-[11px] text-amber-800">
+                          This model answer serves as reference scoring criteria for faculty evaluators and won&apos;t appear as blank lines on student offline question papers.
+                        </p>
+                      </div>
+                    )}
+
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
-          {/* Bottom Save Action Bar */}
+          {/* Bottom Dual Save Bar */}
           <div className="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs text-slate-600 font-medium">
-              Ready to publish? All <span className="font-bold text-slate-900">{questions.length} questions</span> will be stored in your teacher question bank.
+              Ready to finalize? You can save as a draft or publish immediately to your question bank.
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -1169,23 +1360,40 @@ export default function QuizGeneratorWizard({
                 className="w-full sm:w-auto rounded-xl"
               >
                 <Plus className="w-4 h-4 text-campus-700" />
-                Add Another Question
+                Add Question
               </Button>
+
+              {/* SAVE AS DRAFT */}
               <Button
-                onClick={handleSaveQuiz}
+                onClick={() => handleSaveExam('draft')}
+                disabled={isSaving || questions.length === 0}
+                variant="secondary"
+                size="default"
+                className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold border border-slate-200 rounded-xl"
+              >
+                {isSaving && savingStatus === 'draft' ? (
+                  <span>Saving Draft...</span>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 text-slate-600" />
+                    <span>Save as Draft</span>
+                  </>
+                )}
+              </Button>
+
+              {/* PUBLISH EXAM */}
+              <Button
+                onClick={() => handleSaveExam('published')}
                 disabled={isSaving || questions.length === 0}
                 size="default"
                 className="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold shadow-xs rounded-xl"
               >
-                {isSaving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-                    <span>Saving Quiz...</span>
-                  </>
+                {isSaving && savingStatus === 'published' ? (
+                  <span>Publishing...</span>
                 ) : (
                   <>
-                    <Save className="w-4 h-4" />
-                    <span>Save Quiz to Database</span>
+                    <Globe className="w-4 h-4 text-white" />
+                    <span>Publish Exam</span>
                   </>
                 )}
               </Button>
@@ -1205,26 +1413,53 @@ export default function QuizGeneratorWizard({
 
             <div className="space-y-2 max-w-lg mx-auto">
               <h2 className="text-2xl font-black text-slate-900">
-                Quiz Successfully Saved!
+                {successMessage?.includes('draft') ? 'Exam Saved as Draft!' : 'Exam Published Successfully!'}
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                {successMessage || `Your quiz for ${courseCode} (${questions.length} questions) has been recorded in the database.`}
+                {successMessage || `Your examination for ${courseCode} (${questions.length} questions) is stored in the database.`}
               </p>
             </div>
 
-            {/* Quiz Summary Pill */}
-            <div className="inline-flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-700 mx-auto">
+            {/* Exam Summary Pill */}
+            <div className="inline-flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-2xl text-xs font-semibold text-slate-700 mx-auto flex-wrap justify-center">
               <span className="font-mono font-bold text-campus-800 bg-campus-50 border border-campus-200 px-2 py-0.5 rounded-md">
                 {courseCode}
               </span>
               <span>&bull;</span>
               <span className="font-bold text-slate-900">{title}</span>
               <span>&bull;</span>
+              <span className="uppercase text-[11px] font-bold text-slate-600 bg-slate-200/60 px-2 py-0.5 rounded">
+                {questionType.replace('_', ' ')}
+              </span>
+              <span>&bull;</span>
               <span>{questions.length} Questions</span>
             </div>
 
-            {/* Actions */}
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
+            {/* Actions: Print View, View All, Create Another */}
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-lg mx-auto">
+              {savedQuizId && (
+                <Link href={`/teacher/quizzes/${savedQuizId}/print`} target="_blank" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs shadow-xs rounded-xl"
+                  >
+                    <FileText className="w-4 h-4 text-slate-300" />
+                    <span>Print Exam / PDF</span>
+                  </Button>
+                </Link>
+              )}
+
+              <Link href="/teacher/quizzes" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full text-xs font-bold rounded-xl"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Exam Dashboard
+                </Button>
+              </Link>
+
               <Button
                 variant="outline"
                 size="lg"
@@ -1241,18 +1476,8 @@ export default function QuizGeneratorWizard({
                 className="w-full sm:w-auto text-xs font-bold rounded-xl"
               >
                 <Sparkles className="w-4 h-4 text-campus-600" />
-                Generate Another Quiz
+                Create Another
               </Button>
-
-              <Link href="/teacher/quizzes" className="w-full sm:w-auto">
-                <Button
-                  size="lg"
-                  className="w-full bg-campus-900 hover:bg-campus-800 text-white font-extrabold text-xs shadow-xs rounded-xl"
-                >
-                  <BookOpen className="w-4 h-4" />
-                  View All Quizzes
-                </Button>
-              </Link>
             </div>
           </CardContent>
         </Card>
