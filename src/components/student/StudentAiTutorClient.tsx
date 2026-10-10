@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useChat } from 'ai/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -33,7 +33,13 @@ import {
   FileSpreadsheet,
   Presentation,
   Archive,
-  Image as ImageIcon
+  Image as ImageIcon,
+  History,
+  MessageSquare,
+  Trash2,
+  Save,
+  Plus,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -61,6 +67,14 @@ interface FilePreview {
   category: 'image' | 'pdf' | 'word' | 'ppt' | 'sheet' | 'code' | 'archive' | 'file';
   url?: string;
   isCourseMaterial?: boolean;
+}
+
+interface ChatSession {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
 }
 
 // Copy to clipboard helper for code blocks
@@ -118,6 +132,15 @@ export default function StudentAiTutorClient({
   const [attachedMaterials, setAttachedMaterials] = useState<CourseMaterial[]>([]);
   const [previews, setPreviews] = useState<FilePreview[]>([]);
 
+  // Chat History states
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const lastSavedCountRef = useRef<number>(0);
+
   const {
     messages,
     input,
@@ -165,6 +188,194 @@ export default function StudentAiTutorClient({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
+
+  // 1. Initial Load: Fetch saved chat sessions, and restore last active session if student reloaded
+  useEffect(() => {
+    let isMounted = true;
+    const initHistory = async () => {
+      setIsLoadingSessions(true);
+      try {
+        const res = await fetch('/api/study-assistant/chats');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data)) {
+            setChatSessions(data);
+
+            // Check if there was an active session right before reload
+            const lastSessionId = typeof window !== 'undefined' ? localStorage.getItem('eb_last_ai_session_id') : null;
+            if (lastSessionId && data.some((s: ChatSession) => s.id === lastSessionId)) {
+              try {
+                const detailRes = await fetch(`/api/study-assistant/chats/${lastSessionId}`);
+                if (detailRes.ok) {
+                  const detail = await detailRes.json();
+                  if (isMounted && detail?.messages && Array.isArray(detail.messages) && detail.messages.length > 0) {
+                    setMessages(detail.messages);
+                    setCurrentSessionId(detail.id);
+                    lastSavedCountRef.current = detail.messages.length;
+                  }
+                }
+              } catch (e) {
+                console.warn('Could not restore last session detail:', e);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load chat history:', err);
+      } finally {
+        if (isMounted) setIsLoadingSessions(false);
+      }
+    };
+
+    initHistory();
+    return () => {
+      isMounted = false;
+    };
+  }, [setMessages]);
+
+  // 2. Save current chat session (updates existing or inserts new)
+  const saveCurrentChat = useCallback(async (msgsToSave = messages, sessId = currentSessionId) => {
+    if (!msgsToSave || msgsToSave.length <= 1) return null;
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/study-assistant/chats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: sessId || undefined,
+          messages: msgsToSave,
+        }),
+      });
+
+      if (res.ok) {
+        const savedData = await res.json();
+        if (savedData?.id) {
+          setCurrentSessionId(savedData.id);
+          lastSavedCountRef.current = msgsToSave.length;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('eb_last_ai_session_id', savedData.id);
+          }
+
+          // Refresh the sessions list
+          const refreshRes = await fetch('/api/study-assistant/chats');
+          if (refreshRes.ok) {
+            const list = await refreshRes.json();
+            if (Array.isArray(list)) setChatSessions(list);
+          }
+          return savedData.id;
+        }
+      }
+    } catch (err) {
+      console.error('Error saving chat session:', err);
+    } finally {
+      setIsSaving(false);
+    }
+    return null;
+  }, [messages, currentSessionId]);
+
+  // 3. Auto-save trigger: when assistant stops streaming and messages count increased
+  const prevLoadingRef = useRef(false);
+  useEffect(() => {
+    // Transition from loading (AI responding) to not loading (AI finished)
+    if (prevLoadingRef.current && !isLoading && messages.length > 1) {
+      if (messages.length !== lastSavedCountRef.current) {
+        saveCurrentChat(messages, currentSessionId);
+      }
+    }
+    prevLoadingRef.current = isLoading;
+  }, [isLoading, messages, currentSessionId, saveCurrentChat]);
+
+  // 4. Start New Chat
+  const startNewChat = useCallback(() => {
+    // If current chat has unsaved work, save it first
+    if (messages.length > 1 && messages.length !== lastSavedCountRef.current) {
+      saveCurrentChat(messages, currentSessionId);
+    }
+
+    setCurrentSessionId(null);
+    lastSavedCountRef.current = 0;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('eb_last_ai_session_id');
+    }
+
+    setMessages([
+      {
+        id: `welcome-tutor-${Date.now()}`,
+        role: 'assistant',
+        content: `Hello **${studentName}**! 👋\n\nI am your **EBAUB AI Study Assistant** for the **${departmentName}** department. I'm here to help you:\n\n* **Master academic concepts** through step-by-step problem solving\n* **Analyze any documents or images** (upload PDFs, Word files, lecture slides, code, or homework photos)\n* **Attach course files uploaded by your professors** directly with the Course Library button\n* **Solve complex math & scientific formulas** with full KaTeX LaTeX typesetting\n\nDrop a file, attach a lecture slide, or ask any question to get started!`
+      }
+    ]);
+    setIsHistoryOpen(false);
+  }, [messages, currentSessionId, saveCurrentChat, setMessages, studentName, departmentName]);
+
+  // 5. Load a specific saved chat session
+  const loadChatSession = async (sessionId: string) => {
+    if (sessionId === currentSessionId) {
+      setIsHistoryOpen(false);
+      return;
+    }
+
+    // Save current active session if unsaved
+    if (messages.length > 1 && messages.length !== lastSavedCountRef.current) {
+      await saveCurrentChat(messages, currentSessionId);
+    }
+
+    try {
+      const res = await fetch(`/api/study-assistant/chats/${sessionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages);
+          setCurrentSessionId(data.id);
+          lastSavedCountRef.current = data.messages.length;
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('eb_last_ai_session_id', data.id);
+          }
+          setIsHistoryOpen(false);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load chat session:', err);
+    }
+  };
+
+  // 6. Delete a chat session
+  const deleteChatSession = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this saved chat?')) return;
+
+    setDeletingId(sessionId);
+    try {
+      const res = await fetch(`/api/study-assistant/chats/${sessionId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setChatSessions((prev) => prev.filter((s) => s.id !== sessionId));
+        if (currentSessionId === sessionId) {
+          startNewChat();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to delete chat session:', err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Helper to format session date
+  const formatChatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diffHours = (now.getTime() - d.getTime()) / (1000 * 60 * 60);
+      if (diffHours < 24 && d.getDate() === now.getDate()) {
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+      return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    } catch {
+      return '';
+    }
+  };
 
   // Determine file category for icons
   const getFileCategory = (fileName: string, mime: string): FilePreview['category'] => {
@@ -477,10 +688,127 @@ export default function StudentAiTutorClient({
         </div>
       )}
 
+      {/* Backdrop when History Drawer is open */}
+      {isHistoryOpen && (
+        <div 
+          onClick={() => setIsHistoryOpen(false)}
+          className="absolute inset-0 z-40 bg-campus-950/40 backdrop-blur-xs transition-opacity"
+        />
+      )}
+
+      {/* Chat History Slide-Over Drawer */}
+      <div
+        className={`absolute inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white border-r border-slate-200/90 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
+          isHistoryOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
+        }`}
+      >
+        {/* History Header */}
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-campus-700" />
+            <h3 className="font-bold text-sm text-slate-900">Saved Chats</h3>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-200/80 font-bold text-slate-700">
+              {chatSessions.length}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsHistoryOpen(false)}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60"
+            title="Close drawer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* New Chat Button inside drawer */}
+        <div className="p-3 border-b border-slate-100">
+          <Button
+            type="button"
+            onClick={startNewChat}
+            className="w-full bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs rounded-xl h-9 flex items-center justify-center gap-2 shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Chat</span>
+          </Button>
+        </div>
+
+        {/* Chat List */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar">
+          {isLoadingSessions ? (
+            <div className="p-6 text-center text-xs text-slate-400">Loading saved chats...</div>
+          ) : chatSessions.length === 0 ? (
+            <div className="p-6 text-center text-xs text-slate-400">
+              <MessageSquare className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+              <div className="font-medium text-slate-600">No saved chats yet</div>
+              <div className="text-[11px] text-slate-400 mt-1">
+                Your conversations are saved automatically so you can resume anytime.
+              </div>
+            </div>
+          ) : (
+            chatSessions.map((session) => {
+              const isActive = session.id === currentSessionId;
+              return (
+                <div
+                  key={session.id}
+                  onClick={() => loadChatSession(session.id)}
+                  className={`group relative p-2.5 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-2 text-left ${
+                    isActive
+                      ? 'bg-campus-50/90 border-campus-300 text-campus-950 font-semibold shadow-2xs'
+                      : 'bg-white hover:bg-slate-50 border-slate-200/70 text-slate-800'
+                  }`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-campus-700' : 'text-slate-400'}`} />
+                      <span className="text-xs truncate block font-medium">
+                        {session.title || 'Untitled Chat'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-1 pl-5">
+                      <Clock className="w-3 h-3" />
+                      <span>{formatChatDate(session.updated_at)}</span>
+                      <span>•</span>
+                      <span>{session.message_count} msgs</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={deletingId === session.id}
+                    onClick={(e) => deleteChatSession(e, session.id)}
+                    className="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                    title="Delete chat"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
       {/* Header bar */}
       <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between gap-3 bg-white shrink-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-campus-900 text-white flex items-center justify-center shadow-xs shrink-0">
+        <div className="flex items-center gap-2.5">
+          {/* Saved Chats toggle button */}
+          <button
+            type="button"
+            onClick={() => setIsHistoryOpen((prev) => !prev)}
+            className="p-2 sm:px-2.5 sm:py-2 rounded-xl border border-slate-200 text-slate-700 hover:text-campus-900 hover:bg-campus-50/50 hover:border-campus-200 transition-all flex items-center gap-1.5 shadow-2xs text-xs font-semibold shrink-0"
+            title="Saved Chats History"
+          >
+            <History className="w-4 h-4 text-campus-700" />
+            <span className="hidden md:inline">Saved Chats</span>
+            {chatSessions.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-campus-100 text-campus-900 text-[10px] font-bold">
+                {chatSessions.length}
+              </span>
+            )}
+          </button>
+
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-campus-900 text-white flex items-center justify-center shadow-xs shrink-0">
             <Bot className="w-5 h-5 text-campus-300" />
           </div>
           <div>
@@ -507,26 +835,45 @@ export default function StudentAiTutorClient({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Saving / Auto-saved status indicator */}
+          {isSaving ? (
+            <span className="text-[11px] text-campus-700 font-medium flex items-center gap-1 animate-pulse px-2 py-1 rounded-lg bg-campus-50 border border-campus-200">
+              <Clock className="w-3 h-3" />
+              <span>Saving...</span>
+            </span>
+          ) : currentSessionId ? (
+            <span className="text-[10px] text-emerald-700 font-semibold hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 border border-emerald-200">
+              <Check className="w-3 h-3" />
+              <span>Saved</span>
+            </span>
+          ) : null}
+
+          {/* Manual Save Button */}
           {messages.length > 1 && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
-                setMessages([
-                  {
-                    id: 'welcome-tutor-reset',
-                    role: 'assistant',
-                    content: `Welcome back, **${studentName}**! How can I assist you with your studies in **${departmentName}** today? You can drag & drop files, attach course lecture notes, or ask any conceptual question.`
-                  }
-                ]);
-              }}
-              className="text-xs text-slate-600 hover:text-slate-900 rounded-xl border-slate-200 h-9"
-              title="Reset conversation"
+              disabled={isSaving}
+              onClick={() => saveCurrentChat(messages, currentSessionId)}
+              className="text-xs text-slate-700 hover:text-campus-900 rounded-xl border-slate-200 h-9 hidden sm:flex items-center gap-1.5"
+              title="Save current chat"
             >
-              <RotateCcw className="w-3.5 h-3.5 mr-1" />
-              <span className="hidden sm:inline">New Chat</span>
+              <Save className="w-3.5 h-3.5 text-campus-700" />
+              <span>Save</span>
             </Button>
           )}
+
+          {/* New Chat Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={startNewChat}
+            className="text-xs text-slate-600 hover:text-slate-900 rounded-xl border-slate-200 h-9"
+            title="Start a new chat conversation"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1" />
+            <span className="hidden sm:inline">New Chat</span>
+          </Button>
         </div>
       </div>
 
