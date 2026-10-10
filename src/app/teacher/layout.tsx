@@ -30,9 +30,9 @@ export default async function TeacherLayout({ children }: { children: React.Reac
   } : profile;
 
   return (
-    <div className="h-screen bg-campus-50 text-slate-900 flex flex-col md:flex-row overflow-hidden">
+    <div className="h-screen h-[100dvh] bg-campus-50 text-slate-900 flex flex-col md:flex-row overflow-hidden">
       <TeacherSidebar profile={resolvedProfile} />
-      <main className="flex-1 overflow-y-auto p-6 md:p-10">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10">
         {children}
       </main>
     </div>
