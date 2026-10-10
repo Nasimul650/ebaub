@@ -19,13 +19,9 @@ export default async function StudentLayout({ children }: { children: React.Reac
 
   const rawRole = (profile?.role || user.user_metadata?.role || 'student').toString().toLowerCase();
 
-  // Secondary Server-Side Guard: Strictly allow Students only
-  if (rawRole !== 'student') {
-    if (rawRole === 'admin') {
-      redirect('/admin');
-    } else if (rawRole === 'teacher') {
-      redirect('/teacher');
-    }
+  // Secondary Server-Side Guard: Strictly allow Students and Admins
+  if (rawRole !== 'student' && rawRole !== 'admin') {
+    redirect('/teacher');
   }
 
   const resolvedProfile = profile ? {

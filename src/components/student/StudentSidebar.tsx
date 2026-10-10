@@ -14,7 +14,8 @@ import {
   UserCheck,
   Settings,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  ShieldCheck
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 
@@ -101,6 +102,20 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
         </Link>
       </div>
 
+      {/* Admin Mode Quick Return Banner */}
+      {profile?.role === 'ADMIN' && (
+        <div className={`px-4 py-2 border-b border-purple-800/40 bg-purple-950/60 flex items-center ${isCollapsed ? 'justify-center px-2' : 'justify-between'}`}>
+          <Link 
+            href="/admin"
+            className="flex items-center gap-2 text-[11px] font-bold text-purple-300 hover:text-white transition-colors"
+            title="Admin View Active — Click to return to Admin Portal"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+            {!isCollapsed && <span>Admin View (Return)</span>}
+          </Link>
+        </div>
+      )}
+
       {/* Nav Items */}
       <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto overflow-x-hidden text-xs font-semibold custom-scrollbar">
         {navItems.map(item => {
@@ -138,6 +153,16 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
           }`}
         >
           <div className="p-2 space-y-1">
+            {profile?.role === 'ADMIN' && (
+              <Link 
+                href="/admin" 
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 text-xs font-semibold text-purple-300 hover:bg-purple-950/40 hover:text-purple-200 rounded-lg transition-colors border border-purple-500/20"
+              >
+                <ShieldCheck className="w-4 h-4 shrink-0 text-purple-400" />
+                Return to Admin Portal
+              </Link>
+            )}
             <Link 
               href="/settings/profile" 
               onClick={() => setIsMenuOpen(false)}

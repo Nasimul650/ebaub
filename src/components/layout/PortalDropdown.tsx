@@ -288,6 +288,37 @@ export default function PortalDropdown({
                 <div className="text-[10px] text-slate-400">Portal & Content Configurations</div>
               </div>
             </Link>
+
+            {/* Admin Cross-Portal Access */}
+            <div className="pt-2 mt-1 border-t border-slate-100">
+              <div className="px-4 py-1 text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">
+                Cross-Portal Access
+              </div>
+              <Link
+                href="/teacher"
+                className="flex items-center gap-3 px-4 py-2 hover:bg-blue-50 text-slate-700 hover:text-blue-950 transition-colors group"
+              >
+                <div className="w-7 h-7 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center shrink-0">
+                  <Briefcase className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-800 group-hover:text-blue-900">Teacher Portal</div>
+                  <div className="text-[10px] text-slate-400">Materials, Routine & AI Quizzes</div>
+                </div>
+              </Link>
+              <Link
+                href="/student"
+                className="flex items-center gap-3 px-4 py-2 hover:bg-campus-50 text-slate-700 hover:text-campus-950 transition-colors group"
+              >
+                <div className="w-7 h-7 rounded-xl bg-campus-100/70 text-campus-800 flex items-center justify-center shrink-0">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-800 group-hover:text-campus-900">Student Portal</div>
+                  <div className="text-[10px] text-slate-400">Materials, AI Tutor & Notices</div>
+                </div>
+              </Link>
+            </div>
           </div>
         )}
 

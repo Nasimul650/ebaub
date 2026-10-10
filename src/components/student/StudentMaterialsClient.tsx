@@ -14,7 +14,8 @@ import {
   Building2,
   X,
   BookOpen,
-  CheckCircle2
+  CheckCircle2,
+  Layers
 } from 'lucide-react';
 import type { CourseMaterial, DepartmentOption } from '@/types';
 import { formatFileSize } from '@/lib/utils';
@@ -39,6 +40,8 @@ export default function StudentMaterialsClient({
     return 'all';
   });
 
+  // Course filter state ('all' or specific course code)
+  const [selectedCourse, setSelectedCourse] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewingMaterial, setViewingMaterial] = useState<CourseMaterial | null>(null);
 
@@ -47,6 +50,41 @@ export default function StudentMaterialsClient({
     if (!studentDepartmentId) return null;
     return departments.find((d) => d.id === studentDepartmentId) || null;
   }, [departments, studentDepartmentId]);
+
+  // Dynamically compute available unique courses based on department selection or all materials
+  const availableCourses = useMemo(() => {
+    const set = new Set<string>();
+    initialMaterials.forEach((m) => {
+      if (m.course_code && m.course_code.trim()) {
+        const code = m.course_code.trim();
+        if (selectedDepartmentId === 'all') {
+          set.add(code);
+        } else {
+          const matchesDept = m.departments && m.departments.some((d) => d.id === selectedDepartmentId);
+          if (matchesDept) {
+            set.add(code);
+          }
+        }
+      }
+    });
+    return Array.from(set).sort();
+  }, [initialMaterials, selectedDepartmentId]);
+
+  // Compute course material counts for badge labels
+  const courseCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    initialMaterials.forEach((m) => {
+      if (m.course_code && m.course_code.trim()) {
+        const code = m.course_code.trim();
+        const matchesDept = selectedDepartmentId === 'all' || 
+          (m.departments && m.departments.some((d) => d.id === selectedDepartmentId));
+        if (matchesDept) {
+          counts[code] = (counts[code] || 0) + 1;
+        }
+      }
+    });
+    return counts;
+  }, [initialMaterials, selectedDepartmentId]);
 
   // Filtered and smartly ordered materials
   const filteredMaterials = useMemo(() => {
@@ -70,7 +108,14 @@ export default function StudentMaterialsClient({
       });
     }
 
-    // 2. Real-time Text Search (title, course_code, file_name, or department name)
+    // 2. Course Filter
+    if (selectedCourse !== 'all') {
+      result = result.filter(
+        (m) => (m.course_code || '').trim().toLowerCase() === selectedCourse.toLowerCase()
+      );
+    }
+
+    // 3. Real-time Text Search (title, course_code, file_name, or department name)
     const q = searchQuery.toLowerCase().trim();
     if (q) {
       result = result.filter((m) => {
@@ -83,7 +128,7 @@ export default function StudentMaterialsClient({
     }
 
     return result;
-  }, [initialMaterials, selectedDepartmentId, studentDepartmentId, searchQuery]);
+  }, [initialMaterials, selectedDepartmentId, selectedCourse, studentDepartmentId, searchQuery]);
 
   const getFileIcon = (fileName: string, mime: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
@@ -111,6 +156,14 @@ export default function StudentMaterialsClient({
       return 'Recent';
     }
   };
+
+  // Determine total materials matching current department for the "All Courses" count
+  const departmentFilteredTotal = useMemo(() => {
+    if (selectedDepartmentId === 'all') return initialMaterials.length;
+    return initialMaterials.filter((m) =>
+      m.departments && m.departments.some((d) => d.id === selectedDepartmentId)
+    ).length;
+  }, [initialMaterials, selectedDepartmentId]);
 
   return (
     <div className="space-y-6">
@@ -146,15 +199,15 @@ export default function StudentMaterialsClient({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs">
         {/* Real-time Search */}
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by course code (e.g. CSE-101), title, or file name..."
+            placeholder="Search by course code, title, or file name..."
             className="w-full pl-9 pr-9 py-2.5 bg-campus-50/50 hover:bg-campus-50 focus:bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-campus-700 transition-colors"
           />
           {searchQuery && (
@@ -168,47 +221,144 @@ export default function StudentMaterialsClient({
           )}
         </div>
 
-        {/* Department Filter Dropdown */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 pl-1">
-            <Filter className="w-3.5 h-3.5 text-campus-700" />
-            <span className="hidden md:inline">Department:</span>
+        {/* Filter Dropdowns Container */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
+          {/* Department Filter Dropdown */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-slate-500 font-semibold hidden sm:inline flex items-center gap-1">
+              <Filter className="w-3 h-3 text-campus-700" />
+              <span>Dept:</span>
+            </span>
+            <select
+              value={selectedDepartmentId}
+              onChange={(e) => {
+                setSelectedDepartmentId(e.target.value);
+                // Reset course if selected course is no longer available under the newly selected department
+                setSelectedCourse('all');
+              }}
+              className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer min-w-[150px] sm:min-w-[170px]"
+            >
+              <option value="all">
+                All Departments ({initialMaterials.length})
+              </option>
+              {departments.map((dept) => {
+                const isMine = dept.id === studentDepartmentId;
+                const count = initialMaterials.filter(
+                  (m) => m.departments && m.departments.some((d) => d.id === dept.id)
+                ).length;
+                return (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name} {isMine ? '★ (My Dept)' : ''} ({count})
+                  </option>
+                );
+              })}
+            </select>
           </div>
-          <select
-            value={selectedDepartmentId}
-            onChange={(e) => setSelectedDepartmentId(e.target.value)}
-            className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer min-w-[190px]"
-          >
-            <option value="all">
-              All Departments ({initialMaterials.length})
-            </option>
-            {departments.map((dept) => {
-              const isMine = dept.id === studentDepartmentId;
-              const count = initialMaterials.filter(
-                (m) => m.departments && m.departments.some((d) => d.id === dept.id)
-              ).length;
-              return (
-                <option key={dept.id} value={dept.id}>
-                  {dept.name} {isMine ? '★ (My Dept)' : ''} ({count})
-                </option>
-              );
-            })}
-          </select>
 
-          {/* Quick reset if filtered */}
-          {(selectedDepartmentId !== (studentDepartmentId || 'all') || searchQuery) && (
+          {/* Course Filter Dropdown (NEW) */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="text-slate-500 font-semibold hidden sm:inline flex items-center gap-1">
+              <BookOpen className="w-3 h-3 text-campus-700" />
+              <span>Course:</span>
+            </span>
+            <select
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              className="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-campus-700 shadow-2xs cursor-pointer min-w-[140px] sm:min-w-[160px]"
+            >
+              <option value="all">
+                All Courses ({departmentFilteredTotal})
+              </option>
+              {availableCourses.map((c) => (
+                <option key={c} value={c}>
+                  {c} ({courseCounts[c] || 0})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Quick reset button if any filter is active */}
+          {(selectedDepartmentId !== (studentDepartmentId || 'all') || selectedCourse !== 'all' || searchQuery) && (
             <button
               onClick={() => {
                 setSelectedDepartmentId(studentDepartmentId || 'all');
+                setSelectedCourse('all');
                 setSearchQuery('');
               }}
               className="text-[11px] text-campus-700 hover:text-campus-900 font-semibold px-2 py-1 rounded-lg hover:bg-campus-50 transition-colors shrink-0"
-              title="Reset to default department filter"
+              title="Reset all filters"
             >
               Reset
             </button>
           )}
         </div>
+      </div>
+
+      {/* Active Filter Chips & Stats Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="font-semibold text-slate-700">
+            Showing {filteredMaterials.length} of {initialMaterials.length} files
+          </span>
+
+          {selectedDepartmentId !== 'all' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-campus-50 text-campus-800 border border-campus-200 text-[11px] font-semibold">
+              <Building2 className="w-3 h-3 text-campus-700" />
+              <span>Dept: {departments.find(d => d.id === selectedDepartmentId)?.name || 'Department'}</span>
+              <button 
+                onClick={() => {
+                  setSelectedDepartmentId('all');
+                  setSelectedCourse('all');
+                }} 
+                className="hover:text-campus-950 p-0.5 ml-0.5"
+                title="Clear department filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedCourse !== 'all' && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200 text-[11px] font-semibold">
+              <BookOpen className="w-3 h-3 text-indigo-700" />
+              <span>Course: {selectedCourse}</span>
+              <button 
+                onClick={() => setSelectedCourse('all')} 
+                className="hover:text-indigo-950 p-0.5 ml-0.5"
+                title="Clear course filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {searchQuery && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-semibold">
+              <span>Keyword: &quot;{searchQuery}&quot;</span>
+              <button 
+                onClick={() => setSearchQuery('')} 
+                className="hover:text-slate-900 p-0.5 ml-0.5"
+                title="Clear search"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+        </div>
+
+        {/* Clear All Filters Action */}
+        {(selectedDepartmentId !== (studentDepartmentId || 'all') || selectedCourse !== 'all' || searchQuery) && (
+          <button
+            onClick={() => {
+              setSelectedDepartmentId(studentDepartmentId || 'all');
+              setSelectedCourse('all');
+              setSearchQuery('');
+            }}
+            className="text-[11px] font-bold text-red-600 hover:text-red-700 hover:underline"
+          >
+            Clear all filters
+          </button>
+        )}
       </div>
 
       {/* Materials Table Container */}
@@ -218,9 +368,9 @@ export default function StudentMaterialsClient({
             <thead className="bg-campus-50/80 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px] tracking-wider">
               <tr>
                 <th className="p-4 w-[38%]">Material & File</th>
-                <th className="p-4 w-[22%]">Course & Tagged Departments</th>
+                <th className="p-4 w-[24%]">Course & Tagged Departments</th>
                 <th className="p-4 w-[12%]">Size</th>
-                <th className="p-4 w-[14%]">Upload Date</th>
+                <th className="p-4 w-[12%]">Upload Date</th>
                 <th className="p-4 w-[14%] text-right">Actions</th>
               </tr>
             </thead>
@@ -258,24 +408,34 @@ export default function StudentMaterialsClient({
                     {/* Course Code & Tagged Departments */}
                     <td className="p-4">
                       <div className="flex flex-col gap-1.5 items-start">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-campus-100/70 text-campus-900 font-extrabold text-[11px] border border-campus-200/60 font-mono">
+                        {/* Clickable Course Code Badge */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCourse(mat.course_code.trim())}
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-campus-100/70 hover:bg-campus-200/90 text-campus-900 font-extrabold text-[11px] border border-campus-200/60 font-mono transition-colors cursor-pointer"
+                          title={`Filter by course: ${mat.course_code}`}
+                        >
                           {mat.course_code}
-                        </span>
+                        </button>
+
                         {mat.departments && mat.departments.length > 0 && (
                           <div className="flex flex-wrap gap-1 max-w-[240px]">
                             {mat.departments.map((dept) => {
                               const isStudentDept = dept.id === studentDepartmentId;
                               return (
-                                <span
+                                <button
+                                  type="button"
                                   key={dept.id}
-                                  className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium border ${
+                                  onClick={() => setSelectedDepartmentId(dept.id)}
+                                  className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium border transition-colors cursor-pointer ${
                                     isStudentDept
-                                      ? 'bg-campus-900 text-white border-campus-900 font-semibold'
-                                      : 'bg-slate-100 text-slate-700 border-slate-200'
+                                      ? 'bg-campus-900 hover:bg-campus-800 text-white border-campus-900 font-semibold'
+                                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
                                   }`}
+                                  title={`Filter by department: ${dept.name}`}
                                 >
                                   {dept.name}
-                                </span>
+                                </button>
                               );
                             })}
                           </div>
@@ -335,14 +495,15 @@ export default function StudentMaterialsClient({
                         No materials found
                       </div>
                       <p className="text-xs text-slate-400">
-                        {searchQuery || selectedDepartmentId !== 'all'
-                          ? 'No files match your department filter or search keyword.'
+                        {searchQuery || selectedDepartmentId !== 'all' || selectedCourse !== 'all'
+                          ? 'No files match your department, course, or search keywords.'
                           : 'There are currently no course materials published.'}
                       </p>
-                      {(searchQuery || selectedDepartmentId !== 'all') && (
+                      {(searchQuery || selectedDepartmentId !== 'all' || selectedCourse !== 'all') && (
                         <button
                           onClick={() => {
                             setSelectedDepartmentId('all');
+                            setSelectedCourse('all');
                             setSearchQuery('');
                           }}
                           className="mt-2 text-xs font-bold text-campus-800 hover:underline"

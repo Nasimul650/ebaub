@@ -20,7 +20,8 @@ import {
   Mail,
   GraduationCap,
   FileText,
-  UserCheck
+  UserCheck,
+  Briefcase
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
 
@@ -150,6 +151,37 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
             </Link>
           );
         })}
+
+        {/* Cross-Portal Access for Admins */}
+        <div className={`pt-3 mt-2 border-t border-campus-900/80 ${isCollapsed ? 'px-0' : 'px-1'}`}>
+          {!isCollapsed && (
+            <div className="px-2 pb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-campus-300">
+              Role Portals
+            </div>
+          )}
+          <div className="space-y-1">
+            <Link
+              href="/teacher"
+              title={isCollapsed ? "Teacher Academic Portal" : undefined}
+              className="flex items-center px-3.5 py-2.5 rounded-xl text-campus-200 hover:text-white hover:bg-campus-900 transition-colors text-xs font-semibold group"
+            >
+              <Briefcase className="w-4 h-4 shrink-0 text-blue-400 group-hover:scale-105 transition-transform" />
+              <span className={`ml-3 transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto block'}`}>
+                Teacher Portal
+              </span>
+            </Link>
+            <Link
+              href="/student"
+              title={isCollapsed ? "Student Learning Portal" : undefined}
+              className="flex items-center px-3.5 py-2.5 rounded-xl text-campus-200 hover:text-white hover:bg-campus-900 transition-colors text-xs font-semibold group"
+            >
+              <GraduationCap className="w-4 h-4 shrink-0 text-emerald-400 group-hover:scale-105 transition-transform" />
+              <span className={`ml-3 transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto block'}`}>
+                Student Portal
+              </span>
+            </Link>
+          </div>
+        </div>
       </nav>
 
       {/* Profile & Settings Dropup */}
@@ -165,12 +197,37 @@ export default function AdminSidebar({ profile }: { profile?: Profile | null }) 
         >
           <div className="p-2 space-y-1">
             <Link 
+              href="/teacher" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 text-xs font-medium text-blue-300 hover:bg-blue-950/40 hover:text-white rounded-lg transition-colors"
+            >
+              <Briefcase className="w-4 h-4 shrink-0 text-blue-400" />
+              Teacher Portal
+            </Link>
+            <Link 
+              href="/student" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 text-xs font-medium text-emerald-300 hover:bg-emerald-950/40 hover:text-white rounded-lg transition-colors"
+            >
+              <GraduationCap className="w-4 h-4 shrink-0 text-emerald-400" />
+              Student Portal
+            </Link>
+            <div className="border-t border-campus-800 my-1" />
+            <Link 
+              href="/settings/profile" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 px-3 py-2 text-xs font-medium text-campus-100 hover:bg-campus-800 hover:text-white rounded-lg transition-colors"
+            >
+              <Settings className="w-4 h-4 shrink-0" />
+              Profile Settings
+            </Link>
+            <Link 
               href="/admin/settings" 
               onClick={() => setIsMenuOpen(false)}
               className="flex items-center gap-3 px-3 py-2 text-xs font-medium text-campus-100 hover:bg-campus-800 hover:text-white rounded-lg transition-colors"
             >
               <Settings className="w-4 h-4 shrink-0" />
-              Account Settings
+              Site Settings
             </Link>
             <form action={logout}>
               <button 

@@ -138,6 +138,19 @@ export default function MobileNavDrawer({
                   <Settings className="w-3.5 h-3.5 text-purple-600" />
                   <span>Site Settings</span>
                 </Link>
+                <div className="pt-1.5 mt-1 border-t border-slate-100">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block pb-1">
+                    Cross-Portal Access
+                  </span>
+                  <Link href="/teacher" onClick={onClose} className="flex items-center gap-2 py-1.5 text-slate-700 hover:text-blue-900">
+                    <Briefcase className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Teacher Portal</span>
+                  </Link>
+                  <Link href="/student" onClick={onClose} className="flex items-center gap-2 py-1.5 text-slate-700 hover:text-campus-900">
+                    <GraduationCap className="w-3.5 h-3.5 text-campus-700" />
+                    <span>Student Portal</span>
+                  </Link>
+                </div>
               </>
             )}
 

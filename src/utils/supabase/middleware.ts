@@ -110,15 +110,15 @@ export async function updateSession(request: NextRequest) {
       return createRedirectResponse(url)
     }
 
-    // Teacher Guard: /teacher strictly requires teacher role
-    if (isTeacherPath && role !== 'teacher') {
+    // Teacher Guard: /teacher requires teacher role or admin
+    if (isTeacherPath && role !== 'teacher' && role !== 'admin') {
       const url = request.nextUrl.clone()
       url.pathname = getRoleDashboard(role)
       return createRedirectResponse(url)
     }
 
-    // Student Guard: /student strictly requires student role
-    if (isStudentPath && role !== 'student') {
+    // Student Guard: /student requires student role or admin
+    if (isStudentPath && role !== 'student' && role !== 'admin') {
       const url = request.nextUrl.clone()
       url.pathname = getRoleDashboard(role)
       return createRedirectResponse(url)
