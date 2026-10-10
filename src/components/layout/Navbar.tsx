@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   GraduationCap, 
@@ -9,16 +9,91 @@ import {
   UserCheck, 
   Menu, 
   X, 
-  ChevronDown
+  ChevronDown,
+  ShieldCheck,
+  Briefcase
 } from 'lucide-react';
 import MegaMenu from './MegaMenu';
 import PortalDropdown from './PortalDropdown';
 import MobileNavDrawer from './MobileNavDrawer';
+import type { CurrentUser } from '@/types';
+import { createClient } from '@/utils/supabase/client';
 
-export default function Navbar({ faculties = [], programs = [] }: { faculties?: any[], programs?: any[] } = {}) {
+export default function Navbar({ 
+  faculties = [], 
+  programs = [], 
+  currentUser = null 
+}: { 
+  faculties?: any[]; 
+  programs?: any[]; 
+  currentUser?: CurrentUser | null; 
+} = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [portalDropdownOpen, setPortalDropdownOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+  const [user, setUser] = useState<CurrentUser | null>(currentUser);
+
+  // Sync state if initial currentUser changes
+  useEffect(() => {
+    setUser(currentUser);
+  }, [currentUser]);
+
+  // Client-side auth state listener
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id, full_name, first_name, last_name, role, institutional_id, batch, avatar_url, bio, phone')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          const rawRole = ((profile?.role || session.user.user_metadata?.role || 'STUDENT') as string).toUpperCase();
+          const role = rawRole === 'ADMIN' ? 'ADMIN' : (rawRole === 'TEACHER' ? 'TEACHER' : 'STUDENT');
+          const fullName = profile?.full_name || 
+            (profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : '') || 
+            session.user.user_metadata?.full_name || 
+            session.user.email?.split('@')[0] || 
+            'User';
+
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            fullName,
+            role,
+            institutionalId: profile?.institutional_id || session.user.user_metadata?.institutional_id || null,
+            batch: profile?.batch || session.user.user_metadata?.batch || null,
+            avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || null,
+            bio: profile?.bio || session.user.user_metadata?.bio || null,
+            phone: profile?.phone || session.user.user_metadata?.phone || null,
+          });
+        } catch (err) {
+          console.warn('Navbar client auth error:', err);
+          const rawRole = ((session.user.user_metadata?.role || 'STUDENT') as string).toUpperCase();
+          const role = rawRole === 'ADMIN' ? 'ADMIN' : (rawRole === 'TEACHER' ? 'TEACHER' : 'STUDENT');
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            role,
+            institutionalId: session.user.user_metadata?.institutional_id || null,
+            batch: session.user.user_metadata?.batch || null,
+            avatarUrl: session.user.user_metadata?.avatar_url || null,
+            bio: session.user.user_metadata?.bio || null,
+            phone: session.user.user_metadata?.phone || null,
+          });
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const closeAllDropdowns = () => {
     setActiveMegaMenu(null);
@@ -75,7 +150,7 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
             </div>
             <div>
               <div className="font-extrabold text-base tracking-tight text-slate-900 flex items-center gap-1.5">
-                EBAUB <span className="hidden sm:inline-block text-campus-800 font-semibold text-[11px] px-2 py-0.5 bg-campus-50 border border-campus-200 rounded-md">Campus</span>
+                EBAUB <span className="inline-block text-campus-800 font-semibold text-[10px] sm:text-[11px] px-2 py-0.5 bg-campus-50 border border-campus-200 rounded-md whitespace-nowrap">Digital Campus</span>
               </div>
               <p className="hidden sm:block text-[10px] text-slate-500 font-medium truncate max-w-[200px] lg:max-w-none">EXIM Bank Agricultural University</p>
             </div>
@@ -195,19 +270,76 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
 
             {/* Portals Access Dropdown Container */}
             <div className="relative">
-              <button
-                onClick={togglePortalDropdown}
-                onMouseEnter={() => setActiveMegaMenu(null)}
-                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300"
-              >
-                <UserCheck className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-400" />
-                <span className="hidden sm:inline">Portals</span>
-                <ChevronDown className={`hidden sm:block w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+              {!user ? (
+                <button
+                  onClick={togglePortalDropdown}
+                  onMouseEnter={() => setActiveMegaMenu(null)}
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300"
+                >
+                  <UserCheck className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-400" />
+                  <span className="hidden sm:inline">Portals</span>
+                  <ChevronDown className={`hidden sm:block w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              ) : user.role === 'ADMIN' ? (
+                <button
+                  onClick={togglePortalDropdown}
+                  onMouseEnter={() => setActiveMegaMenu(null)}
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl bg-purple-900 hover:bg-purple-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300 ring-1 ring-purple-400/40"
+                  title={`Logged in as Administrator (${user.fullName})`}
+                >
+                  {user.avatarUrl ? (
+                    <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-purple-300/60 shadow-2xs">
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <ShieldCheck className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-purple-300" />
+                  )}
+                  <span className="hidden sm:inline">Admin Portal</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse hidden sm:block" />
+                  <ChevronDown className={`hidden sm:block w-3 h-3 text-purple-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              ) : user.role === 'TEACHER' ? (
+                <button
+                  onClick={togglePortalDropdown}
+                  onMouseEnter={() => setActiveMegaMenu(null)}
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300 ring-1 ring-campus-400/40"
+                  title={`Logged in as Faculty Instructor (${user.fullName})`}
+                >
+                  {user.avatarUrl ? (
+                    <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-campus-300/60 shadow-2xs">
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <Briefcase className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-300" />
+                  )}
+                  <span className="hidden sm:inline">Teacher Portal</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse hidden sm:block" />
+                  <ChevronDown className={`hidden sm:block w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              ) : (
+                <button
+                  onClick={togglePortalDropdown}
+                  onMouseEnter={() => setActiveMegaMenu(null)}
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs shadow-sm transition-all hover:scale-105 active:scale-95 duration-300 ring-1 ring-campus-400/40"
+                  title={`Logged in as Student (${user.fullName})`}
+                >
+                  {user.avatarUrl ? (
+                    <div className="w-4 h-4 rounded-full overflow-hidden shrink-0 border border-campus-300/60 shadow-2xs">
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <GraduationCap className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-campus-300" />
+                  )}
+                  <span className="hidden sm:inline">Student Portal</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse hidden sm:block" />
+                  <ChevronDown className={`hidden sm:block w-3 h-3 text-campus-300 transition-transform duration-300 ${portalDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )}
 
               <PortalDropdown 
                 isOpen={portalDropdownOpen} 
-                onClose={() => setPortalDropdownOpen(false)} 
+                onClose={() => setPortalDropdownOpen(false)}
+                user={user}
               />
             </div>
 
@@ -245,6 +377,7 @@ export default function Navbar({ faculties = [], programs = [] }: { faculties?: 
           onClose={() => setMobileMenuOpen(false)}
           faculties={faculties}
           programs={programs}
+          user={user}
         />
       </header>
 

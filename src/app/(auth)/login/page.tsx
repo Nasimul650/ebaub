@@ -2,14 +2,29 @@
 
 import React, { useActionState, Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { login } from '@/app/actions/auth';
+import { login, resendConfirmationEmail } from '@/app/actions/auth';
 import Link from 'next/link';
-import { Sparkles, ShieldCheck, BookOpen, GraduationCap } from 'lucide-react';
+import { 
+  Sparkles, 
+  ShieldCheck, 
+  BookOpen, 
+  GraduationCap, 
+  CheckCircle2, 
+  Mail, 
+  RefreshCw, 
+  ArrowRight, 
+  Clock, 
+  AlertTriangle 
+} from 'lucide-react';
 
 function LoginFormContent() {
   const searchParams = useSearchParams();
   const rawPortal = searchParams.get('portal')?.toLowerCase();
   const rawRedirect = searchParams.get('redirectTo')?.toLowerCase() || '';
+  const isRegistered = searchParams.get('registered') === 'true';
+  const isConfirmed = searchParams.get('confirmed') === 'true';
+  const urlError = searchParams.get('error');
+  const registeredEmail = searchParams.get('email') || '';
 
   const detectedPortal = 
     rawPortal === 'teacher' || rawRedirect.includes('teacher') 
@@ -19,6 +34,10 @@ function LoginFormContent() {
       : 'admin';
 
   const [activePortal, setActivePortal] = useState<'teacher' | 'admin' | 'student'>(detectedPortal);
+  const [userEmail, setUserEmail] = useState<string>(registeredEmail);
+  const [isResending, setIsResending] = useState<boolean>(false);
+  const [resendStatus, setResendStatus] = useState<{ success: boolean; message: string } | null>(null);
+  const [resendCooldown, setResendCooldown] = useState<number>(0);
 
   // Sync state if external searchParams change
   useEffect(() => {
@@ -26,6 +45,52 @@ function LoginFormContent() {
       setActivePortal(rawPortal);
     }
   }, [rawPortal]);
+
+  useEffect(() => {
+    if (registeredEmail) {
+      setUserEmail(registeredEmail);
+    }
+  }, [registeredEmail]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  const handleResendFromLogin = async () => {
+    const targetEmail = userEmail.trim();
+    if (!targetEmail || resendCooldown > 0 || isResending) return;
+
+    setIsResending(true);
+    setResendStatus(null);
+
+    try {
+      const res = await resendConfirmationEmail(targetEmail);
+      if (res.success) {
+        setResendStatus({
+          success: true,
+          message: res.message || 'Confirmation email resent! Please check your inbox and spam folder.'
+        });
+        setResendCooldown(60);
+      } else {
+        setResendStatus({
+          success: false,
+          message: res.error || 'Failed to resend confirmation email.'
+        });
+      }
+    } catch (err: any) {
+      setResendStatus({
+        success: false,
+        message: err?.message || 'Error resending confirmation email.'
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const [state, formAction, pending] = useActionState(login, null);
 
@@ -77,7 +142,7 @@ function LoginFormContent() {
           <div className="w-10 h-10 rounded-xl bg-campus-900 flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
             <GraduationCap className="w-5 h-5 text-campus-400" />
           </div>
-          <span className="font-extrabold text-xl text-slate-900 tracking-tight heading-display">EBAUB</span>
+          <span className="font-extrabold text-xl text-slate-900 tracking-tight heading-display">EBAUB Digital Campus</span>
         </Link>
 
         {/* Portal Destination Badge */}
@@ -143,15 +208,102 @@ function LoginFormContent() {
             <input type="hidden" name="portal" value={activePortal} />
             <input type="hidden" name="redirectTo" value={portalInfo.redirectTo} />
 
-            {state?.error && (
+            {/* Registration Success Banner */}
+            {isRegistered && !isConfirmed && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-3 rounded-2xl text-xs font-semibold flex items-start gap-2.5 animate-in fade-in shadow-2xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold">Account Claimed Successfully! </span>
+                  Please check your email to confirm your account, then sign in below.
+                </div>
+              </div>
+            )}
+
+            {/* Email Confirmed Success Banner */}
+            {isConfirmed && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 px-4 py-3 rounded-2xl text-xs font-semibold flex items-start gap-2.5 animate-in fade-in shadow-2xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold">Email Verified Successfully! </span>
+                  Your university account is now confirmed. Please enter your password to sign in.
+                </div>
+              </div>
+            )}
+
+            {/* External URL Error Banner (e.g. invalid or expired auth link) */}
+            {urlError && !isConfirmed && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-2xl text-xs font-semibold flex items-start gap-2.5 animate-in fade-in shadow-2xs">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="leading-relaxed">
+                  {urlError}
+                </div>
+              </div>
+            )}
+
+            {/* Login Error / Email Confirmation Required Guide */}
+            {state?.error && state.error.toLowerCase().includes('not confirmed') ? (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-amber-950 text-xs space-y-3 shadow-2xs animate-in fade-in">
+                <div className="flex items-start gap-2.5">
+                  <Mail className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="font-bold text-amber-950">Email Confirmation Required</div>
+                    <p className="text-[11px] text-amber-800 leading-relaxed">
+                      Your account is registered, but your email has not been confirmed yet. Please click the activation link sent to your inbox before signing in.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Resend status message */}
+                {resendStatus && (
+                  <div className={`text-[11px] font-semibold px-3 py-2 rounded-xl flex items-center gap-2 ${
+                    resendStatus.success
+                      ? 'bg-emerald-100 text-emerald-900 border border-emerald-200'
+                      : 'bg-red-100 text-red-900 border border-red-200'
+                  }`}>
+                    {resendStatus.success ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                    )}
+                    <span>{resendStatus.message}</span>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-amber-200/60">
+                  <button
+                    type="button"
+                    onClick={handleResendFromLogin}
+                    disabled={isResending || resendCooldown > 0 || !userEmail}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition-colors disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isResending ? 'animate-spin' : ''}`} />
+                    <span>
+                      {isResending
+                        ? 'Sending...'
+                        : resendCooldown > 0
+                        ? `Resend in ${resendCooldown}s`
+                        : 'Resend Link'}
+                    </span>
+                  </button>
+
+                  <Link
+                    href={`/verify-email?email=${encodeURIComponent(userEmail)}&portal=${activePortal}`}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 hover:text-amber-950 underline underline-offset-2"
+                  >
+                    <span>View Confirmation Guide</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            ) : state?.error ? (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-xs font-semibold animate-in fade-in">
                 {state.error}
               </div>
-            )}
+            ) : null}
             
             <div>
               <label htmlFor="email" className="block text-xs font-bold text-slate-700">
-                University Email
+                Email or Registration Number
               </label>
               <div className="mt-1">
                 <input
@@ -159,6 +311,8 @@ function LoginFormContent() {
                   name="email"
                   type="email"
                   autoComplete="email"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
                   required
                   className="appearance-none block w-full px-3.5 py-2.5 border border-slate-200 bg-campus-50/50 rounded-xl shadow-2xs placeholder-slate-400 focus:outline-none focus:border-campus-700 text-xs text-slate-900 transition-colors"
                   placeholder={portalInfo.placeholder}
@@ -213,10 +367,21 @@ function LoginFormContent() {
             </div>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs">
-            <Link href="/contact" className="font-semibold text-slate-500 hover:text-campus-800 transition-colors">
-              Need assistance? Contact IT Support
-            </Link>
+          <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs space-y-2">
+            <div>
+              <span className="text-slate-500">First time here? </span>
+              <Link
+                href="/signup"
+                className="font-bold text-campus-800 hover:text-campus-900 transition-colors underline-offset-4 hover:underline"
+              >
+                Claim your account
+              </Link>
+            </div>
+            <div>
+              <Link href="/contact" className="font-semibold text-slate-400 hover:text-campus-800 transition-colors">
+                Need assistance? Contact IT Support
+              </Link>
+            </div>
           </div>
         </div>
         

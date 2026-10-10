@@ -109,8 +109,36 @@ export async function uploadCourseMaterial(formData: FormData): Promise<TeacherA
 
     const fileUrl = publicUrlData.publicUrl;
 
+    // Extract department_ids
+    const rawDeptIds = formData.getAll('department_ids');
+    let departmentIds: string[] = [];
+    if (rawDeptIds.length > 0) {
+      departmentIds = rawDeptIds
+        .flatMap(item => typeof item === 'string' ? item.split(',') : [])
+        .map(id => id.trim())
+        .filter(Boolean);
+    } else {
+      const rawDeptStr = formData.get('department_ids') as string | null;
+      if (rawDeptStr) {
+        try {
+          const parsed = JSON.parse(rawDeptStr);
+          if (Array.isArray(parsed)) {
+            departmentIds = parsed;
+          } else {
+            departmentIds = [rawDeptStr];
+          }
+        } catch {
+          departmentIds = rawDeptStr.split(',').map(s => s.trim()).filter(Boolean);
+        }
+      }
+    }
+
+    if (departmentIds.length === 0) {
+      return { error: 'Please select at least one department tag.' };
+    }
+
     // Insert record into course_materials table
-    const { error: insertError } = await supabase
+    const { data: newMaterial, error: insertError } = await supabase
       .from('course_materials')
       .insert({
         teacher_id: user.id,
@@ -120,17 +148,35 @@ export async function uploadCourseMaterial(formData: FormData): Promise<TeacherA
         file_name: fileName,
         file_size: file.size,
         file_type: file.type || fileExt,
-      });
+      })
+      .select('id')
+      .single();
 
-    if (insertError) {
+    if (insertError || !newMaterial) {
       console.error('Course materials database insert error:', insertError);
       // Clean up orphaned storage file
       await supabase.storage.from('course_materials').remove([storagePath]);
-      return { error: `Database insert failed: ${insertError.message}` };
+      return { error: `Database insert failed: ${insertError?.message || 'Failed to save record'}` };
+    }
+
+    // Insert junction rows into course_material_departments
+    const junctionRows = departmentIds.map((deptId) => ({
+      material_id: newMaterial.id,
+      department_id: deptId,
+    }));
+
+    const { error: junctionError } = await supabase
+      .from('course_material_departments')
+      .insert(junctionRows);
+
+    if (junctionError) {
+      console.warn('Junction insert warning (check if migration applied):', junctionError.message);
     }
 
     revalidatePath('/teacher/materials');
-    return { success: true, message: 'Course material uploaded successfully!' };
+    revalidatePath('/student/materials');
+    revalidatePath('/student/files');
+    return { success: true, message: 'Course material uploaded successfully with department tags!' };
   } catch (err: any) {
     console.error('UploadCourseMaterial error:', err);
     return { error: err.message || 'An unexpected error occurred during upload.' };

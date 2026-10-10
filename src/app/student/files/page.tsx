@@ -1,18 +1,47 @@
 import React from 'react';
-import { getTeachingMaterials } from '@/lib/mock/mockServices';
-import CourseFilesTable from '@/components/student/CourseFilesTable';
+import { createClient } from '@/utils/supabase/server';
+import { 
+  getCourseMaterialsForStudent, 
+  getAllDepartments, 
+  getStudentDefaultDepartment 
+} from '@/utils/supabase/queries';
+import StudentMaterialsClient from '@/components/student/StudentMaterialsClient';
+import type { CourseMaterial } from '@/types';
+
+export const dynamic = 'force-dynamic';
 
 export default async function StudentFilesPage() {
-  const materials = await getTeachingMaterials();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let studentDeptId: string | null = null;
+  if (user?.id) {
+    studentDeptId = await getStudentDefaultDepartment(user.id);
+  }
+
+  const [departments, materials, teachersResult] = await Promise.all([
+    getAllDepartments(),
+    getCourseMaterialsForStudent({ studentDeptId: studentDeptId || undefined }),
+    supabase
+      .from('profiles')
+      .select('id, full_name, first_name, last_name, department_id, role')
+      .in('role', ['TEACHER', 'ADMIN'])
+  ]);
+
+  const teachers = (teachersResult.data || []).map((t: any) => ({
+    id: t.id,
+    name: t.full_name?.trim() || (t.first_name ? `${t.first_name} ${t.last_name || ''}`.trim() : '') || 'Faculty Member',
+    department_id: t.department_id || null,
+  }));
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 heading-display">Course Files Library</h1>
-        <p className="text-xs text-slate-500 mt-1">Direct file repository for enrolled department courses</p>
-      </div>
-
-      <CourseFilesTable materials={materials} />
+    <div className="max-w-6xl mx-auto pb-12">
+      <StudentMaterialsClient 
+        initialMaterials={materials}
+        departments={departments}
+        studentDepartmentId={studentDeptId}
+        allTeachers={teachers}
+      />
     </div>
   );
 }

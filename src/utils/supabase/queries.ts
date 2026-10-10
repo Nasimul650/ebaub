@@ -641,22 +641,423 @@ export async function getSiteSettings<T = GlobalSiteSettings>(section?: string):
 }
 
 // ==========================================
-// COURSE MATERIALS (TEACHER WORKSPACE)
+// COURSE MATERIALS & MULTI-DEPARTMENT TAGGING
 // ==========================================
 
-import type { CourseMaterial } from '@/types';
-export type { CourseMaterial };
+import type { CourseMaterial, DepartmentOption } from '@/types';
+export type { CourseMaterial, DepartmentOption };
 
 /**
- * Fetches all course materials uploaded by a specific teacher, ordered by created_at descending.
- * Returns an empty array gracefully on database error or missing table.
+ * Fetches all available departments across the university.
+ */
+export async function getAllDepartments(): Promise<DepartmentOption[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('departments')
+      .select('id, name, faculty_id')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching departments:', error.message);
+      return [];
+    }
+
+    return (data || []) as DepartmentOption[];
+  } catch (err) {
+    console.error('Unexpected error fetching departments:', err);
+    return [];
+  }
+}
+
+export interface DepartmentWithFaculty {
+  id: string;
+  name: string;
+  code?: string;
+  faculty_id: string;
+  faculty_name?: string;
+}
+
+/**
+ * Fetches all departments joined with their parent faculty details
+ * to populate administrative dropdowns cleanly.
+ */
+export async function getDepartmentsWithFaculty(): Promise<DepartmentWithFaculty[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('departments')
+      .select('id, name, faculty_id, faculties(id, name)')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.warn('Error fetching departments with faculties join, trying basic select:', error.message);
+      const fallback = await supabase
+        .from('departments')
+        .select('id, name, faculty_id')
+        .order('name', { ascending: true });
+      return (fallback.data || []).map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        faculty_id: row.faculty_id,
+      }));
+    }
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      name: row.name,
+      faculty_id: row.faculty_id,
+      faculty_name: Array.isArray(row.faculties) ? row.faculties[0]?.name : (row.faculties?.name || undefined),
+    }));
+  } catch (err) {
+    console.error('Unexpected error fetching departments with faculty:', err);
+    return [];
+  }
+}
+
+export interface UserProfileItem {
+  id: string;
+  institutional_id: string | null;
+  full_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  role: string;
+  department_id: string | null;
+  faculty_id: string | null;
+  faculty_name?: string | null;
+  batch?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  created_at: string;
+  is_pending_signup?: boolean;
+  department?: { 
+    id: string; 
+    name: string;
+    faculty_id?: string;
+    faculty_name?: string | null;
+  } | null;
+}
+
+/**
+ * Fetches university profiles for the Admin User Management dashboard.
+ * Resolves department and parent faculty hierarchy for institutional organization.
+ * Also includes unclaimed credential whitelist entries marked with is_pending_signup: true.
+ */
+export async function getUniversityProfiles(roleFilter?: string): Promise<UserProfileItem[]> {
+  try {
+    const supabase = await createClient();
+
+    // Fetch faculties lookup for reliable fallback mapping
+    const { data: faculties } = await supabase
+      .from('faculties')
+      .select('id, name');
+    
+    const facultyMap: Record<string, string> = {};
+    if (faculties) {
+      faculties.forEach((f: any) => {
+        facultyMap[f.id] = f.name;
+      });
+    }
+
+    let query = supabase
+      .from('profiles')
+      .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, batch, avatar_url, created_at, departments(id, name, faculty_id, faculties(id, name))')
+      .order('created_at', { ascending: false });
+
+    if (roleFilter && roleFilter !== 'ALL') {
+      query = query.eq('role', roleFilter.toUpperCase());
+    }
+
+    let { data, error } = await query;
+    if (error && (error.message.includes('batch') || error.message.includes('avatar_url'))) {
+      // Graceful fallback if migration not yet applied
+      let fallbackQuery = supabase
+        .from('profiles')
+        .select('id, institutional_id, full_name, first_name, last_name, email, role, department_id, faculty_id, created_at, departments(id, name, faculty_id, faculties(id, name))')
+        .order('created_at', { ascending: false });
+      if (roleFilter && roleFilter !== 'ALL') {
+        fallbackQuery = fallbackQuery.eq('role', roleFilter.toUpperCase());
+      }
+      const fallbackRes = await fallbackQuery;
+      data = fallbackRes.data as any;
+      error = fallbackRes.error;
+    }
+
+    if (error) {
+      console.error('Error fetching university profiles:', error.message);
+      return [];
+    }
+
+    const registeredProfiles: UserProfileItem[] = (data || []).map((row: any) => {
+      const dept = row.departments;
+      let facultyName: string | null = null;
+      if (dept?.faculties) {
+        facultyName = Array.isArray(dept.faculties)
+          ? dept.faculties[0]?.name
+          : (dept.faculties?.name || null);
+      }
+      if (!facultyName && row.faculty_id && facultyMap[row.faculty_id]) {
+        facultyName = facultyMap[row.faculty_id];
+      }
+      if (!facultyName && dept?.faculty_id && facultyMap[dept.faculty_id]) {
+        facultyName = facultyMap[dept.faculty_id];
+      }
+
+      return {
+        ...row,
+        batch: row.batch || null,
+        faculty_name: facultyName,
+        is_pending_signup: false,
+        department: dept ? {
+          id: dept.id,
+          name: dept.name,
+          faculty_id: dept.faculty_id,
+          faculty_name: facultyName,
+        } : null,
+      };
+    });
+
+    // Also fetch unclaimed credential whitelist records (pre-authorized but not signed up yet)
+    let whitelistProfiles: UserProfileItem[] = [];
+    try {
+      let wlQuery = supabase
+        .from('credential_whitelist')
+        .select('id, institutional_id, role, department_id, batch, is_claimed, created_at, departments(id, name, faculty_id, faculties(id, name))')
+        .eq('is_claimed', false)
+        .order('created_at', { ascending: false });
+
+      if (roleFilter && roleFilter !== 'ALL') {
+        wlQuery = wlQuery.eq('role', roleFilter.toLowerCase());
+      }
+
+      const { data: wlData, error: wlError } = await wlQuery;
+
+      if (!wlError && wlData) {
+        const registeredIds = new Set(
+          registeredProfiles
+            .map(p => (p.institutional_id || '').toLowerCase().trim())
+            .filter(Boolean)
+        );
+
+        whitelistProfiles = wlData
+          .filter((wl: any) => !registeredIds.has((wl.institutional_id || '').toLowerCase().trim()))
+          .map((wl: any) => {
+            const dept = wl.departments;
+            let facultyName: string | null = null;
+            if (dept?.faculties) {
+              facultyName = Array.isArray(dept.faculties)
+                ? dept.faculties[0]?.name
+                : (dept.faculties?.name || null);
+            }
+            if (!facultyName && dept?.faculty_id && facultyMap[dept.faculty_id]) {
+              facultyName = facultyMap[dept.faculty_id];
+            }
+
+            const isTeacher = (wl.role || '').toLowerCase() === 'teacher';
+
+            return {
+              id: `whitelist-${wl.id}`,
+              institutional_id: wl.institutional_id,
+              full_name: isTeacher ? 'Whitelisted Teacher' : 'Whitelisted Student',
+              first_name: null,
+              last_name: null,
+              email: 'Not signed up yet',
+              role: isTeacher ? 'TEACHER' : 'STUDENT',
+              department_id: wl.department_id || null,
+              faculty_id: dept?.faculty_id || null,
+              faculty_name: facultyName,
+              batch: wl.batch || null,
+              avatar_url: null,
+              created_at: wl.created_at,
+              is_pending_signup: true,
+              department: dept ? {
+                id: dept.id,
+                name: dept.name,
+                faculty_id: dept.faculty_id,
+                faculty_name: facultyName,
+              } : null,
+            };
+          });
+      }
+    } catch (wlCatchErr) {
+      console.warn('Could not query unclaimed whitelist entries:', wlCatchErr);
+    }
+
+    const merged = [...registeredProfiles, ...whitelistProfiles];
+    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return merged;
+  } catch (err) {
+    console.error('Unexpected error fetching university profiles:', err);
+    return [];
+  }
+}
+
+/**
+ * Grabs the teacher's registered default department ID from profiles, teachers, or faculty_members.
+ */
+export async function getTeacherDefaultDepartment(teacherId: string): Promise<string | null> {
+  if (!teacherId || teacherId.trim() === '') return null;
+  try {
+    const supabase = await createClient();
+
+    // 1. Check profiles table department_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department_id')
+      .eq('id', teacherId)
+      .single();
+
+    if (profile?.department_id) {
+      return profile.department_id;
+    }
+
+    // 2. Check teachers extension table
+    const { data: teacher } = await supabase
+      .from('teachers')
+      .select('department_id')
+      .eq('id', teacherId)
+      .single();
+
+    if (teacher?.department_id) {
+      return teacher.department_id;
+    }
+
+    // 3. Fallback: check faculty_members table by matching user email
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', teacherId)
+      .single();
+
+    if (userProfile?.email) {
+      const { data: facultyMember } = await supabase
+        .from('faculty_members')
+        .select('department_id')
+        .eq('email', userProfile.email)
+        .single();
+
+      if (facultyMember?.department_id) {
+        return facultyMember.department_id;
+      }
+    }
+
+    // 4. Fallback to first department
+    const { data: firstDept } = await supabase
+      .from('departments')
+      .select('id')
+      .order('name', { ascending: true })
+      .limit(1)
+      .single();
+
+    return firstDept?.id || null;
+  } catch (err) {
+    console.error('Error getting teacher default department:', err);
+    return null;
+  }
+}
+
+/**
+ * Grabs the student's registered default department ID.
+ */
+export async function getStudentDefaultDepartment(studentId: string): Promise<string | null> {
+  if (!studentId || studentId.trim() === '') return null;
+  try {
+    const supabase = await createClient();
+
+    // 1. Check profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('department_id')
+      .eq('id', studentId)
+      .single();
+
+    if (profile?.department_id) {
+      return profile.department_id;
+    }
+
+    // 2. Check students extension table
+    const { data: student } = await supabase
+      .from('students')
+      .select('department_id')
+      .eq('id', studentId)
+      .single();
+
+    return student?.department_id || null;
+  } catch (err) {
+    console.error('Error getting student default department:', err);
+    return null;
+  }
+}
+
+/**
+ * Helper to enrich course material rows with resolved teacher uploader profiles
+ * and department + faculty metadata.
+ */
+async function enrichMaterialsWithDetails(supabase: any, rawData: any[]): Promise<CourseMaterial[]> {
+  if (!rawData || rawData.length === 0) return [];
+
+  // Extract unique teacher IDs
+  const teacherIds = Array.from(new Set(rawData.map((r: any) => r.teacher_id).filter(Boolean)));
+  const profileMap: Record<string, { full_name: string; email: string }> = {};
+
+  if (teacherIds.length > 0) {
+    try {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, first_name, last_name, email')
+        .in('id', teacherIds);
+
+      if (profiles) {
+        profiles.forEach((p: any) => {
+          const name = p.full_name || (p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : '') || p.email;
+          profileMap[p.id] = { full_name: name, email: p.email };
+        });
+      }
+    } catch (e) {
+      console.warn('Could not enrich materials with teacher profiles:', e);
+    }
+  }
+
+  return rawData.map((row: any) => {
+    const depts: DepartmentOption[] = (row.course_material_departments || [])
+      .map((cmd: any) => {
+        const dept = cmd.departments;
+        if (!dept) return null;
+        const facName = Array.isArray(dept.faculties)
+          ? dept.faculties[0]?.name
+          : dept.faculties?.name || undefined;
+        return {
+          id: dept.id,
+          name: dept.name,
+          faculty_id: dept.faculty_id,
+          faculty_name: facName,
+        };
+      })
+      .filter(Boolean);
+
+    const profile = profileMap[row.teacher_id];
+
+    return {
+      ...row,
+      departments: depts,
+      teacher_name: profile?.full_name || undefined,
+      teacher_email: profile?.email || undefined,
+    };
+  });
+}
+
+/**
+ * Fetches course materials uploaded by a specific teacher, including joined tagged departments and faculties.
  */
 export async function getTeacherMaterials(teacherId: string): Promise<CourseMaterial[]> {
   try {
     const supabase = await createClient();
     let query = supabase
       .from('course_materials')
-      .select('*')
+      .select('*, course_material_departments(department_id, departments(id, name, faculty_id, faculties(id, name)))')
       .order('created_at', { ascending: false });
 
     if (teacherId && teacherId.trim() !== '') {
@@ -666,13 +1067,220 @@ export async function getTeacherMaterials(teacherId: string): Promise<CourseMate
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching teacher course materials:', error.message);
-      return [];
+      console.warn('Error fetching teacher materials with junction, trying base query:', error.message);
+      const fallbackQuery = await supabase
+        .from('course_materials')
+        .select('*')
+        .order('created_at', { ascending: false });
+      return (fallbackQuery.data || []) as CourseMaterial[];
     }
 
-    return (data || []) as CourseMaterial[];
+    return await enrichMaterialsWithDetails(supabase, data || []);
   } catch (err) {
     console.error('Unexpected error fetching course materials:', err);
     return [];
   }
 }
+
+/**
+ * Fetches all course materials across the entire university,
+ * including tagged departments with faculty and teacher uploader profiles.
+ */
+export async function getAllCourseMaterials(): Promise<CourseMaterial[]> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('course_materials')
+      .select('*, course_material_departments(department_id, departments(id, name, faculty_id, faculties(id, name)))')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching all course materials:', error.message);
+      return [];
+    }
+
+    return await enrichMaterialsWithDetails(supabase, data || []);
+  } catch (err) {
+    console.error('Unexpected error fetching all course materials:', err);
+    return [];
+  }
+}
+
+export interface StudentMaterialsFilter {
+  selectedDepartmentId?: string;
+  searchQuery?: string;
+  studentDeptId?: string;
+}
+
+/**
+ * Fetches course materials for students with department filtering, search,
+ * and smart sorting where materials matching the student's own department appear first.
+ */
+export async function getCourseMaterialsForStudent({
+  selectedDepartmentId,
+  searchQuery,
+  studentDeptId,
+}: StudentMaterialsFilter = {}): Promise<CourseMaterial[]> {
+  try {
+    const supabase = await createClient();
+
+    let query = supabase
+      .from('course_materials')
+      .select('*, course_material_departments(department_id, departments(id, name, faculty_id, faculties(id, name)))')
+      .order('created_at', { ascending: false });
+
+    if (searchQuery && searchQuery.trim() !== '') {
+      const term = `%${searchQuery.trim()}%`;
+      query = query.or(`title.ilike.${term},course_code.ilike.${term},file_name.ilike.${term}`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching student course materials:', error.message);
+      return [];
+    }
+
+    let materials: CourseMaterial[] = await enrichMaterialsWithDetails(supabase, data || []);
+
+    // If a specific department is chosen (and not 'all')
+    if (selectedDepartmentId && selectedDepartmentId !== 'all') {
+      materials = materials.filter((m) =>
+        m.departments && m.departments.some((d) => d.id === selectedDepartmentId)
+      );
+    } else if (studentDeptId) {
+      // If "all" or omitted, order so materials matching student's department appear first
+      materials.sort((a, b) => {
+        const aMatches = a.departments?.some((d) => d.id === studentDeptId) ? 1 : 0;
+        const bMatches = b.departments?.some((d) => d.id === studentDeptId) ? 1 : 0;
+
+        if (bMatches !== aMatches) {
+          return bMatches - aMatches; // matching department first
+        }
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+    }
+
+    return materials;
+  } catch (err) {
+    console.error('Unexpected error fetching student materials:', err);
+    return [];
+  }
+}
+
+export interface FullUserProfileDetails {
+  id: string;
+  email: string;
+  role: string;
+  full_name: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  institutional_id: string | null;
+  department_id: string | null;
+  faculty_id: string | null;
+  batch?: string | null;
+  username?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  created_at: string;
+  department_name?: string | null;
+  faculty_name?: string | null;
+}
+
+/**
+ * Fetches complete profile details for settings page.
+ */
+export async function getUserFullProfile(userId: string): Promise<FullUserProfileDetails | null> {
+  try {
+    const supabase = await createClient();
+
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*, departments(id, name, faculty_id, faculties(id, name))')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error || !profile) {
+      // Fallback query without joins if departments table relationship has issues
+      const { data: fallbackProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!fallbackProfile) return null;
+
+      let departmentName: string | null = null;
+      let facultyName: string | null = null;
+
+      if (fallbackProfile.department_id) {
+        const { data: dept } = await supabase
+          .from('departments')
+          .select('name, faculties(name)')
+          .eq('id', fallbackProfile.department_id)
+          .maybeSingle();
+
+        if (dept) {
+          departmentName = dept.name;
+          facultyName = Array.isArray(dept.faculties) ? dept.faculties[0]?.name : (dept.faculties as any)?.name || null;
+        }
+      }
+
+      return {
+        id: fallbackProfile.id,
+        email: fallbackProfile.email,
+        role: (fallbackProfile.role || 'STUDENT').toUpperCase(),
+        full_name: fallbackProfile.full_name || `${fallbackProfile.first_name || ''} ${fallbackProfile.last_name || ''}`.trim() || null,
+        first_name: fallbackProfile.first_name,
+        last_name: fallbackProfile.last_name,
+        institutional_id: fallbackProfile.institutional_id || null,
+        department_id: fallbackProfile.department_id || null,
+        faculty_id: fallbackProfile.faculty_id || null,
+        batch: fallbackProfile.batch || null,
+        username: (fallbackProfile as any)?.username || null,
+        avatar_url: fallbackProfile.avatar_url || null,
+        bio: fallbackProfile.bio || null,
+        phone: fallbackProfile.phone || null,
+        created_at: fallbackProfile.created_at,
+        department_name: departmentName,
+        faculty_name: facultyName,
+      };
+    }
+
+    const dept = (profile as any).departments;
+    let facultyName: string | null = null;
+    let departmentName: string | null = null;
+
+    if (dept) {
+      departmentName = dept.name;
+      if (dept.faculties) {
+        facultyName = Array.isArray(dept.faculties) ? dept.faculties[0]?.name : dept.faculties.name || null;
+      }
+    }
+
+    return {
+      id: profile.id,
+      email: profile.email,
+      role: (profile.role || 'STUDENT').toUpperCase(),
+      full_name: profile.full_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || null,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      institutional_id: profile.institutional_id || null,
+      department_id: profile.department_id || null,
+      faculty_id: profile.faculty_id || null,
+      batch: profile.batch || null,
+      username: (profile as any)?.username || null,
+      avatar_url: profile.avatar_url || null,
+      bio: profile.bio || null,
+      phone: profile.phone || null,
+      created_at: profile.created_at,
+      department_name: departmentName,
+      faculty_name: facultyName,
+    };
+  } catch (err) {
+    console.error('Error fetching user full profile:', err);
+    return null;
+  }
+}
+

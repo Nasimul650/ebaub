@@ -58,7 +58,7 @@ export default function ViewMaterialDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl w-[90vw] h-[85vh] p-4 sm:p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl flex flex-col">
+      <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-4xl max-h-[90vh] h-[85vh] p-4 sm:p-6 bg-white rounded-3xl border border-slate-200 shadow-2xl flex flex-col">
         {/* Header */}
         <DialogHeader className="pr-8 space-y-1 shrink-0 text-left">
           <div className="flex flex-wrap items-center gap-2">

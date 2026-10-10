@@ -269,7 +269,7 @@ export default function CommandMenu() {
 
         <div className="p-3 border-t border-slate-200 bg-white text-[11px] text-slate-400 flex justify-between items-center">
           <span>Use <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-mono border border-slate-200">ESC</kbd> to close</span>
-          <span>EBAUB Command Center</span>
+          <span>EBAUB Digital Campus Command Center</span>
         </div>
       </Command.Dialog>
     </>

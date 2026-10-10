@@ -5,9 +5,25 @@ export interface UserProfile {
   email: string;
   fullName: string;
   role: UserRole;
-  avatarUrl?: string;
-  departmentId?: string;
+  avatarUrl?: string | null;
+  institutionalId?: string | null;
+  departmentId?: string | null;
+  batch?: string | null;
+  bio?: string | null;
+  phone?: string | null;
   createdAt: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  email: string;
+  fullName: string;
+  role: 'ADMIN' | 'TEACHER' | 'STUDENT';
+  institutionalId?: string | null;
+  avatarUrl?: string | null;
+  batch?: string | null;
+  bio?: string | null;
+  phone?: string | null;
 }
 
 export interface Faculty {
@@ -169,6 +185,13 @@ export interface TeachingMaterial {
   createdAt: string;
 }
 
+export interface DepartmentOption {
+  id: string;
+  name: string;
+  faculty_id?: string;
+  faculty_name?: string;
+}
+
 export interface CourseMaterial {
   id: string;
   teacher_id: string;
@@ -179,6 +202,9 @@ export interface CourseMaterial {
   file_size: number;
   file_type: string;
   created_at: string;
+  departments?: DepartmentOption[];
+  teacher_name?: string;
+  teacher_email?: string;
 }
 
 export interface QuizQuestion {

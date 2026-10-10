@@ -26,7 +26,7 @@ export default async function AdminFacultyPage() {
           </h1>
           <p className="text-xs text-slate-500 mt-1">Manage academic staff and faculty directories</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {hierarchy.length === 0 && (
             <form action={handleSeed}>
               <button 
@@ -52,7 +52,7 @@ export default async function AdminFacultyPage() {
         <div className="p-4 border-b border-slate-100 font-bold text-slate-900">
           Faculty Roster ({facultyList.length})
         </div>
-        <div className="overflow-x-auto">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left min-w-[600px]">
             <thead className="bg-campus-50 text-slate-500 border-b border-slate-200 font-semibold uppercase text-[10px]">
               <tr>
