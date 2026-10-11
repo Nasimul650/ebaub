@@ -28,10 +28,14 @@ export default async function StudentExamsPage() {
     'Student';
 
   // Fetch official exams and practice arena quizzes
-  const [{ exams: officialExams = [] }, { quizzes: practiceQuizzes = [] }] = await Promise.all([
+  const [officialResult, { quizzes: practiceQuizzes = [] }] = await Promise.all([
     getOfficialPublishedExams(),
     getStudentPracticeQuizzes(),
   ]);
+
+  const officialExams = officialResult.exams || [];
+  const studentFaculty = officialResult.studentFaculty || '';
+  const studentDepartment = officialResult.studentDepartment || '';
 
   return (
     <div className="py-2">
@@ -39,6 +43,8 @@ export default async function StudentExamsPage() {
         officialExams={officialExams}
         practiceQuizzes={practiceQuizzes}
         studentName={studentName}
+        studentFaculty={studentFaculty}
+        studentDepartment={studentDepartment}
       />
     </div>
   );

@@ -60,17 +60,19 @@ export async function getStudySessions(): Promise<{ success: boolean; sessions?:
       return { success: true, sessions: [] };
     }
 
-    const formattedSessions: StudySessionRecord[] = (data || []).map((s: any) => ({
-      id: s.id,
-      student_id: s.student_id,
-      title: s.title,
-      source_material_id: s.source_material_id,
-      personal_file_url: s.personal_file_url,
-      notes_content: s.notes_content,
-      created_at: s.created_at,
-      updated_at: s.updated_at,
-      source_material: s.course_materials ? (Array.isArray(s.course_materials) ? s.course_materials[0] : s.course_materials) : null,
-    }));
+    const formattedSessions: StudySessionRecord[] = (data || [])
+      .filter((s: any) => !s.title?.startsWith('__EXAM_SUBMISSION__:'))
+      .map((s: any) => ({
+        id: s.id,
+        student_id: s.student_id,
+        title: s.title,
+        source_material_id: s.source_material_id,
+        personal_file_url: s.personal_file_url,
+        notes_content: s.notes_content,
+        created_at: s.created_at,
+        updated_at: s.updated_at,
+        source_material: s.course_materials ? (Array.isArray(s.course_materials) ? s.course_materials[0] : s.course_materials) : null,
+      }));
 
     return { success: true, sessions: formattedSessions };
   } catch (err: any) {

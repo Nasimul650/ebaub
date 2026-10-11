@@ -9,7 +9,8 @@ import {
   Clock, 
   Layers, 
   FileQuestion,
-  Plus
+  Plus,
+  Users
 } from 'lucide-react';
 
 export interface DashboardQuizItem {
@@ -170,6 +171,16 @@ export default function RecentQuizzesList({ quizzes }: Props) {
                   </span>
 
                   <div className="flex items-center gap-1.5">
+                    {isPublished && (
+                      <Link
+                        href={`/teacher/quizzes/${quiz.id}/submissions`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-campus-50 hover:bg-campus-100 border border-campus-200 text-campus-900 font-bold text-xs transition-colors shadow-2xs"
+                        title="View Student Submissions"
+                      >
+                        <Users className="w-3.5 h-3.5 text-campus-700" />
+                        <span>Submissions</span>
+                      </Link>
+                    )}
                     <Link
                       href={`/teacher/quizzes/${quiz.id}/edit`}
                       className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs transition-colors shadow-2xs"

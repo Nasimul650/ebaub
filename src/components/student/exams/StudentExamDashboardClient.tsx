@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -18,7 +18,11 @@ import {
   GraduationCap,
   Layers,
   BarChart3,
-  Calendar
+  Calendar,
+  Filter,
+  X,
+  User,
+  BookMarked
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,16 +32,25 @@ interface Props {
   officialExams: ExamSummary[];
   practiceQuizzes: ExamSummary[];
   studentName: string;
+  studentFaculty?: string;
+  studentDepartment?: string;
 }
 
 export default function StudentExamDashboardClient({
   officialExams = [],
   practiceQuizzes = [],
   studentName,
+  studentFaculty = '',
+  studentDepartment = '',
 }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'official' | 'practice'>('official');
+
+  // Filter states
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedCourse, setSelectedCourse] = useState<string>('all');
+  const [selectedTeacher, setSelectedTeacher] = useState<string>('all');
 
   // Format date helper
   const formatDate = (dateStr: string) => {
@@ -53,32 +66,112 @@ export default function StudentExamDashboardClient({
     }
   };
 
-  // Filter exams based on search query
-  const filteredOfficial = officialExams.filter((exam) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      exam.title.toLowerCase().includes(q) ||
-      exam.course_code.toLowerCase().includes(q)
-    );
-  });
+  // Dynamically extract unique course codes
+  const officialCourses = useMemo(() => {
+    const set = new Set<string>();
+    officialExams.forEach((e) => {
+      if (e.course_code) set.add(e.course_code.trim());
+    });
+    return Array.from(set).sort();
+  }, [officialExams]);
 
-  const filteredPractice = practiceQuizzes.filter((exam) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      exam.title.toLowerCase().includes(q) ||
-      exam.course_code.toLowerCase().includes(q)
-    );
-  });
+  const practiceCourses = useMemo(() => {
+    const set = new Set<string>();
+    practiceQuizzes.forEach((e) => {
+      if (e.course_code) set.add(e.course_code.trim());
+    });
+    return Array.from(set).sort();
+  }, [practiceQuizzes]);
+
+  // Dynamically extract unique teacher names
+  const officialTeachers = useMemo(() => {
+    const set = new Set<string>();
+    officialExams.forEach((e) => {
+      if (e.teacher_name) set.add(e.teacher_name.trim());
+    });
+    return Array.from(set).sort();
+  }, [officialExams]);
+
+  // Check if any filter is active
+  const hasActiveFilters = Boolean(
+    searchQuery.trim() ||
+    selectedType !== 'all' ||
+    selectedCourse !== 'all' ||
+    selectedTeacher !== 'all'
+  );
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedType('all');
+    setSelectedCourse('all');
+    setSelectedTeacher('all');
+  };
+
+  // Filter exams based on all criteria
+  const filteredOfficial = useMemo(() => {
+    return officialExams.filter((exam) => {
+      // 1. Search Query
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        exam.title.toLowerCase().includes(q) ||
+        exam.course_code.toLowerCase().includes(q) ||
+        (exam.teacher_name && exam.teacher_name.toLowerCase().includes(q));
+
+      // 2. Exam / Question Type
+      const matchesType =
+        selectedType === 'all' ||
+        exam.exam_type?.toLowerCase() === selectedType.toLowerCase();
+
+      // 3. Course Code
+      const matchesCourse =
+        selectedCourse === 'all' ||
+        exam.course_code.toLowerCase() === selectedCourse.toLowerCase();
+
+      // 4. Teacher
+      const matchesTeacher =
+        selectedTeacher === 'all' ||
+        (exam.teacher_name && exam.teacher_name.toLowerCase() === selectedTeacher.toLowerCase());
+
+      return matchesSearch && matchesType && matchesCourse && matchesTeacher;
+    });
+  }, [officialExams, searchQuery, selectedType, selectedCourse, selectedTeacher]);
+
+  const filteredPractice = useMemo(() => {
+    return practiceQuizzes.filter((exam) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        exam.title.toLowerCase().includes(q) ||
+        exam.course_code.toLowerCase().includes(q);
+
+      const matchesType =
+        selectedType === 'all' ||
+        exam.exam_type?.toLowerCase() === selectedType.toLowerCase();
+
+      const matchesCourse =
+        selectedCourse === 'all' ||
+        exam.course_code.toLowerCase() === selectedCourse.toLowerCase();
+
+      return matchesSearch && matchesType && matchesCourse;
+    });
+  }, [practiceQuizzes, searchQuery, selectedType, selectedCourse]);
 
   // Calculate quick stats
-  const completedOfficialCount = officialExams.filter((e) => e.submission_status !== 'Not Started').length;
-  const gradedOfficialWithScore = officialExams.filter((e) => typeof e.score === 'number' && e.total_questions);
+  const completedOfficialCount = officialExams.filter(
+    (e) => e.submission_status !== 'Not Started'
+  ).length;
+
+  const gradedOfficialWithScore = officialExams.filter(
+    (e) => typeof e.score === 'number' && e.total_questions
+  );
+
   const avgScore = gradedOfficialWithScore.length > 0
     ? Math.round(
-        gradedOfficialWithScore.reduce((acc, curr) => acc + ((curr.score! / (curr.total_questions || 1)) * 100), 0) /
-        gradedOfficialWithScore.length
+        gradedOfficialWithScore.reduce(
+          (acc, curr) => acc + ((curr.score! / (curr.total_questions || 1)) * 100),
+          0
+        ) / gradedOfficialWithScore.length
       )
     : null;
 
@@ -98,19 +191,28 @@ export default function StudentExamDashboardClient({
             <p className="text-xs sm:text-sm text-campus-200/90 leading-relaxed">
               Take official course examinations published by university faculty, view detailed score breakdowns, and generate unlimited AI practice quizzes on any subject.
             </p>
+
+            {/* Department & Faculty Alignment Pill */}
+            {(studentFaculty || studentDepartment) && (
+              <div className="pt-2 flex items-center gap-2 text-xs font-medium text-campus-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+                <span>Curriculum Aligned:</span>
+                <span className="font-bold text-white bg-campus-800/80 px-2.5 py-0.5 rounded-lg border border-campus-700/60">
+                  {[studentDepartment, studentFaculty].filter(Boolean).join(' • ')}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Quick Action Button */}
           <div className="shrink-0 flex flex-col sm:flex-row gap-3">
-            <Button
-              asChild
-              className="bg-white hover:bg-slate-100 text-campus-950 font-extrabold text-xs rounded-2xl h-11 px-5 shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-95"
+            <Link
+              href="/student/exams/practice/new"
+              className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-campus-950 font-extrabold text-xs rounded-2xl h-11 px-5 shadow-sm transition-transform active:scale-95 cursor-pointer select-none"
             >
-              <Link href="/student/exams/practice/new">
-                <Sparkles className="w-4 h-4 text-campus-800" />
-                <span>Generate Practice Test</span>
-              </Link>
-            </Button>
+              <Sparkles className="w-4 h-4 text-campus-800 pointer-events-none" />
+              <span className="pointer-events-none">Generate Practice Test</span>
+            </Link>
           </div>
         </div>
 
@@ -136,56 +238,132 @@ export default function StudentExamDashboardClient({
         <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-campus-600/20 blur-3xl pointer-events-none" />
       </div>
 
-      {/* Tabs Switcher & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Custom Tab Pills */}
-        <div className="flex items-center p-1 rounded-2xl bg-slate-100 border border-slate-200/80 w-fit">
-          <button
-            type="button"
-            onClick={() => setActiveTab('official')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
-              activeTab === 'official'
-                ? 'bg-white text-campus-950 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Official Exams</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+      {/* Tabs Switcher */}
+      <div className="flex items-center p-1 rounded-2xl bg-slate-100 border border-slate-200/80 w-fit">
+        <button
+          type="button"
+          onClick={() => setActiveTab('official')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+            activeTab === 'official'
+              ? 'bg-white text-campus-950 shadow-2xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>Official Exams</span>
+          <span
+            className={`text-[10px] px-1.5 py-0.2 rounded-full ${
               activeTab === 'official' ? 'bg-campus-100 text-campus-900' : 'bg-slate-200 text-slate-600'
-            }`}>
-              {officialExams.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('practice')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
-              activeTab === 'practice'
-                ? 'bg-white text-campus-950 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Practice Arena</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+            {officialExams.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('practice')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
+            activeTab === 'practice'
+              ? 'bg-white text-campus-950 shadow-2xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <span>Practice Arena</span>
+          <span
+            className={`text-[10px] px-1.5 py-0.2 rounded-full ${
               activeTab === 'practice' ? 'bg-amber-100 text-amber-900' : 'bg-slate-200 text-slate-600'
-            }`}>
-              {practiceQuizzes.length}
-            </span>
-          </button>
+            }`}
+          >
+            {practiceQuizzes.length}
+          </span>
+        </button>
+      </div>
+
+      {/* Filter and Search Bar Toolbar */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+            <Filter className="w-4 h-4 text-campus-700" />
+            <span>Filter Exams & Quizzes</span>
+          </div>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 hover:text-red-700 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Clear All Filters</span>
+            </button>
+          )}
         </div>
 
-        {/* Search Bar */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by title or course code..."
-            className="pl-9 bg-white border-slate-200 text-xs h-10 rounded-xl"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search title, code, teacher..."
+              className="pl-8 bg-slate-50/70 border-slate-200 text-xs h-9 rounded-xl focus:bg-white"
+            />
+          </div>
+
+          {/* Filter by Type */}
+          <div>
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="w-full bg-slate-50/70 hover:bg-slate-100/70 border border-slate-200 text-slate-800 text-xs h-9 rounded-xl px-3 font-medium focus:outline-none focus:border-campus-700 cursor-pointer"
+            >
+              <option value="all">All Question Types</option>
+              <option value="mcq">Multiple Choice (MCQ)</option>
+              <option value="short_answer">Short Answer</option>
+              <option value="creative">Creative / Descriptive</option>
+            </select>
+          </div>
+
+          {/* Filter by Course */}
+          <div>
+            <select
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              className="w-full bg-slate-50/70 hover:bg-slate-100/70 border border-slate-200 text-slate-800 text-xs h-9 rounded-xl px-3 font-medium focus:outline-none focus:border-campus-700 cursor-pointer"
+            >
+              <option value="all">All Courses</option>
+              {(activeTab === 'official' ? officialCourses : practiceCourses).map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filter by Teacher (Official Tab only) */}
+          {activeTab === 'official' ? (
+            <div>
+              <select
+                value={selectedTeacher}
+                onChange={(e) => setSelectedTeacher(e.target.value)}
+                className="w-full bg-slate-50/70 hover:bg-slate-100/70 border border-slate-200 text-slate-800 text-xs h-9 rounded-xl px-3 font-medium focus:outline-none focus:border-campus-700 cursor-pointer"
+              >
+                <option value="all">All Instructors</option>
+                {officialTeachers.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="flex items-center text-[11px] text-slate-500 italic px-2">
+              Showing student-generated practice tests
+            </div>
+          )}
         </div>
       </div>
 
@@ -200,14 +378,26 @@ export default function StudentExamDashboardClient({
                 <FileCheck className="w-7 h-7" />
               </div>
               <h3 className="font-extrabold text-base text-slate-900">
-                {searchQuery ? 'No matching official exams found' : 'No official exams currently published'}
+                {hasActiveFilters ? 'No matching official exams found' : 'No official exams currently published'}
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                {searchQuery
-                  ? 'Try clearing your search query to see all published exams.'
+                {hasActiveFilters
+                  ? 'Try clearing your filters or search query to see all published exams for your faculty.'
+                  : studentFaculty || studentDepartment
+                  ? `There are currently no live published exams for ${[studentDepartment, studentFaculty].filter(Boolean).join(' / ')}. Check back soon or practice in the Arena!`
                   : 'Your course professors have not published any live exams yet. You can generate custom practice quizzes in the Practice Arena.'}
               </p>
-              {!searchQuery && (
+              {hasActiveFilters ? (
+                <div className="pt-2">
+                  <Button
+                    onClick={handleResetFilters}
+                    variant="outline"
+                    className="text-xs rounded-xl border-slate-200"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
                 <div className="pt-2">
                   <Button
                     onClick={() => setActiveTab('practice')}
@@ -261,6 +451,15 @@ export default function StudentExamDashboardClient({
                         <h3 className="font-extrabold text-sm text-slate-900 line-clamp-2">
                           {exam.title}
                         </h3>
+
+                        {/* Instructor line */}
+                        {exam.teacher_name && (
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1">
+                            <User className="w-3 h-3 text-slate-400" />
+                            <span className="truncate">Instructor: <strong className="text-slate-700 font-bold">{exam.teacher_name}</strong></span>
+                          </div>
+                        )}
+
                         <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1.5">
                           <span className="uppercase font-mono font-bold text-slate-600">{exam.exam_type}</span>
                           <span>•</span>
@@ -271,42 +470,32 @@ export default function StudentExamDashboardClient({
                       </div>
                     </div>
 
-                    {/* Action buttons */}
+                    {/* Action buttons - DIRECT <Link> tags with 100% full hitbox */}
                     <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                       {isCompleted ? (
                         <>
-                          <Button
-                            asChild
-                            variant="outline"
-                            size="sm"
-                            className="rounded-xl text-xs h-8 flex-1 border-slate-200"
+                          <Link
+                            href={`/student/exams/${exam.id}/results`}
+                            className="flex-1 inline-flex items-center justify-center rounded-xl text-xs font-bold h-9 border border-slate-200 bg-white text-slate-800 shadow-2xs hover:bg-slate-50 transition-all cursor-pointer select-none"
                           >
-                            <Link href={`/student/exams/${exam.id}/results`}>
-                              <span>View Results</span>
-                            </Link>
-                          </Button>
-                          <Button
-                            asChild
-                            size="sm"
-                            className="bg-campus-900 hover:bg-campus-800 text-white rounded-xl text-xs h-8 px-3 shadow-2xs"
+                            <span className="pointer-events-none">View Results</span>
+                          </Link>
+                          <Link
+                            href={`/student/exams/${exam.id}/take`}
+                            className="inline-flex items-center justify-center gap-1 bg-campus-900 hover:bg-campus-800 text-white font-bold rounded-xl text-xs h-9 px-3.5 shadow-2xs transition-all cursor-pointer select-none"
                           >
-                            <Link href={`/student/exams/${exam.id}/take`}>
-                              <RotateCcw className="w-3 h-3 mr-1" />
-                              <span>Retake</span>
-                            </Link>
-                          </Button>
+                            <RotateCcw className="w-3 h-3 pointer-events-none" />
+                            <span className="pointer-events-none">Retake</span>
+                          </Link>
                         </>
                       ) : (
-                        <Button
-                          asChild
-                          size="sm"
-                          className="w-full bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs rounded-xl h-9 shadow-2xs flex items-center justify-center gap-1.5"
+                        <Link
+                          href={`/student/exams/${exam.id}/take`}
+                          className="w-full inline-flex items-center justify-center gap-1.5 bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs rounded-xl h-10 shadow-2xs transition-all cursor-pointer select-none active:scale-[0.98]"
                         >
-                          <Link href={`/student/exams/${exam.id}/take`}>
-                            <span>Start Exam</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
-                        </Button>
+                          <span className="pointer-events-none">Start Exam</span>
+                          <ArrowRight className="w-3.5 h-3.5 pointer-events-none" />
+                        </Link>
                       )}
                     </div>
                   </div>
@@ -336,15 +525,13 @@ export default function StudentExamDashboardClient({
               </div>
             </div>
 
-            <Button
-              asChild
-              className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl h-9 px-4 shrink-0 shadow-2xs"
+            <Link
+              href="/student/exams/practice/new"
+              className="inline-flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl h-9 px-4 shrink-0 shadow-2xs cursor-pointer select-none"
             >
-              <Link href="/student/exams/practice/new">
-                <Plus className="w-4 h-4 mr-1" />
-                <span>Generate New Practice Test</span>
-              </Link>
-            </Button>
+              <Plus className="w-4 h-4 pointer-events-none" />
+              <span className="pointer-events-none">Generate New Practice Test</span>
+            </Link>
           </div>
 
           {filteredPractice.length === 0 ? (
@@ -353,24 +540,32 @@ export default function StudentExamDashboardClient({
                 <HelpCircle className="w-7 h-7" />
               </div>
               <h3 className="font-extrabold text-base text-slate-900">
-                {searchQuery ? 'No matching practice tests found' : 'No practice quizzes created yet'}
+                {hasActiveFilters ? 'No matching practice tests found' : 'No practice quizzes created yet'}
               </h3>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                {searchQuery
-                  ? 'Try a different search term.'
+                {hasActiveFilters
+                  ? 'Try a different search term or reset filters.'
                   : 'You have not created any AI practice quizzes yet. Create one now to test your conceptual knowledge and exam preparedness.'}
               </p>
-              {!searchQuery && (
+              {hasActiveFilters ? (
                 <div className="pt-2">
                   <Button
-                    asChild
-                    className="bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs rounded-xl h-9 px-5 shadow-2xs"
+                    onClick={handleResetFilters}
+                    variant="outline"
+                    className="text-xs rounded-xl border-slate-200"
                   >
-                    <Link href="/student/exams/practice/new">
-                      <Sparkles className="w-3.5 h-3.5 mr-1.5 text-campus-300" />
-                      <span>Create Your First Practice Quiz</span>
-                    </Link>
+                    Clear Filters
                   </Button>
+                </div>
+              ) : (
+                <div className="pt-2">
+                  <Link
+                    href="/student/exams/practice/new"
+                    className="inline-flex items-center justify-center gap-1.5 bg-campus-900 hover:bg-campus-800 text-white font-bold text-xs rounded-xl h-10 px-5 shadow-2xs cursor-pointer select-none"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-campus-300 pointer-events-none" />
+                    <span className="pointer-events-none">Create Your First Practice Quiz</span>
+                  </Link>
                 </div>
               )}
             </div>
@@ -424,42 +619,32 @@ export default function StudentExamDashboardClient({
                       </div>
                     </div>
 
-                    {/* Action buttons */}
+                    {/* Action buttons - DIRECT <Link> tags with full hitbox */}
                     <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                       {isCompleted ? (
                         <>
-                          <Button
-                            asChild
-                            variant="outline"
-                            size="sm"
-                            className="rounded-xl text-xs h-8 flex-1 border-slate-200"
+                          <Link
+                            href={`/student/exams/${quiz.id}/results`}
+                            className="flex-1 inline-flex items-center justify-center rounded-xl text-xs font-bold h-9 border border-slate-200 bg-white text-slate-800 shadow-2xs hover:bg-slate-50 transition-all cursor-pointer select-none"
                           >
-                            <Link href={`/student/exams/${quiz.id}/results`}>
-                              <span>Review</span>
-                            </Link>
-                          </Button>
-                          <Button
-                            asChild
-                            size="sm"
-                            className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs h-8 px-3 shadow-2xs"
+                            <span className="pointer-events-none">Review</span>
+                          </Link>
+                          <Link
+                            href={`/student/exams/${quiz.id}/take`}
+                            className="inline-flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs h-9 px-3.5 shadow-2xs transition-all cursor-pointer select-none"
                           >
-                            <Link href={`/student/exams/${quiz.id}/take`}>
-                              <RotateCcw className="w-3 h-3 mr-1" />
-                              <span>Retake</span>
-                            </Link>
-                          </Button>
+                            <RotateCcw className="w-3 h-3 pointer-events-none" />
+                            <span className="pointer-events-none">Retake</span>
+                          </Link>
                         </>
                       ) : (
-                        <Button
-                          asChild
-                          size="sm"
-                          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl h-9 shadow-2xs flex items-center justify-center gap-1.5"
+                        <Link
+                          href={`/student/exams/${quiz.id}/take`}
+                          className="w-full inline-flex items-center justify-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl h-10 shadow-2xs transition-all cursor-pointer select-none active:scale-[0.98]"
                         >
-                          <Link href={`/student/exams/${quiz.id}/take`}>
-                            <span>Take Practice Test</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </Link>
-                        </Button>
+                          <span className="pointer-events-none">Take Practice Test</span>
+                          <ArrowRight className="w-3.5 h-3.5 pointer-events-none" />
+                        </Link>
                       )}
                     </div>
                   </div>

@@ -17,13 +17,14 @@ import {
   Trash2, 
   RotateCcw, 
   Search, 
-  Filter, 
-  FileText, 
-  Globe, 
-  Check, 
+  Filter,
+  FileText,
+  Globe,
+  Check,
   AlertCircle,
   ExternalLink,
-  GraduationCap
+  GraduationCap,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -452,6 +453,21 @@ export default function TeacherQuizzesManager({ initialQuizzes }: TeacherQuizzes
                             </Button>
                           </Link>
 
+                          {/* Submissions Action (if published) */}
+                          {isPublished && (
+                            <Link href={`/teacher/quizzes/${quiz.id}/submissions`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-2.5 text-campus-900 bg-campus-50 border-campus-200 hover:bg-campus-100 rounded-lg text-xs font-bold gap-1 shadow-2xs"
+                                title="View Student Submissions"
+                              >
+                                <Users className="w-3.5 h-3.5 text-campus-700" />
+                                <span className="hidden sm:inline">Submissions</span>
+                              </Button>
+                            </Link>
+                          )}
+
                           {/* Quick Edit Button */}
                           <Link href={`/teacher/quizzes/${quiz.id}/edit`}>
                             <Button
@@ -470,7 +486,7 @@ export default function TeacherQuizzesManager({ initialQuizzes }: TeacherQuizzes
                             <DropdownMenuTrigger asChild>
                               <button
                                 type="button"
-                                className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors border border-slate-200/70"
+                                className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors border border-slate-200/70 cursor-pointer"
                                 aria-label="Open Actions Menu"
                               >
                                 <MoreVertical className="w-4 h-4" />
@@ -480,6 +496,17 @@ export default function TeacherQuizzesManager({ initialQuizzes }: TeacherQuizzes
                             <DropdownMenuContent align="end" className="w-48">
                               <DropdownMenuLabel>Exam Actions</DropdownMenuLabel>
                               
+                              {/* Submissions Action */}
+                              {isPublished && (
+                                <DropdownMenuItem
+                                  onClick={() => router.push(`/teacher/quizzes/${quiz.id}/submissions`)}
+                                  className="font-bold text-campus-900"
+                                >
+                                  <Users className="w-3.5 h-3.5 text-campus-700" />
+                                  <span>View Submissions</span>
+                                </DropdownMenuItem>
+                              )}
+
                               {/* Edit Action */}
                               <DropdownMenuItem
                                 onClick={() => router.push(`/teacher/quizzes/${quiz.id}/edit`)}

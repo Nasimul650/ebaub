@@ -69,29 +69,22 @@ export default async function ExamResultsPage({ params, searchParams }: Props) {
     <div className="max-w-3xl mx-auto space-y-6 pb-16 py-2">
       {/* Top Navigation */}
       <div className="flex items-center justify-between">
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className="rounded-xl text-xs border-slate-200"
+        <Link
+          href="/student/exams"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold h-9 px-3.5 border border-slate-200 bg-white text-slate-700 shadow-2xs hover:bg-slate-50 transition-all cursor-pointer select-none"
         >
-          <Link href="/student/exams">
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            <span>Back to Exam Center</span>
-          </Link>
-        </Button>
+          <ArrowLeft className="w-3.5 h-3.5 pointer-events-none" />
+          <span className="pointer-events-none">Back to Exam Center</span>
+        </Link>
 
         <div className="flex items-center gap-2">
-          <Button
-            asChild
-            size="sm"
-            className="bg-campus-900 hover:bg-campus-800 text-white rounded-xl text-xs shadow-2xs"
+          <Link
+            href={`/student/exams/${id}/take`}
+            className="inline-flex items-center justify-center gap-1.5 bg-campus-900 hover:bg-campus-800 text-white font-bold rounded-xl text-xs h-9 px-3.5 shadow-2xs transition-all cursor-pointer select-none active:scale-95"
           >
-            <Link href={`/student/exams/${id}/take`}>
-              <RotateCcw className="w-3.5 h-3.5 mr-1" />
-              <span>Retake Exam</span>
-            </Link>
-          </Button>
+            <RotateCcw className="w-3.5 h-3.5 pointer-events-none" />
+            <span className="pointer-events-none">Retake Exam</span>
+          </Link>
         </div>
       </div>
 

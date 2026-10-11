@@ -24,6 +24,131 @@ export interface ExamSummary {
   score?: number | null;
   total_questions?: number | null;
   latest_submission_id?: string | null;
+  teacher_name?: string;
+  teacher_id?: string;
+  faculty_name?: string;
+  department_name?: string;
+}
+
+const FACULTY_COURSE_PREFIX_MAP: Record<string, string[]> = {
+  agriculture: ['AG', 'AGRON', 'SOIL', 'HORT', 'ENTO', 'PATH', 'AGEC'],
+  cse: ['CSE', 'EEE', 'SWE', 'MATH', 'PHY', 'CHEM'],
+  business: ['BBA', 'FIN', 'MKT', 'ACT', 'MGT', 'HRM', 'BUS', 'ACC', 'ECO'],
+  law: ['LAW', 'JUR', 'CIV', 'CON', 'CRIM', 'LL'],
+};
+
+const FACULTY_UUID_MAP: Record<string, string> = {
+  '31a61ba5-5059-4f9e-97a5-b5aba92aab65': 'agriculture',
+  '2c1f667a-34f7-4416-8563-134ed350359e': 'cse',
+  'e795fc21-a58d-4f18-9bbd-6ca9ebfd8dec': 'business',
+  'ce7a6e67-6659-4b12-9078-daa2f36e6c92': 'law',
+};
+
+/**
+ * Helper to fetch student submissions from both exam_submissions table and fallback study_sessions storage
+ */
+async function getStudentSubmissionsMap(admin: any, studentId: string): Promise<Map<string, any>> {
+  const subMap = new Map<string, any>();
+
+  // 1. Try from official exam_submissions table
+  try {
+    const { data: subs, error: subError } = await admin
+      .from('exam_submissions')
+      .select('id, quiz_id, score, total_questions, submitted_at')
+      .eq('student_id', studentId)
+      .order('submitted_at', { ascending: false });
+
+    if (!subError && subs) {
+      for (const sub of subs) {
+        if (!subMap.has(sub.quiz_id)) {
+          subMap.set(sub.quiz_id, sub);
+        }
+      }
+    }
+  } catch {
+    // Ignore schema cache errors
+  }
+
+  // 2. Also check fallback storage in study_sessions table
+  try {
+    const { data: fallbackSubs } = await admin
+      .from('study_sessions')
+      .select('id, title, notes_content, created_at')
+      .eq('student_id', studentId)
+      .like('title', '__EXAM_SUBMISSION__:%')
+      .order('created_at', { ascending: false });
+
+    if (fallbackSubs && fallbackSubs.length > 0) {
+      for (const fs of fallbackSubs) {
+        try {
+          const quizId = fs.title.replace('__EXAM_SUBMISSION__:', '').trim();
+          if (!subMap.has(quizId) && fs.notes_content) {
+            const parsed = JSON.parse(fs.notes_content);
+            subMap.set(quizId, {
+              id: fs.id,
+              quiz_id: quizId,
+              score: parsed.score ?? null,
+              total_questions: parsed.total_questions ?? null,
+              submitted_at: parsed.submitted_at || fs.created_at,
+            });
+          }
+        } catch {
+          // ignore corrupted JSON
+        }
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
+  return subMap;
+}
+
+/**
+ * Check whether a quiz aligns with a student's faculty and department
+ */
+function isQuizAlignedWithStudent(
+  quiz: { course_code?: string; teacher_id?: string },
+  studentFacultyKey: string | null,
+  studentFacultyId: string | null,
+  studentDeptId: string | null,
+  teacher: { faculty_id?: string | null; department_id?: string | null } | null | undefined
+): boolean {
+  // If student has no faculty and no department assigned, show all exams
+  if (!studentFacultyId && !studentDeptId) return true;
+
+  // Direct department match
+  if (studentDeptId && teacher?.department_id && studentDeptId === teacher.department_id) {
+    return true;
+  }
+
+  // Direct teacher faculty match
+  if (studentFacultyId && teacher?.faculty_id && studentFacultyId === teacher.faculty_id) {
+    return true;
+  }
+
+  const rawCourse = (quiz.course_code || '').trim().toUpperCase();
+  if (!rawCourse) return true;
+
+  // Check which faculty the course code belongs to
+  let courseBelongsToFaculty: string | null = null;
+  for (const [fKey, prefixes] of Object.entries(FACULTY_COURSE_PREFIX_MAP)) {
+    if (prefixes.some((p) => rawCourse.startsWith(p) || rawCourse.includes(p))) {
+      courseBelongsToFaculty = fKey;
+      break;
+    }
+  }
+
+  if (courseBelongsToFaculty && studentFacultyKey) {
+    return courseBelongsToFaculty === studentFacultyKey;
+  }
+
+  // If teacher has a known faculty that differs from student, exclude
+  if (teacher?.faculty_id && studentFacultyId && teacher.faculty_id !== studentFacultyId) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -32,6 +157,8 @@ export interface ExamSummary {
 export async function getOfficialPublishedExams(): Promise<{
   success: boolean;
   exams: ExamSummary[];
+  studentFaculty?: string;
+  studentDepartment?: string;
   error?: string;
 }> {
   try {
@@ -44,7 +171,38 @@ export async function getOfficialPublishedExams(): Promise<{
 
     const admin = createAdminClient();
 
-    // Query published quizzes using admin client to guarantee access regardless of DB RLS state
+    // 1. Fetch current student's profile for faculty and department filtering
+    const { data: studentProfile } = await admin
+      .from('profiles')
+      .select('id, department_id, faculty_id, role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    let studentFacultyName = '';
+    let studentDeptName = '';
+    const studentFacultyId = studentProfile?.faculty_id || null;
+    const studentDeptId = studentProfile?.department_id || null;
+    const studentFacultyKey = studentFacultyId ? (FACULTY_UUID_MAP[studentFacultyId] || null) : null;
+
+    if (studentFacultyId) {
+      const { data: fac } = await admin
+        .from('faculties')
+        .select('name')
+        .eq('id', studentFacultyId)
+        .maybeSingle();
+      studentFacultyName = fac?.name || '';
+    }
+
+    if (studentDeptId) {
+      const { data: dept } = await admin
+        .from('departments')
+        .select('name')
+        .eq('id', studentDeptId)
+        .maybeSingle();
+      studentDeptName = dept?.name || '';
+    }
+
+    // 2. Query published quizzes using admin client
     const { data: quizzes, error: quizError } = await admin
       .from('quizzes')
       .select(`
@@ -54,6 +212,7 @@ export async function getOfficialPublishedExams(): Promise<{
         status,
         exam_type,
         created_at,
+        teacher_id,
         quiz_questions (
           id
         )
@@ -66,34 +225,43 @@ export async function getOfficialPublishedExams(): Promise<{
       return { success: true, exams: [] };
     }
 
-    // Filter out practice quizzes if the property is set
-    const officialQuizzes = (quizzes || []).filter((q: any) => !q.is_practice);
+    // Filter out exams created by the student themselves (those are practice quizzes)
+    const officialCandidateQuizzes = (quizzes || []).filter(
+      (q: any) => q.teacher_id !== user.id && !q.is_practice
+    );
 
-    // Fetch student's submissions to determine completion status & scores
-    let studentSubmissions: any[] = [];
-    try {
-      const { data: subs } = await admin
-        .from('exam_submissions')
-        .select('id, quiz_id, score, total_questions, submitted_at')
-        .eq('student_id', user.id)
-        .order('submitted_at', { ascending: false });
+    // 3. Fetch instructor/teacher profiles for teacher names and department/faculty alignment
+    const teacherIds = Array.from(
+      new Set(officialCandidateQuizzes.map((q: any) => q.teacher_id).filter(Boolean))
+    );
 
-      studentSubmissions = subs || [];
-    } catch {
-      // exam_submissions table might not be initialized yet
+    const teacherMap = new Map<string, any>();
+    if (teacherIds.length > 0) {
+      const { data: teacherProfiles } = await admin
+        .from('profiles')
+        .select('id, full_name, email, department_id, faculty_id')
+        .in('id', teacherIds);
+
+      (teacherProfiles || []).forEach((t: any) => {
+        teacherMap.set(t.id, t);
+      });
     }
 
-    const subMap = new Map<string, any>();
-    for (const sub of studentSubmissions) {
-      if (!subMap.has(sub.quiz_id)) {
-        subMap.set(sub.quiz_id, sub);
-      }
-    }
+    // 4. Fetch student submissions (both official and fallback)
+    const subMap = await getStudentSubmissionsMap(admin, user.id);
 
-    const exams: ExamSummary[] = officialQuizzes.map((q: any) => {
+    // 5. Filter official exams by student's faculty & department
+    const alignedQuizzes = officialCandidateQuizzes.filter((q: any) => {
+      const teacher = teacherMap.get(q.teacher_id);
+      return isQuizAlignedWithStudent(q, studentFacultyKey, studentFacultyId, studentDeptId, teacher);
+    });
+
+    const exams: ExamSummary[] = alignedQuizzes.map((q: any) => {
       const sub = subMap.get(q.id);
       const isCompleted = Boolean(sub);
       const qCount = Array.isArray(q.quiz_questions) ? q.quiz_questions.length : 0;
+      const teacher = teacherMap.get(q.teacher_id);
+      const teacherName = teacher?.full_name?.trim() || teacher?.email?.split('@')[0] || 'Faculty Instructor';
 
       let submissionStatus: 'Not Started' | 'Completed' | 'Graded' = 'Not Started';
       if (isCompleted) {
@@ -113,10 +281,19 @@ export async function getOfficialPublishedExams(): Promise<{
         score: sub?.score ?? null,
         total_questions: sub?.total_questions ?? qCount,
         latest_submission_id: sub?.id ?? null,
+        teacher_name: teacherName,
+        teacher_id: q.teacher_id,
+        faculty_name: studentFacultyName,
+        department_name: studentDeptName,
       };
     });
 
-    return { success: true, exams };
+    return {
+      success: true,
+      exams,
+      studentFaculty: studentFacultyName,
+      studentDepartment: studentDeptName,
+    };
   } catch (err: any) {
     console.error('getOfficialPublishedExams exception:', err);
     return { success: false, exams: [], error: err.message };
@@ -152,61 +329,22 @@ export async function getStudentPracticeQuizzes(): Promise<{
         status,
         exam_type,
         created_at,
+        teacher_id,
         quiz_questions (
           id
         )
       `)
-      .or(`teacher_id.eq.${user.id},creator_id.eq.${user.id}`)
+      .eq('teacher_id', user.id)
       .order('created_at', { ascending: false });
 
     if (!quizError && userQuizzes) {
       data = userQuizzes;
-    } else {
-      // Fallback query if only teacher_id exists
-      const { data: fallbackData } = await admin
-        .from('quizzes')
-        .select(`
-          id,
-          course_code,
-          title,
-          status,
-          exam_type,
-          created_at,
-          quiz_questions (
-            id
-          )
-        `)
-        .eq('teacher_id', user.id)
-        .order('created_at', { ascending: false });
-
-      data = fallbackData || [];
     }
 
-    // Only treat as practice test if is_practice is true or student created it
-    const practiceQuizzes = data.filter((q: any) => q.is_practice !== false);
+    // Fetch student's submissions for practice tests (both official and fallback)
+    const subMap = await getStudentSubmissionsMap(admin, user.id);
 
-    // Fetch student's submissions for practice tests
-    let studentSubmissions: any[] = [];
-    try {
-      const { data: subs } = await admin
-        .from('exam_submissions')
-        .select('id, quiz_id, score, total_questions, submitted_at')
-        .eq('student_id', user.id)
-        .order('submitted_at', { ascending: false });
-
-      studentSubmissions = subs || [];
-    } catch {
-      // Table fallback
-    }
-
-    const subMap = new Map<string, any>();
-    for (const sub of studentSubmissions) {
-      if (!subMap.has(sub.quiz_id)) {
-        subMap.set(sub.quiz_id, sub);
-      }
-    }
-
-    const summaries: ExamSummary[] = practiceQuizzes.map((q: any) => {
+    const summaries: ExamSummary[] = data.map((q: any) => {
       const sub = subMap.get(q.id);
       const isCompleted = Boolean(sub);
       const qCount = Array.isArray(q.quiz_questions) ? q.quiz_questions.length : 0;
@@ -224,6 +362,7 @@ export async function getStudentPracticeQuizzes(): Promise<{
         score: sub?.score ?? null,
         total_questions: sub?.total_questions ?? qCount,
         latest_submission_id: sub?.id ?? null,
+        teacher_name: 'Self-Generated Practice',
       };
     });
 
@@ -365,35 +504,71 @@ export async function submitExam(
 
     const finalScore = mcqCount > 0 ? calculatedScore : null;
 
-    // 2. Insert into exam_submissions using admin client
-    let submissionId = `temp-${Date.now()}`;
-    const { data: submission, error: subError } = await admin
-      .from('exam_submissions')
-      .insert({
-        quiz_id: quizId,
-        student_id: user.id,
-        score: finalScore,
-        total_questions: questions.length,
-      })
-      .select('id')
-      .single();
+    // 2. Try inserting into official exam_submissions table
+    let submissionId = `sub-${Date.now()}`;
+    let writeSuccess = false;
 
-    if (!subError && submission) {
-      submissionId = submission.id;
+    try {
+      const { data: submission, error: subError } = await admin
+        .from('exam_submissions')
+        .insert({
+          quiz_id: quizId,
+          student_id: user.id,
+          score: finalScore,
+          total_questions: questions.length,
+        })
+        .select('id')
+        .single();
 
-      // 3. Bulk insert into exam_answers
-      if (answersToInsert.length > 0) {
-        const answersPayload = answersToInsert.map((a) => ({
-          submission_id: submission.id,
-          question_id: a.question_id,
-          student_answer: a.student_answer,
-          is_correct: a.is_correct,
-        }));
+      if (!subError && submission) {
+        submissionId = submission.id;
+        writeSuccess = true;
 
-        await admin.from('exam_answers').insert(answersPayload);
+        // Bulk insert into exam_answers
+        if (answersToInsert.length > 0) {
+          const answersPayload = answersToInsert.map((a) => ({
+            submission_id: submission.id,
+            question_id: a.question_id,
+            student_answer: a.student_answer,
+            is_correct: a.is_correct,
+          }));
+
+          await admin.from('exam_answers').insert(answersPayload);
+        }
       }
-    } else {
-      console.warn('exam_submissions write notice (table may need 0021 migration):', subError?.message);
+    } catch (e: any) {
+      console.warn('exam_submissions write attempt caught:', e?.message);
+    }
+
+    // 3. Fallback persistence in study_sessions if exam_submissions is not yet migrated
+    if (!writeSuccess) {
+      try {
+        const fallbackPayload = {
+          quiz_id: quizId,
+          student_id: user.id,
+          score: finalScore,
+          total_questions: questions.length,
+          answers: answersToInsert,
+          submitted_at: new Date().toISOString(),
+        };
+
+        const { data: fallbackRow, error: fbErr } = await admin
+          .from('study_sessions')
+          .insert({
+            student_id: user.id,
+            title: `__EXAM_SUBMISSION__:${quizId}`,
+            notes_content: JSON.stringify(fallbackPayload),
+          })
+          .select('id')
+          .single();
+
+        if (!fbErr && fallbackRow) {
+          submissionId = fallbackRow.id;
+          writeSuccess = true;
+        }
+      } catch (fbErr: any) {
+        console.error('Fallback submission persistence caught:', fbErr?.message);
+      }
     }
 
     revalidatePath('/student/exams');
@@ -425,8 +600,10 @@ export async function getExamSubmissionResults(quizId: string, submissionId?: st
 
     const admin = createAdminClient();
 
-    // 1. Fetch submission
+    // 1. Fetch submission record (from exam_submissions or fallback study_sessions)
     let subData: any = null;
+    let fallbackAnswers: any[] | null = null;
+
     try {
       let subQuery = admin
         .from('exam_submissions')
@@ -434,7 +611,7 @@ export async function getExamSubmissionResults(quizId: string, submissionId?: st
         .eq('quiz_id', quizId)
         .eq('student_id', user.id);
 
-      if (submissionId && !submissionId.startsWith('temp-')) {
+      if (submissionId && !submissionId.startsWith('temp-') && !submissionId.startsWith('sub-')) {
         subQuery = subQuery.eq('id', submissionId);
       } else {
         subQuery = subQuery.order('submitted_at', { ascending: false }).limit(1);
@@ -446,7 +623,40 @@ export async function getExamSubmissionResults(quizId: string, submissionId?: st
       // Table fallback
     }
 
-    // Default submission record if table not yet initialized
+    // Check fallback in study_sessions if subData is null
+    if (!subData) {
+      try {
+        let fbQuery = admin
+          .from('study_sessions')
+          .select('id, title, notes_content, created_at')
+          .eq('student_id', user.id)
+          .like('title', `__EXAM_SUBMISSION__:${quizId}`);
+
+        if (submissionId && !submissionId.startsWith('temp-') && !submissionId.startsWith('sub-')) {
+          fbQuery = fbQuery.eq('id', submissionId);
+        } else {
+          fbQuery = fbQuery.order('created_at', { ascending: false }).limit(1);
+        }
+
+        const { data: fbRow } = await fbQuery.maybeSingle();
+        if (fbRow && fbRow.notes_content) {
+          const parsed = JSON.parse(fbRow.notes_content);
+          subData = {
+            id: fbRow.id,
+            quiz_id: quizId,
+            student_id: user.id,
+            score: parsed.score ?? null,
+            total_questions: parsed.total_questions ?? 0,
+            submitted_at: parsed.submitted_at || fbRow.created_at,
+          };
+          fallbackAnswers = parsed.answers || [];
+        }
+      } catch {
+        // Fallback error
+      }
+    }
+
+    // Default submission record if neither found
     if (!subData) {
       subData = {
         id: submissionId || `sub-${Date.now()}`,
@@ -473,14 +683,18 @@ export async function getExamSubmissionResults(quizId: string, submissionId?: st
 
     // 4. Fetch student's answers
     let answers: any[] = [];
-    try {
-      const { data: ansData } = await admin
-        .from('exam_answers')
-        .select('question_id, student_answer, is_correct')
-        .eq('submission_id', subData.id);
-      answers = ansData || [];
-    } catch {
-      // Fallback
+    if (fallbackAnswers && Array.isArray(fallbackAnswers)) {
+      answers = fallbackAnswers;
+    } else {
+      try {
+        const { data: ansData } = await admin
+          .from('exam_answers')
+          .select('question_id, student_answer, is_correct')
+          .eq('submission_id', subData.id);
+        answers = ansData || [];
+      } catch {
+        // Fallback
+      }
     }
 
     const answerMap = new Map<string, any>();

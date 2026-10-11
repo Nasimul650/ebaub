@@ -77,6 +77,7 @@ export default function ExamTakeClient({
 
         if (res.success && res.submissionId) {
           router.push(`/student/exams/${quiz.id}/results?submissionId=${res.submissionId}`);
+          router.refresh();
         } else {
           setErrorMsg(res.error || 'Failed to submit exam. Please try again.');
         }
@@ -92,17 +93,13 @@ export default function ExamTakeClient({
       {/* Sticky Header Bar */}
       <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-4 shadow-sm flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="p-2 h-9 w-9 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-900 shrink-0"
+          <Link
+            href="/student/exams"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors shrink-0 cursor-pointer select-none active:scale-95"
             title="Exit Exam"
           >
-            <Link href="/student/exams">
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-          </Button>
+            <ArrowLeft className="w-4 h-4 pointer-events-none" />
+          </Link>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
