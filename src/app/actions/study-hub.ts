@@ -277,8 +277,27 @@ export async function uploadPersonalStudyFile(formData: FormData): Promise<{
       return { success: false, error: 'No file provided.' };
     }
 
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      return { success: false, error: 'Only PDF documents are supported in the Interactive PDF Viewer.' };
+    const SUPPORTED_MIME_TYPES = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/vnd.ms-powerpoint',
+      'image/png',
+      'image/jpeg',
+      'image/gif',
+      'image/webp',
+    ];
+    const SUPPORTED_EXTENSIONS = [
+      '.pdf', '.docx', '.doc', '.pptx', '.ppt', '.png', '.jpg', '.jpeg', '.gif', '.webp'
+    ];
+
+    const fileNameLower = file.name.toLowerCase();
+    const isSupportedExt = SUPPORTED_EXTENSIONS.some(ext => fileNameLower.endsWith(ext));
+    const isSupportedMime = SUPPORTED_MIME_TYPES.includes(file.type);
+
+    if (!isSupportedExt && !isSupportedMime) {
+      return { success: false, error: 'Unsupported file type. Supported formats: PDF, DOCX, DOC, PPTX, PPT, PNG, JPG, GIF, WEBP.' };
     }
 
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -289,7 +308,7 @@ export async function uploadPersonalStudyFile(formData: FormData): Promise<{
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: true,
-        contentType: 'application/pdf',
+        contentType: file.type || 'application/octet-stream',
       });
 
     if (uploadError) {
@@ -302,7 +321,7 @@ export async function uploadPersonalStudyFile(formData: FormData): Promise<{
       .getPublicUrl(filePath);
 
     const publicUrl = publicUrlData.publicUrl;
-    const sessionTitle = file.name.replace(/\.pdf$/i, '').replace(/_/g, ' ');
+    const sessionTitle = file.name.replace(/\.(pdf|docx|doc|pptx|ppt|png|jpe?g|gif|webp)$/i, '').replace(/_/g, ' ');
 
     const createRes = await createStudySession({
       title: sessionTitle || 'Personal Study Notes',
