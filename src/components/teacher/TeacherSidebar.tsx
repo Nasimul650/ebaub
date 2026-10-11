@@ -56,7 +56,7 @@ export default function TeacherSidebar({ profile }: { profile?: Profile | null }
     { label: 'Dashboard', href: '/teacher', icon: LayoutDashboard },
     { label: 'AI Quiz Generator', href: '/teacher/quizzes', icon: Sparkles },
     { label: 'Course Materials', href: '/teacher/materials', icon: BookOpenCheck },
-    { label: 'Teaching Overview', href: '/teacher/teaching', icon: GraduationCap },
+    { label: 'Teaching Overview', href: '/teacher/overview', icon: GraduationCap },
   ];
 
   // Resolve Profile Data

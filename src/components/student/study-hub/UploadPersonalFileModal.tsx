@@ -25,6 +25,25 @@ interface Props {
   onClose: () => void;
 }
 
+const SUPPORTED_TYPES: Record<string, string[]> = {
+  'application/pdf': ['.pdf'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/msword': ['.doc'],
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+  'application/vnd.ms-powerpoint': ['.ppt'],
+  'image/png': ['.png'],
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/gif': ['.gif'],
+  'image/webp': ['.webp'],
+};
+
+const ALL_SUPPORTED_EXTENSIONS = Object.values(SUPPORTED_TYPES).flat();
+const ACCEPT_ATTRIBUTE = [
+  ...ALL_SUPPORTED_EXTENSIONS,
+  ...Object.keys(SUPPORTED_TYPES),
+  'image/*'
+].join(',');
+
 export default function UploadPersonalFileModal({ isOpen, onClose }: Props) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,8 +54,12 @@ export default function UploadPersonalFileModal({ isOpen, onClose }: Props) {
 
   const handleFile = (file: File) => {
     setErrorMessage(null);
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-      setErrorMessage('Only PDF documents are supported for the split-screen viewer.');
+    const fileNameLower = file.name.toLowerCase();
+    const isSupportedExt = ALL_SUPPORTED_EXTENSIONS.some((ext) => fileNameLower.endsWith(ext));
+    const isSupportedMime = Boolean(SUPPORTED_TYPES[file.type]) || file.type.startsWith('image/');
+
+    if (!isSupportedExt && !isSupportedMime) {
+      setErrorMessage('Unsupported file format. Please upload a PDF, Word (DOCX/DOC), PowerPoint (PPTX/PPT), or image file.');
       return;
     }
     if (file.size > 50 * 1024 * 1024) {
@@ -104,7 +127,7 @@ export default function UploadPersonalFileModal({ isOpen, onClose }: Props) {
             Upload Personal Study File
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500">
-            Upload your own lecture PDF, research article, or textbook chapter to study with split-screen highlights and notes.
+            Upload your lecture slides, notes, Word documents, PDFs, or images to study with split-screen tools and notes.
           </DialogDescription>
         </DialogHeader>
 
@@ -113,7 +136,7 @@ export default function UploadPersonalFileModal({ isOpen, onClose }: Props) {
           <input
             ref={fileInputRef}
             type="file"
-            accept="application/pdf"
+            accept={ACCEPT_ATTRIBUTE}
             onChange={handleInputChange}
             className="hidden"
           />
@@ -138,10 +161,10 @@ export default function UploadPersonalFileModal({ isOpen, onClose }: Props) {
                 <Upload className="w-6 h-6" />
               </div>
               <h4 className="font-bold text-sm text-slate-900">
-                Click to browse or drag & drop PDF
+                Click to browse or drag & drop file
               </h4>
               <p className="text-xs text-slate-500 mt-1">
-                Standard PDF documents up to 50MB
+                PDF, Word (.docx), PowerPoint (.pptx), or Images up to 50MB
               </p>
             </div>
           ) : (

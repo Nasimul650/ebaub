@@ -15,6 +15,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   ShieldCheck,
+  Award,
   X
 } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
@@ -57,6 +58,7 @@ export default function StudentSidebar({ profile }: { profile?: Profile | null }
   const navItems = [
     { label: 'Dashboard', href: '/student', icon: LayoutDashboard },
     { label: 'Study Hub', href: '/student/study-hub', icon: BookOpen },
+    { label: 'Exams & Quizzes', href: '/student/exams', icon: Award },
     { label: 'Course Files', href: '/student/files', icon: FolderDown },
     { label: 'AI Tutor', href: '/student/ai-tutor', icon: Bot },
   ];

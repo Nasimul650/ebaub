@@ -194,7 +194,7 @@ export default function StudyHubDashboardClient({
                 className="border-slate-200 text-slate-700 hover:text-campus-900 font-bold text-xs rounded-xl h-9 px-4"
               >
                 <Upload className="w-3.5 h-3.5 mr-1.5 text-campus-700" />
-                <span>Upload PDF</span>
+                <span>Upload File</span>
               </Button>
             </div>
           )}
@@ -222,7 +222,7 @@ export default function StudyHubDashboardClient({
                     ) : (
                       <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold flex items-center gap-1">
                         <FileText className="w-3 h-3 text-slate-500" />
-                        <span>Personal PDF</span>
+                        <span>Personal File</span>
                       </span>
                     )}
 
