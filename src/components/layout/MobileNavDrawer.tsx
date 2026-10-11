@@ -17,7 +17,8 @@ import {
   Building2, 
   Settings,
   Calendar,
-  Loader2
+  Loader2,
+  Award
 } from 'lucide-react';
 import type { CurrentUser } from '@/types';
 import { createClient } from '@/utils/supabase/client';
@@ -180,6 +181,10 @@ export default function MobileNavDrawer({
                 <Link href="/student/study-hub" onClick={onClose} className="flex items-center gap-2 py-1.5 text-slate-700 hover:text-campus-900">
                   <BookOpen className="w-3.5 h-3.5 text-campus-700" />
                   <span>Interactive Study Hub</span>
+                </Link>
+                <Link href="/student/exams" onClick={onClose} className="flex items-center gap-2 py-1.5 text-slate-700 hover:text-campus-900">
+                  <Award className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Exams & Quizzes</span>
                 </Link>
               </>
             )}

@@ -5,10 +5,11 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
   size?: "default" | "sm" | "lg" | "icon"
+  asChild?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => {
+  ({ className, variant = "default", size = "default", asChild = false, children, ...props }, ref) => {
     const variants: Record<string, string> = {
       default: "bg-campus-900 text-white shadow-xs hover:bg-campus-800",
       destructive: "bg-red-600 text-white shadow-xs hover:bg-red-700",
@@ -25,17 +26,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       icon: "h-9 w-9",
     }
 
+    const combinedClassName = cn(
+      "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-campus-700 disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-[0.98]",
+      variants[variant] || variants.default,
+      sizes[size] || sizes.default,
+      className
+    )
+
+    if (asChild && React.isValidElement(children)) {
+      return React.cloneElement(children as React.ReactElement<any>, {
+        className: cn(combinedClassName, (children.props as any)?.className),
+        ...props,
+      })
+    }
+
     return (
       <button
         ref={ref}
-        className={cn(
-          "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-campus-700 disabled:pointer-events-none disabled:opacity-50 cursor-pointer active:scale-[0.98]",
-          variants[variant] || variants.default,
-          sizes[size] || sizes.default,
-          className
-        )}
+        className={combinedClassName}
         {...props}
-      />
+      >
+        {children}
+      </button>
     )
   }
 )

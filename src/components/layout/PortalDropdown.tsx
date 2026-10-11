@@ -19,7 +19,8 @@ import {
   Loader2,
   ArrowRight,
   ExternalLink,
-  Hash
+  Hash,
+  Award
 } from 'lucide-react';
 import type { CurrentUser } from '@/types';
 import { createClient } from '@/utils/supabase/client';
@@ -392,6 +393,19 @@ export default function PortalDropdown({
               <div>
                 <div className="font-bold text-slate-800 group-hover:text-campus-900">Interactive Study Hub</div>
                 <div className="text-[10px] text-slate-400">Split-screen PDF & Smart Notepad</div>
+              </div>
+            </Link>
+
+            <Link
+              href="/student/exams"
+              className="flex items-center gap-3 px-4 py-2 hover:bg-campus-50 text-slate-700 hover:text-campus-900 transition-colors group"
+            >
+              <div className="w-7 h-7 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center shrink-0">
+                <Award className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <div className="font-bold text-slate-800 group-hover:text-campus-900">Exams & Quizzes</div>
+                <div className="text-[10px] text-slate-400">Live Exams & AI Practice Arena</div>
               </div>
             </Link>
           </div>

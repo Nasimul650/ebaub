@@ -154,8 +154,8 @@ ${fileBuffer ? 'Base your questions strictly on the concepts, formulas, case exa
 
     // Candidate models
     const candidateModels = [
-      'gemini-3.5-flash-lite',
       'gemini-3.8-flash',
+      'gemini-3.5-flash',
       'gemini-flash-latest'
     ];
 
