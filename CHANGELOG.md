@@ -5,6 +5,27 @@ All notable changes to the EBAUB Digital Campus project will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-10-18
+
+### Security & Hardening
+- Enforced strict role-based and ownership checks on all server actions and API endpoints
+- Disallowed auto-confirm backdoor in production; requires proper email verification flow
+- Added current password verification for self-service credential changes
+- Created dedicated privileged `adminResetTeacherPassword` action with explicit admin checks
+- Masked sensitive password strings in administrative UI and clipboard exports
+- Enforced origin whitelisting on file-proxy and pdf-proxy endpoints to prevent SSRF
+
+### Architecture & Modularity
+- Refactored monolithic server action files into domain-specific modules (`news.ts`, `notices.ts`, `events.ts`, `faculty.ts`, `programs.ts`, `signup.ts`, `password-reset.ts`, `whitelist-verify.ts`, `upload-material.ts`, `delete-material.ts`, `adminSettings.ts`, `userPreferences.ts`, `systemConfig.ts`)
+- Centralized configuration and environment validation in `src/lib/config.ts`
+- Centralized form parsing, password strength, and RFC-compliant email validation in `src/lib/form-parser.ts`
+- Extracted shared database queries into `src/lib/queries/` (`profile.ts`, `whitelist.ts`)
+- Separated `StudyHubWorkspace` into composable `ViewerContainer` and `NoteEditor` components
+
+### Database & Performance
+- Added `0022_performance_indexes.sql` with B-tree indexes across all foreign keys, roles, and composite queries
+- Refreshed consolidated `database/schema.sql` with performance optimizations
+
 ## [1.0.0] - 2026-10-18
 
 ### Added

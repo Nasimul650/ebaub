@@ -14,7 +14,8 @@ import {
 } from '@/types';
 
 // Mock dataset: Used strictly as development fallback / offline prototype data
-export const isDevelopmentMock = process.env.NODE_ENV !== 'production';
+export const NEXT_PUBLIC_USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+export const isDevelopmentMock = process.env.NODE_ENV === 'development' && NEXT_PUBLIC_USE_MOCK_DATA;
 
 export const initialSiteSettings: SiteSettings = {
   universityName: 'EXIM Bank Agricultural University Bangladesh',

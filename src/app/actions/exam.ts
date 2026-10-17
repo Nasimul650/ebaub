@@ -604,6 +604,25 @@ export async function getExamSubmissionResults(quizId: string, submissionId?: st
       return { success: false, error: 'Unauthorized' };
     }
 
+    // Ownership check on specific submissionId
+    if (submissionId && !submissionId.startsWith('temp-') && !submissionId.startsWith('sub-')) {
+      const { data: submission } = await supabase
+        .from('exam_submissions')
+        .select('student_id')
+        .eq('id', submissionId)
+        .single();
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (submission && submission.student_id !== user.id && profile?.role !== 'ADMIN') {
+        return { success: false, error: 'Unauthorized' };
+      }
+    }
+
     const admin = createAdminClient();
 
     // 1. Fetch submission record (from exam_submissions or fallback study_sessions)

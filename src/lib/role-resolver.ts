@@ -3,12 +3,14 @@
  * Single source of truth for email- and profile-based role determination.
  */
 
+import { ROLE_EMAIL_PATTERNS } from '@/lib/config';
+
 export function resolveRoleFromEmail(email: string): 'ADMIN' | 'TEACHER' | 'STUDENT' {
   const normalized = email.toLowerCase().trim();
-  if (normalized.includes('admin')) {
+  if (ROLE_EMAIL_PATTERNS.admin.test(normalized) || normalized.includes('admin')) {
     return 'ADMIN';
   }
-  if (normalized.includes('teacher') || normalized.includes('faculty')) {
+  if (ROLE_EMAIL_PATTERNS.teacher.test(normalized) || normalized.includes('teacher') || normalized.includes('faculty')) {
     return 'TEACHER';
   }
   return 'STUDENT';

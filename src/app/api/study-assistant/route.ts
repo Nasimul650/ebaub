@@ -11,10 +11,18 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized. Please sign in to access the study assistant.' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const role = (profile?.role || user.user_metadata?.role || '').toString().toUpperCase();
+    if (role !== 'STUDENT' && role !== 'ADMIN') {
+      return new Response('Forbidden: Student access required', { status: 403 });
     }
 
     const { messages, studentName, departmentName } = await req.json();

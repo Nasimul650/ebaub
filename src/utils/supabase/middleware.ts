@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { normalizeRole } from '@/lib/role-utils'
+import { ROUTE_ROLE_MAP } from '@/lib/config'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -102,25 +103,20 @@ export async function updateSession(request: NextRequest) {
 
     const role = normalizeRole(profile?.role || user.user_metadata?.role)
 
-    // Admin Guard: /admin and /cms strictly require admin role
-    if (isAdminPath && role !== 'admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = getRoleDashboard(role)
-      return createRedirectResponse(url)
-    }
-
-    // Teacher Guard: /teacher requires teacher role or admin
-    if (isTeacherPath && role !== 'teacher' && role !== 'admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = getRoleDashboard(role)
-      return createRedirectResponse(url)
-    }
-
-    // Student Guard: /student requires student role or admin
-    if (isStudentPath && role !== 'student' && role !== 'admin') {
-      const url = request.nextUrl.clone()
-      url.pathname = getRoleDashboard(role)
-      return createRedirectResponse(url)
+    // Centralized route-role map protection
+    for (const [routePrefix, requiredRole] of Object.entries(ROUTE_ROLE_MAP)) {
+      if (pathname.startsWith(routePrefix)) {
+        if (requiredRole === 'admin' && role !== 'admin') {
+          const url = request.nextUrl.clone()
+          url.pathname = getRoleDashboard(role)
+          return createRedirectResponse(url)
+        }
+        if (requiredRole !== 'admin' && role !== requiredRole && role !== 'admin') {
+          const url = request.nextUrl.clone()
+          url.pathname = getRoleDashboard(role)
+          return createRedirectResponse(url)
+        }
+      }
     }
   }
 

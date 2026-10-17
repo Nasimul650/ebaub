@@ -93,15 +93,15 @@ export async function getStudySession(id: string): Promise<{ success: boolean; s
       return { success: false, error: 'Unauthorized' };
     }
 
-    // Explicit ownership check
-    const { data: sessionRecord } = await supabase
+    // Ownership check: Verify user owns this session
+    const { data: session } = await supabase
       .from('study_sessions')
-      .select('student_id')
+      .select('student_id, user_id')
       .eq('id', id)
-      .maybeSingle();
+      .single();
 
-    if (sessionRecord && sessionRecord.student_id !== user.id) {
-      return { success: false, error: 'Cannot access another user session' };
+    if (session && (session as any).user_id !== user.id && session.student_id !== user.id) {
+      return { success: false, error: 'Unauthorized' };
     }
 
     const { data, error } = await supabase
@@ -211,15 +211,15 @@ export async function saveStudySessionNotes(payload: {
       return { success: false, error: 'Unauthorized' };
     }
 
-    // Explicit ownership check
-    const { data: sessionRecord } = await supabase
+    // Ownership check: Verify user owns this session
+    const { data: session } = await supabase
       .from('study_sessions')
-      .select('student_id')
+      .select('student_id, user_id')
       .eq('id', payload.id)
-      .maybeSingle();
+      .single();
 
-    if (sessionRecord && sessionRecord.student_id !== user.id) {
-      return { success: false, error: 'Cannot access another user session' };
+    if (session && (session as any).user_id !== user.id && session.student_id !== user.id) {
+      return { success: false, error: 'Unauthorized' };
     }
 
     const updateData: any = {
@@ -260,15 +260,15 @@ export async function deleteStudySession(id: string): Promise<{ success: boolean
       return { success: false, error: 'Unauthorized' };
     }
 
-    // Explicit ownership check
-    const { data: sessionRecord } = await supabase
+    // Ownership check: Verify user owns this session
+    const { data: session } = await supabase
       .from('study_sessions')
-      .select('student_id')
+      .select('student_id, user_id')
       .eq('id', id)
-      .maybeSingle();
+      .single();
 
-    if (sessionRecord && sessionRecord.student_id !== user.id) {
-      return { success: false, error: 'Cannot access another user session' };
+    if (session && (session as any).user_id !== user.id && session.student_id !== user.id) {
+      return { success: false, error: 'Unauthorized' };
     }
 
     const { error } = await supabase

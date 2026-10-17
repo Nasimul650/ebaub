@@ -730,11 +730,12 @@ export async function updateSubmissionScore(
       if (sub?.quiz_id) {
         const { data: quiz } = await admin
           .from('quizzes')
-          .select('teacher_id')
+          .select('created_by, teacher_id')
           .eq('id', sub.quiz_id)
           .maybeSingle();
 
-        if (quiz && quiz.teacher_id && quiz.teacher_id !== user.id) {
+        const isOwner = quiz?.created_by === user.id || quiz?.teacher_id === user.id;
+        if (quiz && !isOwner) {
           return { success: false, error: 'Not authorized to grade this course: You are not the assigned instructor.' };
         }
       }

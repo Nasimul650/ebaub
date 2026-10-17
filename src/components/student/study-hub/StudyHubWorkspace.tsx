@@ -5,65 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
-const StudyHubPdfViewer = dynamic(
-  () => import('./StudyHubPdfViewer'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-        Loading PDF Viewer...
-      </div>
-    ),
-  }
-);
-
-const DocxViewer = dynamic(
-  () => import('./DocxViewer'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-        Loading Document Viewer...
-      </div>
-    ),
-  }
-);
-
-const ImageViewer = dynamic(
-  () => import('./ImageViewer'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-        Loading Image Viewer...
-      </div>
-    ),
-  }
-);
-
-const PptxViewer = dynamic(
-  () => import('./PptxViewer'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-        Loading Presentation Viewer...
-      </div>
-    ),
-  }
-);
-
-const UnsupportedViewer = dynamic(
-  () => import('./UnsupportedViewer'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-        Loading Viewer...
-      </div>
-    ),
-  }
-);
+import { ViewerContainer } from './ViewerContainer';
+import { NoteEditor } from './NoteEditor';
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -259,46 +202,7 @@ export default function StudyHubWorkspace({ session }: Props) {
     );
   }
 
-  const renderDocumentViewer = () => {
-    switch (fileFormat) {
-      case 'pdf':
-        return (
-          <StudyHubPdfViewer
-            pdfUrl={pdfUrl}
-            onExtractToNotes={handleExtractToNotes}
-          />
-        );
-      case 'docx':
-        return (
-          <DocxViewer
-            fileUrl={rawFileUrl}
-            onExtractToNotes={handleExtractToNotes}
-          />
-        );
-      case 'pptx':
-        return (
-          <PptxViewer
-            fileUrl={rawFileUrl}
-            onExtractToNotes={handleExtractToNotes}
-          />
-        );
-      case 'image':
-        return (
-          <ImageViewer
-            fileUrl={rawFileUrl}
-            onExtractToNotes={handleExtractToNotes}
-          />
-        );
-      case 'unsupported':
-      default:
-        return (
-          <UnsupportedViewer
-            fileUrl={rawFileUrl}
-            onExtractToNotes={handleExtractToNotes}
-          />
-        );
-    }
-  };
+
 
   return (
     <div className="flex flex-col h-[calc(100vh-5.5rem)] bg-white border border-slate-200/90 rounded-3xl shadow-xs overflow-hidden">
@@ -422,184 +326,22 @@ export default function StudyHubWorkspace({ session }: Props) {
               : 'w-full lg:w-[60%] flex-1'
           }`}
         >
-          {renderDocumentViewer()}
+          <ViewerContainer
+            fileFormat={fileFormat}
+            pdfUrl={pdfUrl}
+            rawFileUrl={rawFileUrl}
+            onExtractToNotes={handleExtractToNotes}
+          />
         </div>
 
         {/* Right Side: Rich Text Notepad (40% width) */}
-        <div className="w-full lg:w-[40%] h-full flex flex-col bg-white overflow-hidden">
-          {/* Notepad Toolbar */}
-          <div className="p-2 border-b border-slate-100 bg-slate-50/70 flex flex-wrap items-center gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-              disabled={!editor}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                editor?.isActive('bold')
-                  ? 'bg-campus-900 text-white font-bold'
-                  : 'text-slate-600 hover:bg-slate-200/70'
-              }`}
-              title="Bold"
-            >
-              <Bold className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-              disabled={!editor}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                editor?.isActive('italic')
-                  ? 'bg-campus-900 text-white font-bold'
-                  : 'text-slate-600 hover:bg-slate-200/70'
-              }`}
-              title="Italic"
-            >
-              <Italic className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-              disabled={!editor}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                editor?.isActive('heading', { level: 2 })
-                  ? 'bg-campus-900 text-white font-bold'
-                  : 'text-slate-600 hover:bg-slate-200/70'
-              }`}
-              title="Heading 2"
-            >
-              <Heading2 className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-              disabled={!editor}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                editor?.isActive('heading', { level: 3 })
-                  ? 'bg-campus-900 text-white font-bold'
-                  : 'text-slate-600 hover:bg-slate-200/70'
-              }`}
-              title="Heading 3"
-            >
-              <Heading3 className="w-3.5 h-3.5" />
-            </button>
-
-            <div className="w-px h-4 bg-slate-200 mx-0.5" />
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              disabled={!editor}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                editor?.isActive('bulletList')
-                  ? 'bg-campus-900 text-white font-bold'
-                  : 'text-slate-600 hover:bg-slate-200/70'
-              }`}
-              title="Bullet List"
-            >
-              <List className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              disabled={!editor}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                editor?.isActive('orderedList')
-                  ? 'bg-campus-900 text-white font-bold'
-                  : 'text-slate-600 hover:bg-slate-200/70'
-              }`}
-              title="Numbered List"
-            >
-              <ListOrdered className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-              disabled={!editor}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                editor?.isActive('blockquote')
-                  ? 'bg-campus-900 text-white font-bold'
-                  : 'text-slate-600 hover:bg-slate-200/70'
-              }`}
-              title="Blockquote"
-            >
-              <Quote className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().toggleHighlight().run()}
-              disabled={!editor}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                editor?.isActive('highlight')
-                  ? 'bg-amber-400 text-slate-900 font-bold'
-                  : 'text-slate-600 hover:bg-slate-200/70'
-              }`}
-              title="Highlight Text"
-            >
-              <Highlighter className="w-3.5 h-3.5" />
-            </button>
-
-            <div className="w-px h-4 bg-slate-200 mx-0.5" />
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().undo().run()}
-              disabled={!editor?.can().undo()}
-              className="p-1.5 rounded-lg text-xs text-slate-500 hover:bg-slate-200/70 disabled:opacity-30"
-              title="Undo"
-            >
-              <Undo className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => editor?.chain().focus().redo().run()}
-              disabled={!editor?.can().redo()}
-              className="p-1.5 rounded-lg text-xs text-slate-500 hover:bg-slate-200/70 disabled:opacity-30"
-              title="Redo"
-            >
-              <Redo className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* TipTap Editor Scrollable Area & Printable Notes Container */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-white">
-            <div ref={printRef} className="print-content max-w-2xl mx-auto">
-              {/* Header for Printed PDF */}
-              <div className="print-only mb-6 pb-4 border-b border-slate-200 hidden print:block">
-                <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-                <p className="text-xs text-slate-500 mt-1">
-                  EBAUB Student Study Hub Notes • Exported on {new Date().toLocaleDateString()}
-                </p>
-                {session.source_material && (
-                  <p className="text-xs text-slate-600 mt-0.5 font-medium">
-                    Source Material: {session.source_material.course_code} - {session.source_material.title}
-                  </p>
-                )}
-              </div>
-
-              {/* The TipTap Editor View */}
-              <EditorContent editor={editor} />
-            </div>
-          </div>
-
-          {/* Notepad Footer with Quick Hint */}
-          <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-[11px] text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-campus-600" />
-              <span>
-                {fileFormat === 'image'
-                  ? 'Type your notes directly as you study'
-                  : 'Select text in the document to extract quotes directly'}
-              </span>
-            </div>
-            <span>Auto-saves every few seconds</span>
-          </div>
-        </div>
+        <NoteEditor
+          editor={editor}
+          printRef={printRef}
+          title={title}
+          sourceMaterial={session.source_material}
+          fileFormat={fileFormat}
+        />
       </div>
     </div>
   );

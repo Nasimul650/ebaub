@@ -207,17 +207,14 @@ export async function updateQuiz(quizId: string, quizData: any) {
       return { success: false, error: 'Unauthorized: Only faculty members and administrators can update exams.' };
     }
 
-    // Ownership check: Teachers can only update their own quizzes
-    if (role === 'TEACHER') {
-      const { data: existingQuiz } = await supabase
-        .from('quizzes')
-        .select('teacher_id')
-        .eq('id', quizId)
-        .single();
-
-      if (!existingQuiz || existingQuiz.teacher_id !== user.id) {
-        return { success: false, error: 'Unauthorized: You can only update your own exams.' };
-      }
+    // Ownership check: Verify user created the quiz or is admin
+    const { data: quiz } = await supabase.from('quizzes').select('created_by, teacher_id').eq('id', quizId).single();
+    if (!quiz) {
+      return { success: false, error: 'Quiz not found.' };
+    }
+    const isOwner = quiz.created_by === user.id || quiz.teacher_id === user.id;
+    if (!isOwner && role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: You can only update your own exams.' };
     }
 
     const courseCode = (quizData?.course_code || quizData?.courseCode || '').toString().trim().toUpperCase();
@@ -508,16 +505,14 @@ export async function deleteQuiz(quizId: string) {
       return { success: false, error: 'Unauthorized: Only faculty members and administrators can delete exams.' };
     }
 
-    if (role === 'TEACHER') {
-      const { data: existingQuiz } = await supabase
-        .from('quizzes')
-        .select('teacher_id')
-        .eq('id', quizId)
-        .single();
-
-      if (!existingQuiz || existingQuiz.teacher_id !== user.id) {
-        return { success: false, error: 'Unauthorized: You can only delete your own exams.' };
-      }
+    // Ownership check: Verify user created the quiz or is admin
+    const { data: quiz } = await supabase.from('quizzes').select('created_by, teacher_id').eq('id', quizId).single();
+    if (!quiz) {
+      return { success: false, error: 'Quiz not found.' };
+    }
+    const isOwner = quiz.created_by === user.id || quiz.teacher_id === user.id;
+    if (!isOwner && role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: You can only delete your own exams.' };
     }
 
     const { error } = await supabase

@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { getWhitelistByInstitutionalId, getAllWhitelistRecords } from '@/lib/queries/whitelist';
 
 export interface WhitelistResult {
   success?: boolean;
@@ -156,33 +157,7 @@ export async function getWhitelistedCredentials() {
     const role = (profile?.role || user.user_metadata?.role || '').toUpperCase();
     if (role !== 'ADMIN') return [];
 
-    const { data, error } = await supabaseAdmin
-      .from('credential_whitelist')
-      .select(`
-        id,
-        institutional_id,
-        role,
-        department_id,
-        batch,
-        is_claimed,
-        claimed_by,
-        created_at,
-        departments (
-          id,
-          name,
-          faculties (
-            id,
-            name
-          )
-        )
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('getWhitelistedCredentials error:', error);
-      return [];
-    }
-    return data || [];
+    return await getAllWhitelistRecords();
   } catch (err) {
     console.error('getWhitelistedCredentials exception:', err);
     return [];

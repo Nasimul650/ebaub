@@ -3,6 +3,7 @@
 
 -- 1. Profiles & Roles
 CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
 CREATE INDEX IF NOT EXISTS idx_profiles_department_id ON public.profiles(department_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_institutional_id ON public.profiles(institutional_id);
 CREATE INDEX IF NOT EXISTS idx_profiles_batch ON public.profiles(batch);
@@ -58,12 +59,32 @@ CREATE INDEX IF NOT EXISTS idx_quiz_questions_quiz_id ON public.quiz_questions(q
 -- 7. Exam Submissions & Answers
 CREATE INDEX IF NOT EXISTS idx_exam_submissions_quiz_id ON public.exam_submissions(quiz_id);
 CREATE INDEX IF NOT EXISTS idx_exam_submissions_student_id ON public.exam_submissions(student_id);
+CREATE INDEX IF NOT EXISTS idx_exam_submissions_quiz_student ON public.exam_submissions(quiz_id, student_id);
 CREATE INDEX IF NOT EXISTS idx_exam_answers_submission_id ON public.exam_answers(submission_id);
 CREATE INDEX IF NOT EXISTS idx_exam_answers_question_id ON public.exam_answers(question_id);
 
 -- 8. Credential Whitelist & Study Hub
 CREATE INDEX IF NOT EXISTS idx_credential_whitelist_institutional_id ON public.credential_whitelist(institutional_id);
 CREATE INDEX IF NOT EXISTS idx_credential_whitelist_claimed_by ON public.credential_whitelist(claimed_by);
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'credential_whitelist' AND column_name = 'email'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_credential_whitelist_email ON public.credential_whitelist(email);
+    END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_ai_chat_sessions_user_id ON public.ai_chat_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_study_sessions_student_id ON public.study_sessions(student_id);
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = 'study_sessions' AND column_name = 'user_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_study_sessions_user_id ON public.study_sessions(user_id);
+    END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_study_sessions_material_id ON public.study_sessions(source_material_id);

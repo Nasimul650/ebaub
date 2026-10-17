@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { createUniversityAccount, type AdminAccountResult } from '@/app/actions/admin-users';
 import type { DepartmentWithFaculty } from '@/utils/supabase/queries';
+import { ACCOUNT_CREATION_MESSAGES } from '@/lib/messages';
 
 interface CreateAccountFormProps {
   departments: DepartmentWithFaculty[];
@@ -121,7 +122,7 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
       `Institutional ID: ${successResult.institutional_id}`,
       ...(successResult.batch ? [`Batch: ${successResult.batch}`] : []),
       `Login Email: ${successResult.email}`,
-      `Password: [Configured - Sent to user email]`,
+      `Password: [${ACCOUNT_CREATION_MESSAGES.passwordSent}]`,
       `Portal Login: ${portalUrl}`,
       `----------------------------------------`,
       `Please log in and update your credentials as needed.`

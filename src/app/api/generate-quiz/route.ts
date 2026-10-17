@@ -34,10 +34,7 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized. You must be signed in to generate quizzes.' },
-        { status: 401 }
-      );
+      return new Response('Unauthorized', { status: 401 });
     }
 
     const { data: profile } = await supabase
