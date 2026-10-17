@@ -358,6 +358,18 @@ export async function instantVerifyWhitelistedUser(email: string) {
       return { error: 'No account found with this email address.' };
     }
 
+    // Security check: Only accounts associated with an official claimed whitelist entry can use instant verification
+    const { data: whitelistEntry } = await supabaseAdmin
+      .from('credential_whitelist')
+      .select('id, is_claimed')
+      .eq('claimed_by', targetUser.id)
+      .eq('is_claimed', true)
+      .maybeSingle();
+
+    if (!whitelistEntry) {
+      return { error: 'Instant verification is only available for pre-authorized university credentials.' };
+    }
+
     const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(targetUser.id, {
       email_confirm: true,
     });

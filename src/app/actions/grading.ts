@@ -295,6 +295,18 @@ export async function getExamSubmissions(quizId: string): Promise<{
 
     const admin = createAdminClient();
 
+    // Verify instructor / admin role
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const role = (profile?.role || '').toUpperCase();
+    if (role !== 'TEACHER' && role !== 'ADMIN') {
+      return { success: false, submissions: [], error: 'Permission denied: Only faculty members can view submissions.' };
+    }
+
     // 1. Fetch quiz info
     const { data: quiz, error: quizError } = await admin
       .from('quizzes')
@@ -305,6 +317,7 @@ export async function getExamSubmissions(quizId: string): Promise<{
         status,
         exam_type,
         created_at,
+        teacher_id,
         quiz_questions (
           id
         )
@@ -314,6 +327,11 @@ export async function getExamSubmissions(quizId: string): Promise<{
 
     if (quizError || !quiz) {
       return { success: false, submissions: [], error: 'Exam not found' };
+    }
+
+    // Teachers can only view submissions for their own quizzes
+    if (role === 'TEACHER' && quiz.teacher_id !== user.id) {
+      return { success: false, submissions: [], error: 'Permission denied: You can only view submissions for your own exams.' };
     }
 
     const questionCount = Array.isArray(quiz.quiz_questions) ? quiz.quiz_questions.length : 0;
@@ -524,12 +542,27 @@ export async function getSubmissionDetails(submissionId: string): Promise<Submis
     // 3. Fetch quiz info
     const { data: quiz, error: quizErr } = await admin
       .from('quizzes')
-      .select('id, course_code, title, exam_type')
+      .select('id, course_code, title, exam_type, teacher_id')
       .eq('id', subRecord.quiz_id)
       .single();
 
     if (quizErr || !quiz) {
       return { success: false, error: 'Associated exam not found.' };
+    }
+
+    // Verify instructor / admin or submission owner role
+    const { data: callerProfile } = await admin
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const callerRole = (callerProfile?.role || '').toUpperCase();
+    const isOwnerTeacher = (callerRole === 'TEACHER' || callerRole === 'ADMIN') && (quiz.teacher_id === user.id || (quiz as any).creator_id === user.id || callerRole === 'ADMIN');
+    const isStudentOwner = subRecord.student_id === user.id;
+
+    if (!isOwnerTeacher && !isStudentOwner) {
+      return { success: false, error: 'Permission denied: You do not have permission to view this submission.' };
     }
 
     // 4. Fetch student profile

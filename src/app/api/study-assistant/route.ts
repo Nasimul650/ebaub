@@ -7,6 +7,16 @@ export const maxDuration = 120;
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized. Please sign in to access the study assistant.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const { messages, studentName, departmentName } = await req.json();
 
     const resolvedStudentName = (studentName || 'Student').trim();

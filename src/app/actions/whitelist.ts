@@ -147,6 +147,15 @@ export async function getWhitelistedCredentials() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const role = (profile?.role || user.user_metadata?.role || '').toUpperCase();
+    if (role !== 'ADMIN') return [];
+
     const { data, error } = await supabaseAdmin
       .from('credential_whitelist')
       .select(`
@@ -191,6 +200,17 @@ export async function deleteWhitelistedCredential(id: string) {
 
     if (!user) {
       return { error: 'Unauthorized: Admin authentication required.' };
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const callerRole = (profile?.role || user.user_metadata?.role || '').toUpperCase();
+    if (callerRole !== 'ADMIN') {
+      return { error: 'Forbidden: Only administrators have permission to manage the institutional whitelist.' };
     }
 
     const { error } = await supabaseAdmin

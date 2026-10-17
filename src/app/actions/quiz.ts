@@ -195,6 +195,31 @@ export async function updateQuiz(quizId: string, quizData: any) {
       return { success: false, error: 'Unauthorized: Please sign in.' };
     }
 
+    // Role Guard: Strictly Teachers and Admins
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const role = (profile?.role || user.user_metadata?.role || '').toString().toUpperCase();
+    if (role !== 'TEACHER' && role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only faculty members and administrators can update exams.' };
+    }
+
+    // Ownership check: Teachers can only update their own quizzes
+    if (role === 'TEACHER') {
+      const { data: existingQuiz } = await supabase
+        .from('quizzes')
+        .select('teacher_id')
+        .eq('id', quizId)
+        .single();
+
+      if (!existingQuiz || existingQuiz.teacher_id !== user.id) {
+        return { success: false, error: 'Unauthorized: You can only update your own exams.' };
+      }
+    }
+
     const courseCode = (quizData?.course_code || quizData?.courseCode || '').toString().trim().toUpperCase();
     const title = (quizData?.title || '').toString().trim();
     const rawStatus: QuizStatus = (quizData?.status === 'published') ? 'published' : 'draft';
@@ -286,15 +311,32 @@ export async function toggleQuizStatus(quizId: string) {
       return { success: false, error: 'Unauthorized' };
     }
 
+    // Role Guard: Strictly Teachers and Admins
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const role = (profile?.role || user.user_metadata?.role || '').toString().toUpperCase();
+    if (role !== 'TEACHER' && role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only faculty members and administrators can toggle exam status.' };
+    }
+
     // Get current status
     const { data: quiz, error: fetchErr } = await supabase
       .from('quizzes')
-      .select('id, status, title')
+      .select('id, status, title, teacher_id')
       .eq('id', quizId)
       .single();
 
     if (fetchErr || !quiz) {
       return { success: false, error: 'Exam not found.' };
+    }
+
+    // Ownership check: Teachers can only toggle their own quizzes
+    if (role === 'TEACHER' && quiz.teacher_id !== user.id) {
+      return { success: false, error: 'Unauthorized: You can only modify your own exams.' };
     }
 
     const nextStatus: QuizStatus = quiz.status === 'published' ? 'draft' : 'published';
@@ -333,7 +375,15 @@ export async function getTeacherQuizzes() {
 
     if (!user) return [];
 
-    const { data, error } = await supabase
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const role = (profile?.role || user.user_metadata?.role || '').toString().toUpperCase();
+
+    let query = supabase
       .from('quizzes')
       .select(`
         id,
@@ -353,6 +403,12 @@ export async function getTeacherQuizzes() {
         )
       `)
       .order('created_at', { ascending: false });
+
+    if (role !== 'ADMIN') {
+      query = query.eq('teacher_id', user.id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('getTeacherQuizzes Error:', error);
@@ -377,6 +433,17 @@ export async function getQuizById(quizId: string) {
 
     if (!user) return null;
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const role = (profile?.role || user.user_metadata?.role || '').toString().toUpperCase();
+    if (role !== 'TEACHER' && role !== 'ADMIN') {
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('quizzes')
       .select(`
@@ -385,6 +452,7 @@ export async function getQuizById(quizId: string) {
         title,
         status,
         exam_type,
+        teacher_id,
         created_at,
         quiz_questions (
           id,
@@ -401,6 +469,11 @@ export async function getQuizById(quizId: string) {
 
     if (error || !data) {
       console.error('getQuizById Error:', error);
+      return null;
+    }
+
+    // Teachers can only view their own quizzes
+    if (role === 'TEACHER' && (data as any).teacher_id !== user.id) {
       return null;
     }
 
@@ -422,6 +495,29 @@ export async function deleteQuiz(quizId: string) {
 
     if (!user) {
       return { success: false, error: 'Unauthorized' };
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const role = (profile?.role || user.user_metadata?.role || '').toString().toUpperCase();
+    if (role !== 'TEACHER' && role !== 'ADMIN') {
+      return { success: false, error: 'Unauthorized: Only faculty members and administrators can delete exams.' };
+    }
+
+    if (role === 'TEACHER') {
+      const { data: existingQuiz } = await supabase
+        .from('quizzes')
+        .select('teacher_id')
+        .eq('id', quizId)
+        .single();
+
+      if (!existingQuiz || existingQuiz.teacher_id !== user.id) {
+        return { success: false, error: 'Unauthorized: You can only delete your own exams.' };
+      }
     }
 
     const { error } = await supabase
