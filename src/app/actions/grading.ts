@@ -719,6 +719,27 @@ export async function updateSubmissionScore(
       return { success: false, error: 'Score must be a non-negative number.' };
     }
 
+    // Verify instructor assignment / ownership
+    if (role !== 'ADMIN') {
+      const { data: sub } = await admin
+        .from('exam_submissions')
+        .select('quiz_id')
+        .eq('id', submissionId)
+        .maybeSingle();
+
+      if (sub?.quiz_id) {
+        const { data: quiz } = await admin
+          .from('quizzes')
+          .select('teacher_id')
+          .eq('id', sub.quiz_id)
+          .maybeSingle();
+
+        if (quiz && quiz.teacher_id && quiz.teacher_id !== user.id) {
+          return { success: false, error: 'Not authorized to grade this course: You are not the assigned instructor.' };
+        }
+      }
+    }
+
     let updated = false;
     let targetQuizId = '';
 

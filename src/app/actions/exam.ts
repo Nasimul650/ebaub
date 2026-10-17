@@ -437,7 +437,8 @@ export async function getExamForTaking(quizId: string): Promise<{
  */
 export async function submitExam(
   quizId: string,
-  answers: Record<string, string>
+  answers: Record<string, string>,
+  studentId?: string
 ): Promise<{
   success: boolean;
   submissionId?: string;
@@ -451,6 +452,11 @@ export async function submitExam(
 
     if (authError || !user) {
       return { success: false, error: 'Unauthorized. Please log in to submit your exam.' };
+    }
+
+    // Ownership check: Student can only submit for themselves
+    if (studentId && studentId !== user.id) {
+      return { success: false, error: 'Cannot submit exam for another student' };
     }
 
     const admin = createAdminClient();

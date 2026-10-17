@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { normalizeRole } from '@/lib/role-utils'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -68,8 +69,7 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .maybeSingle()
 
-    const rawRole = (profile?.role || user.user_metadata?.role || 'student').toString().toLowerCase()
-    const role = rawRole === 'admin' ? 'admin' : rawRole === 'teacher' ? 'teacher' : 'student'
+    const role = normalizeRole(profile?.role || user.user_metadata?.role)
 
     const url = request.nextUrl.clone()
     url.pathname = getRoleDashboard(role)
@@ -100,8 +100,7 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .maybeSingle()
 
-    const rawRole = (profile?.role || user.user_metadata?.role || 'student').toString().toLowerCase()
-    const role = rawRole === 'admin' ? 'admin' : rawRole === 'teacher' ? 'teacher' : 'student'
+    const role = normalizeRole(profile?.role || user.user_metadata?.role)
 
     // Admin Guard: /admin and /cms strictly require admin role
     if (isAdminPath && role !== 'admin') {

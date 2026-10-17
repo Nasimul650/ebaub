@@ -3,6 +3,8 @@
 import { createClient } from '@/utils/supabase/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { extractPassword, extractString } from '@/lib/form-parser';
+import { formatPasswordError } from '@/lib/error-messages';
 
 export interface ProfileUpdateResult {
   success?: boolean;
@@ -35,6 +37,12 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
       return { error: 'Unauthorized: Please log in to update your profile settings.' };
     }
 
+    // Ownership check: Ensure caller can only update their own profile
+    const targetProfileId = (formData.get('profile_id') as string || formData.get('id') as string || '').trim();
+    if (targetProfileId && targetProfileId !== user.id) {
+      return { error: 'Cannot update another user profile' };
+    }
+
     // 2. Extract inputs
     const fullName = (formData.get('fullName') as string || formData.get('full_name') as string || '').trim();
     const username = (formData.get('username') as string || '').trim();
@@ -44,8 +52,8 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
     const avatarFile = formData.get('avatar') as File | null;
 
     // Optional password change if submitted together
-    const newPassword = (formData.get('new_password') as string || '').trim();
-    const confirmPassword = (formData.get('confirm_password') as string || '').trim();
+    const newPassword = extractPassword(formData, 'new_password');
+    const confirmPassword = extractPassword(formData, 'confirm_password');
 
     // Validations
     if (fullName && fullName.length > 100) {
@@ -78,7 +86,7 @@ export async function updateUserProfile(formData: FormData): Promise<ProfileUpda
       });
 
       if (pwdError) {
-        return { error: `Failed to update password: ${pwdError.message}` };
+        return { error: formatPasswordError(pwdError) };
       }
     }
 
@@ -278,8 +286,14 @@ export async function changeUserPassword(formData: FormData): Promise<PasswordCh
       return { error: 'Unauthorized: Please log in to update your password.' };
     }
 
-    const newPassword = (formData.get('new_password') as string || '').trim();
-    const confirmPassword = (formData.get('confirm_password') as string || '').trim();
+    // Ownership check: Ensure caller can only change their own password
+    const targetUserId = (formData.get('user_id') as string || formData.get('profile_id') as string || '').trim();
+    if (targetUserId && targetUserId !== user.id) {
+      return { error: 'Forbidden: Cannot change password for another user' };
+    }
+
+    const newPassword = extractPassword(formData, 'new_password');
+    const confirmPassword = extractPassword(formData, 'confirm_password');
 
     if (!newPassword) {
       return { error: 'Please enter a new password.' };
@@ -298,7 +312,7 @@ export async function changeUserPassword(formData: FormData): Promise<PasswordCh
     });
 
     if (pwdError) {
-      return { error: `Failed to update password: ${pwdError.message}` };
+      return { error: formatPasswordError(pwdError) };
     }
 
     return {

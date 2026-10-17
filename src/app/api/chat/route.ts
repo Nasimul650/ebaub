@@ -48,9 +48,11 @@ ${programs.map(p => `- ${p.name} (${p.degree})`).join('\n')}
 `;
 }
 
+import { getTavilyApiKey } from '@/lib/config';
+
 // Function to search live web & university social media (Facebook/Portal) via Tavily
 async function searchWebContext(query: string): Promise<string> {
-  const apiKey = process.env.TAVILY_API_KEY;
+  const apiKey = getTavilyApiKey();
   if (!apiKey) return '';
 
   try {
@@ -131,6 +133,13 @@ function isConversationalOrMath(query: string): boolean {
 
 export async function POST(req: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return new Response('Unauthorized: Please sign in to access the AI assistant.', { status: 401 });
+    }
+
     const { messages } = await req.json();
     const lastUserMessage = messages?.slice().reverse().find((m: any) => m.role === 'user')?.content?.trim() || '';
 

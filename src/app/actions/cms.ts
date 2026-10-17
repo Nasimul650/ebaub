@@ -76,7 +76,12 @@ export async function createNews(prevState: any, formData: FormData) {
 
 export async function updateNews(id: string, prevState: any, formData: FormData) {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase, user } = await requireAdmin();
+
+    const { data: resource } = await supabase.from('news').select('author_id').eq('id', id).maybeSingle();
+    if (!resource) {
+      return { error: 'News article not found.' };
+    }
 
     const title = formData.get('title') as string;
     const summary = formData.get('summary') as string;
@@ -153,7 +158,12 @@ export async function createNotice(prevState: any, formData: FormData) {
 
 export async function updateNotice(id: string, prevState: any, formData: FormData) {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase, user } = await requireAdmin();
+
+    const { data: resource } = await supabase.from('notices').select('author_id').eq('id', id).maybeSingle();
+    if (!resource) {
+      return { error: 'Notice not found.' };
+    }
 
     const title = formData.get('title') as string;
     const category = formData.get('category') as string;
@@ -189,9 +199,12 @@ export async function updateNotice(id: string, prevState: any, formData: FormDat
 
 export async function deleteNews(formData: FormData) {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase, user } = await requireAdmin();
     const id = formData.get('id') as string;
     if (!id) throw new Error('ID is required');
+
+    const { data: resource } = await supabase.from('news').select('author_id').eq('id', id).maybeSingle();
+    if (!resource) throw new Error('News article not found.');
 
     const { error } = await supabase.from('news').delete().eq('id', id);
     if (error) throw new Error(error.message);
@@ -206,9 +219,12 @@ export async function deleteNews(formData: FormData) {
 
 export async function deleteNotice(formData: FormData) {
   try {
-    const { supabase } = await requireAdmin();
+    const { supabase, user } = await requireAdmin();
     const id = formData.get('id') as string;
     if (!id) throw new Error('ID is required');
+
+    const { data: resource } = await supabase.from('notices').select('author_id').eq('id', id).maybeSingle();
+    if (!resource) throw new Error('Notice not found.');
 
     const { error } = await supabase.from('notices').delete().eq('id', id);
     if (error) throw new Error(error.message);

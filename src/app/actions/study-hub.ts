@@ -93,6 +93,17 @@ export async function getStudySession(id: string): Promise<{ success: boolean; s
       return { success: false, error: 'Unauthorized' };
     }
 
+    // Explicit ownership check
+    const { data: sessionRecord } = await supabase
+      .from('study_sessions')
+      .select('student_id')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (sessionRecord && sessionRecord.student_id !== user.id) {
+      return { success: false, error: 'Cannot access another user session' };
+    }
+
     const { data, error } = await supabase
       .from('study_sessions')
       .select(`
@@ -200,6 +211,17 @@ export async function saveStudySessionNotes(payload: {
       return { success: false, error: 'Unauthorized' };
     }
 
+    // Explicit ownership check
+    const { data: sessionRecord } = await supabase
+      .from('study_sessions')
+      .select('student_id')
+      .eq('id', payload.id)
+      .maybeSingle();
+
+    if (sessionRecord && sessionRecord.student_id !== user.id) {
+      return { success: false, error: 'Cannot access another user session' };
+    }
+
     const updateData: any = {
       notes_content: payload.notesContent,
       updated_at: new Date().toISOString(),
@@ -236,6 +258,17 @@ export async function deleteStudySession(id: string): Promise<{ success: boolean
 
     if (authError || !user) {
       return { success: false, error: 'Unauthorized' };
+    }
+
+    // Explicit ownership check
+    const { data: sessionRecord } = await supabase
+      .from('study_sessions')
+      .select('student_id')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (sessionRecord && sessionRecord.student_id !== user.id) {
+      return { success: false, error: 'Cannot access another user session' };
     }
 
     const { error } = await supabase

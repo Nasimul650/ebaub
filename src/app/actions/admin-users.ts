@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { supabaseAdmin } from '@/utils/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { extractEmail, extractPassword, extractString } from '@/lib/form-parser';
 
 export interface AdminAccountResult {
   success?: boolean;
@@ -48,13 +49,13 @@ export async function createUniversityAccount(formData: FormData): Promise<Admin
     }
 
     // 2. Extract inputs
-    const rawRole = (formData.get('role') as string || '').trim().toLowerCase();
-    const institutionalId = (formData.get('institutional_id') as string || '').trim();
-    const fullName = (formData.get('full_name') as string || '').trim();
-    const email = (formData.get('email') as string || '').trim().toLowerCase();
-    const password = (formData.get('password') as string || '').trim();
-    const departmentId = (formData.get('department_id') as string || '').trim() || null;
-    const batch = (formData.get('batch') as string || '').trim() || null;
+    const rawRole = extractString(formData, 'role').toLowerCase();
+    const institutionalId = extractString(formData, 'institutional_id');
+    const fullName = extractString(formData, 'full_name');
+    const email = extractEmail(formData);
+    const password = extractPassword(formData);
+    const departmentId = extractString(formData, 'department_id') || null;
+    const batch = extractString(formData, 'batch') || null;
 
     // 3. Validation
     if (!rawRole || (rawRole !== 'teacher' && rawRole !== 'student')) {
@@ -220,7 +221,6 @@ export async function createUniversityAccount(formData: FormData): Promise<Admin
         institutional_id: institutionalId,
         full_name: fullName,
         role: normalizedRole,
-        password,
         department_id: departmentId,
         batch: batch || undefined,
       },

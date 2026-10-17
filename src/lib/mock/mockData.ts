@@ -13,6 +13,9 @@ import {
   MediaItem
 } from '@/types';
 
+// Mock dataset: Used strictly as development fallback / offline prototype data
+export const isDevelopmentMock = process.env.NODE_ENV !== 'production';
+
 export const initialSiteSettings: SiteSettings = {
   universityName: 'EXIM Bank Agricultural University Bangladesh',
   shortName: 'EBAUB',

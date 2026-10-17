@@ -25,6 +25,10 @@ EBAUB Digital Campus is a full-featured university web portal designed for **stu
 | **Teachers** | Course Material Management, AI Quiz/Exam Generator (MCQ, Short, Creative), Student Submission Grading, Teaching Dashboard |
 | **Administrators** | Full CMS (News, Notices, Events, Faculty, Programs, Admissions), User Management, Credential Whitelisting, Page Builder, Site Settings, Media Manager |
 
+## 🚀 Quick Start
+
+See [**HowToSetup.md**](./HowToSetup.md) for detailed installation, database setup (Supabase migrations & seed data), environment variable configuration, and deployment instructions for VPS and Docker.
+
 ## ✨ Feature List
 
 ### Public Website

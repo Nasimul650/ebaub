@@ -121,7 +121,7 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
       `Institutional ID: ${successResult.institutional_id}`,
       ...(successResult.batch ? [`Batch: ${successResult.batch}`] : []),
       `Login Email: ${successResult.email}`,
-      `Password: ${successResult.password || '(configured)'}`,
+      `Password: [Configured - Sent to user email]`,
       `Portal Login: ${portalUrl}`,
       `----------------------------------------`,
       `Please log in and update your credentials as needed.`
@@ -287,7 +287,7 @@ export default function CreateAccountForm({ departments = [] }: CreateAccountFor
             </div>
             <div className="p-3 bg-white rounded-2xl border border-emerald-200 shadow-2xs">
               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Temporary Password</div>
-              <div className="font-extrabold text-amber-700 font-mono mt-0.5">{successResult.password}</div>
+              <div className="font-extrabold text-amber-700 font-mono mt-0.5">•••••••• (configured)</div>
             </div>
           </div>
 

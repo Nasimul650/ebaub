@@ -13,6 +13,16 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const { data: chat } = await supabase
+    .from('ai_chat_sessions')
+    .select('user_id')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (chat && chat.user_id !== user.id) {
+    return NextResponse.json({ error: 'Forbidden: Cannot access another user chat history' }, { status: 403 });
+  }
+
   const { data, error } = await supabase
     .from('ai_chat_sessions')
     .select('*')

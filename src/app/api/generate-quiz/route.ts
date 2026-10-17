@@ -40,8 +40,24 @@ export async function POST(req: Request) {
       );
     }
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    const userRole = (profile?.role || '').toUpperCase();
+
     // 2. Parse request payload
     const body = await req.json();
+    const isPractice = body.isPractice === true;
+
+    if (!['TEACHER', 'ADMIN'].includes(userRole) && !(isPractice && userRole === 'STUDENT')) {
+      return NextResponse.json(
+        { error: 'Forbidden: Faculty or Admin permissions required to generate quizzes.' },
+        { status: 403 }
+      );
+    }
     const rawType = (body.questionType || body.examType || 'mcq').toString().toLowerCase().trim();
     const questionType = (rawType === 'short' || rawType === 'short_answer') ? 'short_answer' :
                          (rawType === 'creative') ? 'creative' : 'mcq';

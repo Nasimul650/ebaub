@@ -5,12 +5,14 @@ import { supabaseAdmin } from '@/utils/supabase/admin';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
+import { extractEmail, extractPassword, extractString } from '@/lib/form-parser';
+import { resolveRoleFromEmail } from '@/lib/role-resolver';
 
 export async function login(prevState: any, formData: FormData) {
-  const email = (formData.get('email') as string || '').trim();
-  const password = (formData.get('password') as string || '').trim();
-  const portal = (formData.get('portal') as string || '').toLowerCase().trim();
-  const redirectTo = (formData.get('redirectTo') as string || '').trim();
+  const email = extractEmail(formData);
+  const password = extractPassword(formData);
+  const portal = extractString(formData, 'portal').toLowerCase();
+  const redirectTo = extractString(formData, 'redirectTo');
 
   if (!email || !password) {
     return { error: 'Email and password are required' };
@@ -24,6 +26,7 @@ export async function login(prevState: any, formData: FormData) {
   });
 
   if (error) {
+    // Fallback: Auto-confirm unverified emails if signup was via whitelist. Remove if email verification is enforced.
     if (error.message.toLowerCase().includes('not confirmed')) {
       try {
         const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
@@ -59,9 +62,7 @@ export async function login(prevState: any, formData: FormData) {
 
   // Dynamic profile creation / fallback if missing
   if (!role) {
-    const isTeacher = email.toLowerCase().includes('teacher') || portal === 'teacher';
-    const isAdmin = email.toLowerCase().includes('admin') || portal === 'admin';
-    const fallbackRole = isAdmin ? 'ADMIN' : (isTeacher ? 'TEACHER' : 'STUDENT');
+    const fallbackRole = resolveRoleFromEmail(email);
     
     await supabase.from('profiles').upsert({
       id: data.user.id,

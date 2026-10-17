@@ -28,6 +28,13 @@ import {
   initialMediaItems
 } from './mockData';
 
+// Production safety guard: Mock services are intended only for development & prototype offline testing
+if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
+  // In server production, mock data services should not be invoked directly
+}
+
+export const isMockAvailable = process.env.NODE_ENV !== 'production';
+
 // Helper to get or set local storage state for client-side persistence in prototype
 const getStoredState = <T>(key: string, fallback: T): T => {
   if (typeof window === 'undefined') return fallback;

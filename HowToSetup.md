@@ -163,15 +163,20 @@ docker compose up -d --build
 
 ### Option 1: Supabase Cloud (Recommended)
 
-1. Create a new project at [supabase.com/dashboard](https://supabase.com/dashboard)
+1. Create a new project at [supabase.com/dashboard](https://supabase.com/dashboard).
 2. Go to **Project Settings → API** and copy:
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - Anon public key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - Service role key → `SUPABASE_SERVICE_ROLE_KEY`
-3. Run all 21 migration files in order via the **SQL Editor**:
-   - Open each file in `supabase/migrations/` (from `0001_initial_schema.sql` to `0021_student_exam_center.sql`)
-   - Paste and execute sequentially in the Supabase SQL Editor
-4. Alternatively, use the Supabase CLI:
+   - Service role key (secret) → `SUPABASE_SERVICE_ROLE_KEY`
+3. Apply the complete database schema:
+   - Navigate to your Supabase project → **SQL Editor** → click **New query**.
+   - Copy and paste the entire contents of [`database/schema.sql`](./database/schema.sql) and click **Run**.
+   - This creates all tables, custom types, triggers, RLS policies, storage buckets, and performance indexes in one go.
+4. Populate demo seed data:
+   - After `database/schema.sql` succeeds, open another query in the **SQL Editor**.
+   - Copy and paste the contents of [`database/seed.sql`](./database/seed.sql) and click **Run**.
+   - This populates demo faculties, departments, degree programs, courses, news articles, notices, events, faculty members, and academic calendar.
+5. Alternatively, if using the Supabase CLI:
    ```bash
    npx supabase login
    npx supabase link --project-ref YOUR_PROJECT_REF
@@ -180,33 +185,52 @@ docker compose up -d --build
 
 ### Option 2: Self-Hosted Supabase
 
-Follow the [Supabase self-hosting guide](https://supabase.com/docs/guides/self-hosting) and run the same migrations against your local PostgreSQL instance.
+Follow the [Supabase self-hosting guide](https://supabase.com/docs/guides/self-hosting). Once your PostgreSQL instance is running, execute `database/schema.sql` followed by `database/seed.sql` using `psql`:
+```bash
+psql -h localhost -U postgres -d postgres -f database/schema.sql
+psql -h localhost -U postgres -d postgres -f database/seed.sql
+```
 
-### Storage Buckets
+### Storage Buckets Provisioned
 
-The migration `0001_initial_schema.sql` creates these storage buckets automatically:
-- `public_media` (public) — general media assets
-- `student_files` (private) — student uploads
-- `teacher_materials` (private) — teacher materials
-
-Additional buckets created by later migrations:
-- `course_materials` (public, 50MB limit) — created by `0010`
-- `personal_study_files` (public, 50MB limit) — created by `0020`
-- `avatars` (public) — created by `0014`
+The schema script provisions the following Supabase Storage buckets automatically with appropriate RLS policies:
+- `public_media` (public) — General university media assets
+- `course_materials` (public, 50MB limit) — Teacher lecture slides, handouts, and departmental course materials
+- `personal_study_files` (public, 50MB limit) — Student personal documents and study session attachments
+- `avatars` (public) — User profile pictures
+- `student_files` (private) — Student internal uploads
+- `teacher_materials` (private) — Teacher internal materials
 
 ---
 
 ## Environment Variables
 
-Copy `.env.example` to `.env.local` and fill in your values:
+Copy `.env.example` to `.env.local` before starting the application:
+
+```bash
+cp .env.example .env.local
+```
+
+### Critical Environment Variables (Mandatory)
+
+The following three variables are strictly required for the application to boot and authenticate users:
+
+1. **`NEXT_PUBLIC_SUPABASE_URL`**: Your Supabase project URL (e.g. `https://your-project-ref.supabase.co`).
+2. **`NEXT_PUBLIC_SUPABASE_ANON_KEY`**: Your Supabase anonymous public API key. Required by browser and server components.
+3. **`SUPABASE_SERVICE_ROLE_KEY`**: Your Supabase service role secret key. Required for privileged administrative user provisioning and bypassing RLS on server-side background operations. **Keep this secret and never commit to Git.** Found in: **Supabase Dashboard → Project Settings → API → service_role key**.
+
+### AI Features (Recommended)
+
+4. **`GOOGLE_GENERATIVE_AI_API_KEY`**: Required for all AI capabilities (AI Study Assistant, AI Tutor, and AI Exam/Quiz Generator). Obtain a free API key at [Google AI Studio](https://aistudio.google.com/apikey).
+5. **`TAVILY_API_KEY`**: Optional. Enables live web search and social media context retrieval for the public AI assistant. Obtain an API key at [Tavily](https://tavily.com/). The application will run without it, but web search features will be bypassed.
 
 | Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anonymous/public API key |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase service role key (server-side only) |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | ✅ | Google AI (Gemini) API key for AI features |
-| `TAVILY_API_KEY` | ⬚ | Tavily API key for AI web search (optional but recommended) |
+|----------|:--------:|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ Mandatory | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ Mandatory | Supabase anonymous public API key |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ Mandatory | Supabase service role key (server-side only) |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | ✅ Required for AI | Google Gemini API key for AI study assistant & exam generator |
+| `TAVILY_API_KEY` | ⬚ Optional | Tavily API key for live web search integration |
 
 ---
 
